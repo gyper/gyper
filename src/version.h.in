@@ -1,0 +1,2 @@
+#define gyper_VERSION_MAJOR @gyper_VERSION_MAJOR@
+#define gyper_VERSION_MINOR @gyper_VERSION_MINOR@
