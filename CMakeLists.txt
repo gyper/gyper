@@ -43,6 +43,9 @@ include_directories(${SEQAN_INCLUDE_DIRS})
 message (STATUS "Added include directories: ${SEQAN_INCLUDE_DIRS}")
 set(LIBS ${LIBS} ${SEQAN_LIBRARIES})
 
+# Add SeqAn definitions set by find_package.
+add_definitions (${SEQAN_DEFINITIONS})
+
 if (NOT SEQAN_FOUND)
 	message (ERROR "SeqAn not found!")
 endif(NOT SEQAN_FOUND)

@@ -6,6 +6,7 @@
 #include "graph_align.hpp"
 #include "graph_builder.hpp"
 #include "graph_io.hpp"
+#include "graph_kmerify.hpp"
 #include "graph.hpp"
 #include "constants.hpp"
 
@@ -962,6 +963,7 @@ int main (int argc, char const ** argv)
   std::string gene(toCString(CO.gene));
 
   createGenericGraph(CO, graph, vertex_vector, ids, edge_ids, free_nodes, order);
+  kmerifyGraph(order, graph, vertex_vector, free_nodes);
 
   printf("[%6.2f] Graph created.\n", double(clock()-begin) / CLOCKS_PER_SEC);
   DnaString sequence1;

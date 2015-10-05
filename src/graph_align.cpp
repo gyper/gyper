@@ -64,6 +64,7 @@ getScoreVector(ExactBacktracker const & previous_backtracker,
   return current_backtracker.match.back();
 }
 
+
 // Without quality
 bool
 getScoreVector(ExactBacktracker const & previous_backtracker,
@@ -92,6 +93,7 @@ getScoreVector(ExactBacktracker const & previous_backtracker,
 
   return current_backtracker.match.back();
 }
+
 
 /*
  * alignToGraphExact aligns a sequence to the graph
