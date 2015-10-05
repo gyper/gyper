@@ -7,60 +7,12 @@
 #include "graph_builder.hpp"
 #include "graph_io.hpp"
 #include "graph.hpp"
+#include "constants.hpp"
 
 #include <seqan/arg_parse.h>
 #include <seqan/bam_io.h>
-// #include <seqan/bam_io/bam_index_bai.h>
 
 #include <boost/algorithm/string/find.hpp>
-
-struct callOptions
-{
- public:
-  CharString beta_list;
-  std::vector<double> beta;
-  int bpQclip;
-  int bpQskip;
-  CharString bamFile;
-  CharString bam2;
-  CharString bam3;
-  CharString bam4;
-  CharString gene;
-  CharString minSeqLen_list;
-  std::vector<unsigned> minSeqLen;
-  // std::vector<int> minSeqs;
-  CharString outputFolder;
-  CharString vcfFile;
-  CharString vcfOutputFolder;
-  bool verbose;
-  bool align_all_reads;
-  bool thousand_genomes;
-  int read_gap;
-
-  void output(){
-    std::cout << "CO.bamFile " << bamFile << std::endl;
-    std::cout << "CO.bam2 " << bam2 << std::endl;
-    std::cout << "CO.bam3 " << bam3 << std::endl;
-    std::cout << "CO.bam4 " << bam4 << std::endl;
-    std::cout << "CO.beta_list " << beta_list << std::endl;
-    std::cout << "CO.beta.size() " << beta.size() << std::endl;
-    std::cout << "CO.bpQclip " << bpQclip << std::endl;
-    std::cout << "CO.bpQskip " << bpQskip << std::endl;
-    std::cout << "CO.gene " << gene << std::endl;
-    std::cout << "CO.minSeqLen_list " << minSeqLen_list << std::endl;
-    std::cout << "CO.minSeqLen.size() " << minSeqLen.size() << std::endl;
-    std::cout << "CO.outputFolder " << outputFolder << std::endl;
-    std::cout << "CO.vcfFile " << vcfFile << std::endl;
-    std::cout << "CO.vcfOutputFolder" << vcfOutputFolder << std::endl;
-    std::cout << "CO.verbose " << verbose << std::endl;
-    std::cout << "CO.align_all_reads " << align_all_reads << std::endl;
-    std::cout << "CO.thousand_genomes " << thousand_genomes << std::endl;
-    std::cout << "CO.read_gap " << read_gap << std::endl;
-  };
-
-callOptions():
-  beta_list("0.6"), bpQclip(30), bpQskip(25), gene("DQA1"), minSeqLen_list("60"), outputFolder(), vcfOutputFolder(), verbose(false), align_all_reads(false), thousand_genomes(false), read_gap(1000) {}
-};
 
 
 template<typename T>
@@ -88,7 +40,7 @@ void parseArgList (CharString &args_in, std::vector<T> &vector_out)
 }
 
 
-ArgumentParser::ParseResult parseCommandLine(callOptions& CO, ArgumentParser & parser, int argc, char const ** argv )
+ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & parser, int argc, char const ** argv )
 {
   // setShortDescription(parser, "Converts a bam file into a fastq file.");
   setVersion(parser, "0.1");
@@ -186,10 +138,38 @@ ArgumentParser::ParseResult parseCommandLine(callOptions& CO, ArgumentParser & p
     CO.output();
   }
 
+  // Set the number of exons
+  if (CO.gene == "HLAA")
+  {
+    CO.number_of_exons = 8;
+  }
+  else if (CO.gene == "HLAB")
+  {
+    CO.number_of_exons = 7;
+  }
+  else if (CO.gene == "HLAC")
+  {
+    CO.number_of_exons = 8;
+  }
+  else if (CO.gene == "DQA1")
+  {
+    CO.number_of_exons = 4;
+  }
+  else if (CO.gene == "DQB1")
+  {
+    CO.number_of_exons = 6;
+  }
+  else if (CO.gene == "DRB1")
+  {
+    CO.number_of_exons = 6;
+  }
+
   return ArgumentParser::PARSE_OK;
 }
 
+
 typedef FormattedFileContext<BamFileIn, void>::Type TBamContext;
+
 
 unsigned
 getChromosomeRid(TBamContext const & bamContext, CharString const & chromosomeName)
@@ -201,28 +181,25 @@ getChromosomeRid(TBamContext const & bamContext, CharString const & chromosomeNa
       return i;
     }
   }
-  // std::cerr << "No chromosome '" << chromosomeName << "' found!" << std::endl;
-  // std::cerr << "Available chromosome names are:\n";
-  // for (unsigned i = 0; i < length(contigNames(bamContext)); ++i)
-  // {
-  //   std::cerr << contigNames(bamContext)[i] << std::endl;
-  // }
+
   return 99999;
 }
+
 
 std::string
 getRegion(callOptions & CO,
           std::string gene)
 {
   std::ostringstream region_file;
+  region_file << gyper_SOURCE_DIRECTORY;
   
   if (CO.thousand_genomes)
   {
-    region_file << "data/region1k/" << gene;
+    region_file << "/data/haplotypes/hla/region1k/" << gene;
   }
   else
   {
-    region_file << "data/region/" << gene;
+    region_file << "/data/haplotypes/hla/region/" << gene;
   }
   
   std::ifstream myfile(region_file.str());
@@ -236,7 +213,7 @@ getRegion(callOptions & CO,
     }
     myfile.close();
   }
-  std::cerr << "No region file found!" << std::endl;
+  std::cerr << "ERROR: No region file found at location: " << region_file.str() << std::endl;
   return line;
 }
 
@@ -588,14 +565,15 @@ size_t
 findAvailableGenotypes(callOptions & CO, boost::unordered_set<std::string> & available_alleles)
 {
   std::ostringstream file_location;
+  file_location << gyper_SOURCE_DIRECTORY;
 
   if (CO.thousand_genomes)
   {
-    file_location << "data/available_alleles/1000genomes/";
+    file_location << "/data/haplotypes/hla/available_alleles/1000genomes/";
   }
   else
   {
-    file_location << "data/available_alleles/icelandic_alleles/";
+    file_location << "/data/haplotypes/hla/available_alleles/icelandic_alleles/";
   }
 
   file_location << CO.gene;
@@ -740,13 +718,20 @@ handleOutput (callOptions & CO,
   unsigned j_max_short = 0;
   double max_score_short = 0;
 
-  // Only print this if it's not absurdly large (and in verbose mode)
   for (unsigned i = 0; i < ids_four.size(); ++i)
   {
+    // Skip alleles with a score of 0.0
+    if (seq_scores_four[i][0] < 0.1)
+      continue;
+
     std::cout << std::setw(15) << ids_four[i] << ": ";
     for (unsigned j = 0; j < ids_four.size(); ++j)
     {
-      printf("%6.1f ", seq_scores_four[i][j]);
+      if (seq_scores_four[i][j] < 0.1)
+        continue;
+
+      if (i >= j)
+        printf("%6.1f ", seq_scores_four[i][j]);
 
       if (seq_scores_four[i][j] > max_score_short)
       {
@@ -976,35 +961,7 @@ int main (int argc, char const ** argv)
   TGraph graph;
   std::string gene(toCString(CO.gene));
 
-  if (gene == "DQA1")
-  {
-    createDqa1Graph(graph, vertex_vector, ids, edge_ids, free_nodes, order);
-  }
-  else if (gene == "DQB1")
-  {
-    createDqb1Graph(graph, vertex_vector, ids, edge_ids, free_nodes, order);
-  }
-  else if (gene == "DRB1")
-  {
-    createDrb1Graph(graph, vertex_vector, ids, edge_ids, free_nodes, order);
-  }
-  else if (gene == "HLAA")
-  {
-    createHlaaGraph(graph, vertex_vector, ids, edge_ids, free_nodes, order);
-  }
-  else if (gene == "HLAB")
-  {
-    createHlabGraph(graph, vertex_vector, ids, edge_ids, free_nodes, order);
-  }
-  else if (gene == "HLAC")
-  {
-    createHlacGraph(graph, vertex_vector, ids, edge_ids, free_nodes, order);
-  }
-  else
-  {
-    std::cerr << "I don't support gene " << gene << std::endl;
-    return 1;
-  }
+  createGenericGraph(CO, graph, vertex_vector, ids, edge_ids, free_nodes, order);
 
   printf("[%6.2f] Graph created.\n", double(clock()-begin) / CLOCKS_PER_SEC);
   DnaString sequence1;
@@ -1094,6 +1051,10 @@ int main (int argc, char const ** argv)
     }
 
     std::string read_group = toCString(myExtractTagValue(it->second.tags));
+    // if (CO.verbose)
+    // {
+    //   std::cout << "Two sequences aligned!" << std::endl;
+    // }
 
     // TODO: Add this as options for the program
     int highest_distance = 800;
@@ -1190,7 +1151,7 @@ int main (int argc, char const ** argv)
       {
         total_matches[*seq_it] += 1.0;
       }
-    }    
+    }
   }
 
   printf("[%6.2f] Sequences aligned.\n", double(clock()-begin) / CLOCKS_PER_SEC);

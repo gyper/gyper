@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 2.8)
 project (gyper)
 
 # The version number.
@@ -6,7 +6,7 @@ set (gyper_VERSION_MAJOR 0)
 set (gyper_VERSION_MINOR 1)
 
 # C++14
-set (CMAKE_CXX_FLAGS "-std=c++14 -DSEQAN_HAS_ZLIB=1")
+set (CMAKE_CXX_FLAGS "-O3 -std=c++14 -DSEQAN_HAS_ZLIB=1 -DNDEBUG -DSEQAN_ENABLE_TESTING=0 -DSEQAN_ENABLE_DEBUG=0")
 
 # Set module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
@@ -14,9 +14,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 # configure a header file to pass some of the CMake settings
 # to the source code
 configure_file (
-  "${PROJECT_SOURCE_DIR}/src/version.h.in"
-  "${PROJECT_BINARY_DIR}/version.h"
+  "${PROJECT_SOURCE_DIR}/src/constants.hpp.in"
+  "${PROJECT_BINARY_DIR}/constants.hpp"
   )
+
+include_directories("${PROJECT_BINARY_DIR}")
 
 # Binary directory
 include_directories(src)

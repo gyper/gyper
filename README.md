@@ -6,7 +6,7 @@ Gyper (Graph genotYPER) is a genotyper for aligned DNA sequencing data. The inpu
 * SeqAn>=2.1.0 (in development)
 * zlib>=1.2.8
 
-Furthermore, Gyper is released with a CMake build system which requires CMake>=3.0.
+Furthermore, Gyper is released with a CMake build system which requires CMake>=2.8.
 
 ## Simple installation (unix-like systems)
 ### Install dependencies
@@ -37,7 +37,7 @@ Here we assume Gyper is cloned to ~/git/gyper and built in ~/git/gyper/build.
 
 ```sh
 cd ~/git
-git clone git@github.com:hannespetur/gyper.git gyper
+git clone git@github.com:gyper/gyper.git gyper
 cd gyper
 mkdir build
 cd build
@@ -45,5 +45,15 @@ cmake ..
 make
 sudo make install
 ```
-
 Gyper should now be installed to `/usr/local/bin/gyper`.
+
+### User-only install
+Maybe you are a pawn in a big company, and you don't have root access on your computer. In this case, worry not, because you can still compile and use Gyper. I'll assume you have or can install cmake and zlib. Follow the instructions on [how to get Boost](http://www.boost.org/doc/libs/1_59_0/more/getting_started/unix-variants.html). Then, [install and cmake SeqAn](http://seqan.readthedocs.org/en/latest/BuildManual/UsingTheSeqAnBuildSystem.html#user-library-installation) using the `-DSEQAN_BUILD_SYSTEM=SEQAN_RELEASE_LIBRARY` options because we only need the library.
+
+You can specify the locations of both libraries when you use cmake, e.g.
+
+```sh
+cmake -DBOOST_INCLUDEDIR=/some/path/you/installed/boost_1_XX_0/ -DSEQAN_INCLUDE_PATH=/some/path/you/installed/seqan/include/ ..
+make
+```
+If you're feeling adventurous, you can also set the `BOOST_INCLUDEDIR` and `SEQAN_INCLUDE_PATH` environment variables. The Gyper binary file will be located in `./bin/gyper`. If you'd like, add it to your `PATH` variable.

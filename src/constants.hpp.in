@@ -1,0 +1,8 @@
+#ifndef __CONSTANTS_HPP_INCLUDED__
+#define __CONSTANTS_HPP_INCLUDED__
+
+// CMake variables
+#define gyper_VERSION_MAJOR @gyper_VERSION_MAJOR@
+#define gyper_VERSION_MINOR @gyper_VERSION_MINOR@
+#define gyper_SOURCE_DIRECTORY "@PROJECT_SOURCE_DIR@"
+#endif
