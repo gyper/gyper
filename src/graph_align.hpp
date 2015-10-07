@@ -3,6 +3,7 @@
 
 #define SEQAN_NO_GLOBAL_EXCEPTION_HANDLER
 
+#include "graph_io.hpp"
 #include "graph_builder.hpp"
 #include "graph_kmerify.hpp"
 
@@ -13,7 +14,7 @@ struct ExactBacktracker {
   std::vector<bool> match; // True if diagonal match, false otherwise
 };
 
-#include "graph_io.hpp"
+
 // Needs to be here cause it's dependent on Backtracker and ExactBacktracker
 
 void
@@ -51,7 +52,7 @@ alignToGraphExact (DnaString const & sequence,
                   );
 
 void
-alignToGraphExact_kmer (DnaString const & sequence,
+alignToGraphExact_kmer (String<Dna> const & sequence,
                         String<TVertexDescriptor const> const & order,
                         TGraph const & graph,
                         std::vector<TVertexDescriptor> & matching_vertices,
@@ -59,7 +60,7 @@ alignToGraphExact_kmer (DnaString const & sequence,
                         std::vector<ExactBacktracker> & backtracker,
                         boost::unordered_set<TVertexDescriptor> const & free_nodes,
                         boost::dynamic_bitset<> const & qual,
-                        boost::unordered_map< std::string, std::vector<TVertexDescriptor> > & kmer_map
+                        boost::unordered_map< seqan::String<seqan::Dna>, std::vector<TVertexDescriptor> > & kmer_map
                        );
 
 void

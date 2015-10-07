@@ -16,6 +16,25 @@
 #include <boost/dynamic_bitset.hpp>
 
 
+namespace seqan
+{
+
+inline
+std::size_t hash_value(String<Dna> const& s)
+{
+  std::size_t hash_val = 0;
+
+  for (Iterator<String<Dna> const>::Type it = begin(s) ; it != end(s) ; ++it)
+  {
+    hash_val = hash_val * 4 + ordValue(*it);
+  }
+
+  return hash_val;
+}
+
+};
+
+
 using namespace seqan;
 
 

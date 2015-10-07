@@ -966,8 +966,12 @@ int main (int argc, char const ** argv)
   createGenericGraph(CO, graph, vertex_vector, ids, edge_ids, free_nodes, order);
   printf("[%6.2f] Graph created.\n", double(clock()-begin) / CLOCKS_PER_SEC);
 
-  boost::unordered_map< std::string, std::vector<TVertexDescriptor> > kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes);
-  printf("[%6.2f] Graph kmerification done.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+  boost::unordered_map< seqan::String<seqan::Dna>, std::vector<TVertexDescriptor> > kmer_map;
+  if (CO.kmer)
+  {
+    kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes);
+    printf("[%6.2f] Graph kmerification done.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+  }
 
   DnaString sequence1;
   DnaString sequence2;
@@ -1098,48 +1102,6 @@ int main (int argc, char const ** argv)
     }
 
     std::string read_group = toCString(myExtractTagValue(it->second.tags));
-    /*
-    if (CO.verbose)
-    {
-      // std::cout << "Two sequences aligned!\n" << sequence1 << "\n" << sequence2 << std::endl;
-
-      std::vector<ExactBacktracker> backtracker1_kmer;
-      std::vector<ExactBacktracker> reverse_backtracker1_kmer;
-      std::vector<ExactBacktracker> backtracker2_kmer;
-      std::vector<ExactBacktracker> reverse_backtracker2_kmer;
-
-      std::vector<TVertexDescriptor> matching_vertices1_kmer;
-      std::vector<TVertexDescriptor> reverse_matching_vertices1_kmer;
-      std::vector<TVertexDescriptor> matching_vertices2_kmer;
-      std::vector<TVertexDescriptor> reverse_matching_vertices2_kmer;
-
-      align_sequence_kmer(sequence1,
-                          qual1,
-                          graph,
-                          vertex_vector,
-                          order,
-                          backtracker1_kmer,
-                          reverse_backtracker1_kmer,
-                          free_nodes,
-                          matching_vertices1_kmer,
-                          reverse_matching_vertices1_kmer,
-                          kmer_map
-                         );
-
-
-      std::cout << "matching_vertices1     , reverse_matching_vertices1      = " << matching_vertices1.size()      << " " << reverse_matching_vertices1.size()      << std::endl;
-      std::cout << "matching_vertices1_kmer, reverse_matching_vertices1_kmer = " << matching_vertices1_kmer.size() << " " << reverse_matching_vertices1_kmer.size() << std::endl;
-      if(matching_vertices1_kmer.size() >= 1)
-      {
-        std::cout << "matching_vertices1, matching_vertices1_kmer = " << matching_vertices1[0] << " " << matching_vertices1_kmer[0] << std::endl;
-      }
-
-      if (reverse_matching_vertices1_kmer.size() >= 1)
-      {
-        std::cout << "reverse_matching_vertices1, reverse_matching_vertices1_kmer = " << reverse_matching_vertices1[0] << " " << reverse_matching_vertices1_kmer[0] << std::endl;
-      }
-    }
-    */
 
     // TODO: Add this as options for the program
     int highest_distance = 1500;
