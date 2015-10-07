@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 2.8.8)
 project (gyper)
 
 # The version number.
@@ -21,7 +21,12 @@ configure_file (
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Binary directory
-include_directories(src)
+set(EXT_PROJECTS_DIR ${PROJECT_SOURCE_DIR}/test)
+
+# include_directories(src)
+# add_subdirectory(test/catch)
+# include_directories(${CATCH_INCLUDE_DIR} src test)
+# enable_testing(true)  # Enables unit-testing.
 
 # Define source and test files
 set(GYPER_SOURCE_FILES src/graph.cpp src/graph_align.cpp src/graph_builder.cpp src/graph_io.cpp src/graph_kmerify.cpp)
@@ -58,6 +63,12 @@ endif(NOT SEQAN_FOUND)
 set(EXECUTABLE_OUTPUT_PATH bin)
 target_link_libraries(gyper ${LIBS})
 target_link_libraries(test_gyper ${LIBS})
+
+# Testing
+include_directories(${EXT_PROJECTS_DIR})
+add_subdirectory(${EXT_PROJECTS_DIR}/catch)
+include_directories(${CATCH_INCLUDE_DIR} ${COMMON_INCLUDES})
+enable_testing(true)
 
 # Installs gyper to /usr/local/bin using [sudo] make install
 install (TARGETS gyper DESTINATION bin)
