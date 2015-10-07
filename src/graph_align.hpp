@@ -4,6 +4,7 @@
 #define SEQAN_NO_GLOBAL_EXCEPTION_HANDLER
 
 #include "graph_builder.hpp"
+#include "graph_kmerify.hpp"
 
 #include <boost/unordered_set.hpp>
 
@@ -48,6 +49,18 @@ alignToGraphExact (DnaString const & sequence,
                    boost::unordered_set<TVertexDescriptor> const & free_nodes,
                    boost::dynamic_bitset<> const & qual
                   );
+
+void
+alignToGraphExact_kmer (DnaString const & sequence,
+                        String<TVertexDescriptor const> const & order,
+                        TGraph const & graph,
+                        std::vector<TVertexDescriptor> & matching_vertices,
+                        std::vector<VertexLabels> & vertex_vector,
+                        std::vector<ExactBacktracker> & backtracker,
+                        boost::unordered_set<TVertexDescriptor> const & free_nodes,
+                        boost::dynamic_bitset<> const & qual,
+                        boost::unordered_map< std::string, std::vector<TVertexDescriptor> > & kmer_map
+                       );
 
 void
 alignToGraphExact (DnaString const & sequence,
