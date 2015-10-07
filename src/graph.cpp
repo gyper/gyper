@@ -64,7 +64,7 @@ align_sequence_kmer (DnaString & my_sequence,
                      boost::unordered_set<TVertexDescriptor> const & free_nodes,
                      std::vector<TVertexDescriptor> & matching_vertices,
                      std::vector<TVertexDescriptor> & reverse_matching_vertices,
-                     boost::unordered_map< std::string, std::vector<TVertexDescriptor> > & kmer_map
+                     boost::unordered_map< seqan::String<seqan::Dna>, std::vector<TVertexDescriptor> > & kmer_map
                     )
 {
   initializeExactScoreMatrixAndBacktracker(length(my_sequence), length(order), backtracker);

@@ -7,8 +7,8 @@
 #include <ctime>
 
 #include "constants.hpp"
-#include "graph_align.hpp"
 #include "graph_builder.hpp"
+#include "graph_align.hpp"
 #include "graph_io.hpp"
 
 #include <boost/unordered/unordered_set.hpp>
@@ -28,18 +28,19 @@ struct callOptions
   std::vector<double> beta;
   int bpQclip;
   int bpQskip;
+  int number_of_exons;
+  CharString gene;
+  CharString minSeqLen_list;
+  CharString outputFolder;
+  CharString vcfOutputFolder;
+
   CharString bamFile;
   CharString bam2;
   CharString bam3;
   CharString bam4;
-  CharString gene;
-  int number_of_exons;
-  CharString minSeqLen_list;
   std::vector<unsigned> minSeqLen;
-  // std::vector<int> minSeqs;
-  CharString outputFolder;
   CharString vcfFile;
-  CharString vcfOutputFolder;
+  
   bool verbose;
   bool kmer;
   bool align_all_reads;
@@ -98,7 +99,7 @@ align_sequence_kmer (DnaString & my_sequence,
                      boost::unordered_set<TVertexDescriptor> const & free_nodes,
                      std::vector<TVertexDescriptor> & matching_vertices,
                      std::vector<TVertexDescriptor> & reverse_matching_vertices,
-                     boost::unordered_map< std::string, std::vector<TVertexDescriptor> > & kmer_map
+                     boost::unordered_map< seqan::String<seqan::Dna>, std::vector<TVertexDescriptor> > & kmer_map
                     );
 
 CharString myExtractTagValue(String<char> &tags);

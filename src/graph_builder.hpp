@@ -16,6 +16,25 @@
 #include <boost/dynamic_bitset.hpp>
 
 
+namespace seqan
+{
+
+inline
+std::size_t hash_value(String<Dna> const& s)
+{
+  std::size_t hash_val = 0;
+
+  for (Iterator<String<Dna> const>::Type it = begin(s) ; it != end(s) ; ++it)
+  {
+    hash_val = hash_val * 4 + ordValue(*it);
+  }
+
+  return hash_val;
+}
+
+}
+
+
 using namespace seqan;
 
 
@@ -30,12 +49,6 @@ typedef VertexDescriptor<TGraph>::Type TVertexDescriptor;
 typedef EdgeDescriptor<TGraph>::Type TEdgeDescriptor;
 typedef Size<TGraph>::Type TSize;
 
-// For property maps
-typedef String<unsigned> TLevel;
-typedef String<TLevel> TProperties;
-
-typedef Iterator<TGraph, VertexIterator>::Type TVertexIterator;
-typedef Iterator<TGraph, EdgeIterator>::Type TEdgeIterator;
 
 struct GraphWithLabels {
   TGraph graph;

@@ -165,7 +165,7 @@ alignToGraphExact (DnaString const & sequence,
 
 
 void
-alignToGraphExact_kmer (DnaString const & sequence,
+alignToGraphExact_kmer (String<Dna> const & sequence,
                         String<TVertexDescriptor const> const & order,
                         TGraph const & graph,
                         std::vector<TVertexDescriptor> & matching_vertices,
@@ -173,19 +173,26 @@ alignToGraphExact_kmer (DnaString const & sequence,
                         std::vector<ExactBacktracker> & backtracker,
                         boost::unordered_set<TVertexDescriptor> const & free_nodes,
                         boost::dynamic_bitset<> const & qual,
-                        boost::unordered_map< std::string, std::vector<TVertexDescriptor> > & kmer_map
+                        boost::unordered_map< seqan::String<seqan::Dna>, std::vector<TVertexDescriptor> > & kmer_map
                        )
 {
-  std::ostringstream ss;
-  ss << sequence;
-  std::string seq = ss.str();
-  std::string seq_first_kmer(seq, 0, K_SIZE);
-  if (kmer_map.count(seq_first_kmer) == 0)
-    return;
+  String<Dna> seq_first_kmer(sequence);
+  resize(seq_first_kmer, K_SIZE);
 
-  std::string seq_last_kmer(seq, seq.size() - K_SIZE);
-  if (kmer_map.count(seq_last_kmer) == 0)
+  if (kmer_map.count(seq_first_kmer) == 0)
+  {
+    // std::cout << "First kmer: " << seq_first_kmer << " (" << sequence << ") " << std::endl;
     return;
+  }
+
+  String<Dna> seq_last_kmer(sequence);
+  erase(seq_last_kmer, 0, length(sequence) - K_SIZE);
+
+  if (kmer_map.count(seq_last_kmer) == 0)
+  {
+    // std::cout << "Last kmer: " << seq_last_kmer << " (" << sequence << ") " << std::endl;
+    return;
+  }
   
   // for (int k = K_SIZE ; k < seq.size() - K_SIZE ; k += K_SIZE)
   // {
@@ -230,10 +237,10 @@ alignToGraphExact_kmer (DnaString const & sequence,
   {
     TVertexDescriptor const & source_vertex = *it;
 
-    if (vertex_vector[source_vertex].level < (min_level - K_SIZE - 1))
+    if (vertex_vector[source_vertex].level < (min_level - 50))
       continue;
 
-    if (vertex_vector[source_vertex].level > (max_level + K_SIZE + 1))
+    if (vertex_vector[source_vertex].level > (max_level + K_SIZE + 50))
       break;
 
     for (Iterator<TGraph, OutEdgeIterator>::Type out_edge_iterator (graph, source_vertex) ; !atEnd(out_edge_iterator) ; ++out_edge_iterator)

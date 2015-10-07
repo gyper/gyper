@@ -1,0 +1,8 @@
+##fileformat=VCFv4.1
+##FILTER=<ID=PASS,Description="All filters passed">
+##fileDate=20150724
+##source=GyperV0.1
+##reference=genome.fa
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=PL,Number=G,Type=String,Description="Phred-scaled genotype likelihoods">
+##contig=<ID=6,length=2147483647>
