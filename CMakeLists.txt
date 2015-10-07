@@ -23,9 +23,13 @@ include_directories("${PROJECT_BINARY_DIR}")
 # Binary directory
 include_directories(src)
 
-# Find files
-file(GLOB_RECURSE gyper_SOURCES "src/*.cpp")
-add_executable(gyper ${gyper_SOURCES})
+# Define source and test files
+set(GYPER_SOURCE_FILES src/graph.cpp src/graph_align.cpp src/graph_builder.cpp src/graph_io.cpp src/graph_kmerify.cpp)
+set(GYPER_TEST_FILES test_gyper test/test.cpp test/test_graph_builder.cpp test/test_graph_align.cpp)
+
+# Add executables
+add_executable(gyper src/main.cpp src/graph.cpp src/graph_align.cpp src/graph_builder.cpp src/graph_io.cpp src/graph_kmerify.cpp)
+add_executable(test_gyper test/test.cpp test/test_graph_builder.cpp test/test_graph_align.cpp src/graph.cpp src/graph_align.cpp src/graph_builder.cpp src/graph_io.cpp src/graph_kmerify.cpp)
 
 # Find libraries
 message (STATUS "Checking for zlib")
@@ -53,6 +57,7 @@ endif(NOT SEQAN_FOUND)
 # Add the executable
 set(EXECUTABLE_OUTPUT_PATH bin)
 target_link_libraries(gyper ${LIBS})
+target_link_libraries(test_gyper ${LIBS})
 
 # Installs gyper to /usr/local/bin using [sudo] make install
 install (TARGETS gyper DESTINATION bin)

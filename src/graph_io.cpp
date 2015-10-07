@@ -101,11 +101,11 @@ long adjustPositions(
   long beta_adjust = (long) std::floor((beta*100.0-10.0)/10.0*9.0+0.5); // 0, 9, 18, ..., 72
   long bpQclip_adjust = (bpQclip - 20)/5*(72+8+1); // 81, ..., 324
   long bpQskip_adjust = (bpQskip - 20)/5*(324+72+8+1); // 405, ..., 
-  std::cout << "minSeq_adjust = " << minSeq_adjust << std::endl;
-  std::cout << "beta_adjust = " << beta_adjust << std::endl;
-  std::cout << "bpQclip_adjust = " << bpQclip_adjust << std::endl;
-  std::cout << "bpQskip_adjust = " << bpQskip_adjust << std::endl;
-  std::cout << "adjust_positions = " << minSeq_adjust + beta_adjust + bpQclip_adjust + bpQskip_adjust << std::endl;
+  // std::cout << "minSeq_adjust = " << minSeq_adjust << std::endl;
+  // std::cout << "beta_adjust = " << beta_adjust << std::endl;
+  // std::cout << "bpQclip_adjust = " << bpQclip_adjust << std::endl;
+  // std::cout << "bpQskip_adjust = " << bpQskip_adjust << std::endl;
+  // std::cout << "adjust_positions = " << minSeq_adjust + beta_adjust + bpQclip_adjust + bpQskip_adjust << std::endl;
   return minSeq_adjust + beta_adjust + bpQclip_adjust + bpQskip_adjust;
 }
 
