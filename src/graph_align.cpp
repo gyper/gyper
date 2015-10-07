@@ -64,6 +64,7 @@ getScoreVector(ExactBacktracker const & previous_backtracker,
   return current_backtracker.match.back();
 }
 
+
 // Without quality
 bool
 getScoreVector(ExactBacktracker const & previous_backtracker,
@@ -93,6 +94,7 @@ getScoreVector(ExactBacktracker const & previous_backtracker,
   return current_backtracker.match.back();
 }
 
+
 /*
  * alignToGraphExact aligns a sequence to the graph
  **/
@@ -111,6 +113,129 @@ alignToGraphExact (DnaString const & sequence,
   for (Iterator<String<TVertexDescriptor const> const>::Type it = begin(order) ; it != end(order) ; ++it)
   {
     TVertexDescriptor const & source_vertex = *it;
+    for (Iterator<TGraph, OutEdgeIterator>::Type out_edge_iterator (graph, source_vertex) ; !atEnd(out_edge_iterator) ; ++out_edge_iterator)
+    {
+      TVertexDescriptor const & target_vertex = targetVertex(out_edge_iterator);
+
+      if (free_nodes.find(target_vertex) != free_nodes.end())
+      {
+        for (unsigned i = 0 ; i < length(sequence) ; ++i)
+        {
+          if (backtracker[source_vertex].match[i])
+          {
+            backtracker[target_vertex].match[i] = true;
+            backtracker[target_vertex].nodes[i] = source_vertex;
+          }
+        }
+      }
+      else if (outDegree(graph, source_vertex) == 1 &&
+               inDegree(graph, target_vertex) == 1
+              )
+      {
+        Dna reference = vertex_vector[target_vertex].dna;
+        if (getScoreVector(backtracker[source_vertex],
+                           backtracker[target_vertex],
+                           sequence,
+                           qual,
+                           reference,
+                           source_vertex
+                          )
+           )
+        {
+          matching_vertices.push_back(target_vertex);
+        }
+      }
+      else
+      {
+        Dna reference = vertex_vector[target_vertex].dna;
+        if (getScoreVector(backtracker[source_vertex],
+                           backtracker[target_vertex],
+                           sequence,
+                           reference,
+                           source_vertex
+                          )
+           )
+        {
+          matching_vertices.push_back(target_vertex);
+        }
+      }
+    }
+  }
+}
+
+
+void
+alignToGraphExact_kmer (DnaString const & sequence,
+                        String<TVertexDescriptor const> const & order,
+                        TGraph const & graph,
+                        std::vector<TVertexDescriptor> & matching_vertices,
+                        std::vector<VertexLabels> & vertex_vector,
+                        std::vector<ExactBacktracker> & backtracker,
+                        boost::unordered_set<TVertexDescriptor> const & free_nodes,
+                        boost::dynamic_bitset<> const & qual,
+                        boost::unordered_map< std::string, std::vector<TVertexDescriptor> > & kmer_map
+                       )
+{
+  std::ostringstream ss;
+  ss << sequence;
+  std::string seq = ss.str();
+  std::string seq_first_kmer(seq, 0, K_SIZE);
+  if (kmer_map.count(seq_first_kmer) == 0)
+    return;
+
+  std::string seq_last_kmer(seq, seq.size() - K_SIZE);
+  if (kmer_map.count(seq_last_kmer) == 0)
+    return;
+  
+  // for (int k = K_SIZE ; k < seq.size() - K_SIZE ; k += K_SIZE)
+  // {
+  //   std::string seq_center_kmer(seq, k, K_SIZE);
+  //   if (kmer_map.count(seq_center_kmer) == 0)
+  //     return;
+  // }
+
+  // std::cout << "Sequence I have is " << sequence << " with kmers: " << seq_first_kmer << " " << seq_last_kmer << " ";
+  // std::cout << kmer_map[seq_first_kmer].size() << " " << kmer_map[seq_last_kmer].size() << " ";
+
+  int min_level = vertex_vector[kmer_map[seq_first_kmer][0]].level;
+  int max_level = vertex_vector[kmer_map[seq_last_kmer][0]].level;
+
+  {
+    auto min_level_it = kmer_map[seq_first_kmer].begin();
+    ++min_level_it;
+    for ( ; min_level_it != kmer_map[seq_first_kmer].end() ; ++min_level_it)
+    {
+      if (vertex_vector[*min_level_it].level < min_level)
+      {
+        min_level = vertex_vector[*min_level_it].level;
+      }
+    }
+  }
+
+  {
+    auto max_level_it = kmer_map[seq_last_kmer].begin();
+    ++max_level_it;
+    for ( ; max_level_it != kmer_map[seq_last_kmer].end() ; ++max_level_it)
+    {
+      if (vertex_vector[*max_level_it].level > max_level)
+      {
+        max_level = vertex_vector[*max_level_it].level;
+      }
+    }
+  }
+
+  // std::cout << min_level << " " << max_level << std::endl;
+
+  for (Iterator<String<TVertexDescriptor const> const>::Type it = begin(order) ; it != end(order) ; ++it)
+  {
+    TVertexDescriptor const & source_vertex = *it;
+
+    if (vertex_vector[source_vertex].level < (min_level - K_SIZE - 1))
+      continue;
+
+    if (vertex_vector[source_vertex].level > (max_level + K_SIZE + 1))
+      break;
+
     for (Iterator<TGraph, OutEdgeIterator>::Type out_edge_iterator (graph, source_vertex) ; !atEnd(out_edge_iterator) ; ++out_edge_iterator)
     {
       TVertexDescriptor const & target_vertex = targetVertex(out_edge_iterator);

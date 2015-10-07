@@ -53,6 +53,61 @@ align_sequence (DnaString & my_sequence,
 }
 
 
+void
+align_sequence_kmer (DnaString & my_sequence,
+                     boost::dynamic_bitset<> & qual,
+                     TGraph const & graph,
+                     std::vector<VertexLabels> & vertex_vector,
+                     String<TVertexDescriptor> & order,
+                     std::vector<ExactBacktracker> & backtracker,
+                     std::vector<ExactBacktracker> & reverse_backtracker,
+                     boost::unordered_set<TVertexDescriptor> const & free_nodes,
+                     std::vector<TVertexDescriptor> & matching_vertices,
+                     std::vector<TVertexDescriptor> & reverse_matching_vertices,
+                     boost::unordered_map< std::string, std::vector<TVertexDescriptor> > & kmer_map
+                    )
+{
+  initializeExactScoreMatrixAndBacktracker(length(my_sequence), length(order), backtracker);
+  reverse_backtracker = backtracker;
+
+  alignToGraphExact_kmer (my_sequence,
+                          order,
+                          graph,
+                          matching_vertices,
+                          vertex_vector,
+                          backtracker,
+                          free_nodes,
+                          qual,
+                          kmer_map
+                         );
+
+  reverseComplement(my_sequence);
+
+  boost::dynamic_bitset<> qual_reversed(qual.size());
+  std::size_t qual_size = qual.size();
+  for (unsigned pos = 0 ; pos < qual_size ; ++pos)
+  {
+    if (qual.test(pos))
+    {
+      qual_reversed[qual_size-pos-1] = 1;
+    }
+  }
+  
+  alignToGraphExact_kmer (my_sequence,
+                          order,
+                          graph,
+                          reverse_matching_vertices,
+                          vertex_vector,
+                          reverse_backtracker,
+                          free_nodes,
+                          qual,
+                          kmer_map
+                         );
+
+  reverseComplement(my_sequence);
+}
+
+
 CharString myExtractTagValue(String<char> &tags)
 {
   BamTagsDict tagsDict(tags);
@@ -150,7 +205,7 @@ createGenericGraph(callOptions & CO,
       free_nodes.insert(begin_vertex);
       extendGraph(graph, alignment_file, vertex_vector, edge_ids, new_begin_vertex, begin_vertex);
     }
-    
+
     // Exon
     {
       tmp_string = base_path.str();

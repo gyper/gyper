@@ -6,6 +6,7 @@
 #include "graph_align.hpp"
 #include "graph_builder.hpp"
 #include "graph_io.hpp"
+#include "graph_kmerify.hpp"
 #include "graph.hpp"
 #include "constants.hpp"
 
@@ -54,6 +55,7 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
   addOption(parser, ArgParseOption("qc", "bpQclip", "Quality Clip Threshold for clipping. ", ArgParseArgument::INTEGER, "INT"));
   addOption(parser, ArgParseOption("qs", "bpQskip", "Quality Clip Threshold for skipping. ", ArgParseArgument::INTEGER, "INT"));
   addOption(parser, ArgParseOption("v", "verbose", "Verbosity flag"));
+  addOption(parser, ArgParseOption("k", "kmer", "Use kmer alignment."));
   addOption(parser, ArgParseOption("a", "align_all_reads", "If used Gyper will use every read pair in the BAM file provided. Should only be used for very small BAMs, unless you have huge amount of RAM and patience."));
   addOption(parser, ArgParseOption("1k", "thousand_genomes", "Use reference from the 1000 Genomes project."));
   addOption(parser, ArgParseOption("b",
@@ -105,6 +107,7 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
   parseArgList(CO.minSeqLen_list, CO.minSeqLen);
   getArgumentValue( CO.gene, parser, 0);
   getArgumentValue( CO.bamFile, parser, 1);
+  CO.kmer = isSet(parser, "kmer");
   CO.verbose = isSet(parser, "verbose");
 
   // Remove the HLA- part from genes if it is there
@@ -597,7 +600,6 @@ findAvailableGenotypes(callOptions & CO, boost::unordered_set<std::string> & ava
 void
 handleOutput (callOptions & CO,
               const double & beta,
-              // const unsigned & min_seq_index,
               const std::string & pn,
               std::vector<std::string> & ids,
               std::vector<std::vector<double> > seq_scores,
@@ -962,8 +964,11 @@ int main (int argc, char const ** argv)
   std::string gene(toCString(CO.gene));
 
   createGenericGraph(CO, graph, vertex_vector, ids, edge_ids, free_nodes, order);
-
   printf("[%6.2f] Graph created.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+
+  boost::unordered_map< std::string, std::vector<TVertexDescriptor> > kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes);
+  printf("[%6.2f] Graph kmerification done.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+
   DnaString sequence1;
   DnaString sequence2;
   
@@ -1016,7 +1021,30 @@ int main (int argc, char const ** argv)
     std::vector<TVertexDescriptor> matching_vertices2;
     std::vector<TVertexDescriptor> reverse_matching_vertices2;
 
-    align_sequence(sequence1,
+    // Check kmer alignment
+    DnaString sequence1_kmer(sequence1);
+    DnaString sequence2_kmer(sequence2);
+    boost::dynamic_bitset<> qual1_kmer(qual1);
+    boost::dynamic_bitset<> qual2_kmer(qual2);
+
+    if (CO.kmer)
+    {
+      align_sequence_kmer(sequence1,
+                          qual1,
+                          graph,
+                          vertex_vector,
+                          order,
+                          backtracker1,
+                          reverse_backtracker1,
+                          free_nodes,
+                          matching_vertices1,
+                          reverse_matching_vertices1,
+                          kmer_map
+                         );
+    }
+    else
+    {
+      align_sequence(sequence1,
                    qual1,
                    graph,
                    vertex_vector,
@@ -1027,23 +1055,42 @@ int main (int argc, char const ** argv)
                    matching_vertices1,
                    reverse_matching_vertices1
                   );
+    }
 
     if (matching_vertices1.size() == 0 && reverse_matching_vertices1.size() == 0)
     {
       continue;
     }
 
-    align_sequence(sequence2,
-                   qual2,
-                   graph,
-                   vertex_vector,
-                   order,
-                   backtracker2,
-                   reverse_backtracker2,
-                   free_nodes,
-                   matching_vertices2,
-                   reverse_matching_vertices2
-                  );
+    if (CO.kmer)
+    {
+      align_sequence_kmer(sequence2,
+                          qual2,
+                          graph,
+                          vertex_vector,
+                          order,
+                          backtracker2,
+                          reverse_backtracker2,
+                          free_nodes,
+                          matching_vertices2,
+                          reverse_matching_vertices2,
+                          kmer_map
+                         );
+    }
+    else
+    {
+      align_sequence(sequence2,
+                     qual2,
+                     graph,
+                     vertex_vector,
+                     order,
+                     backtracker2,
+                     reverse_backtracker2,
+                     free_nodes,
+                     matching_vertices2,
+                     reverse_matching_vertices2
+                    );
+    }
 
     if (matching_vertices2.size() == 0 && reverse_matching_vertices2.size() == 0)
     {
@@ -1051,13 +1098,51 @@ int main (int argc, char const ** argv)
     }
 
     std::string read_group = toCString(myExtractTagValue(it->second.tags));
-    // if (CO.verbose)
-    // {
-    //   std::cout << "Two sequences aligned!" << std::endl;
-    // }
+    /*
+    if (CO.verbose)
+    {
+      // std::cout << "Two sequences aligned!\n" << sequence1 << "\n" << sequence2 << std::endl;
+
+      std::vector<ExactBacktracker> backtracker1_kmer;
+      std::vector<ExactBacktracker> reverse_backtracker1_kmer;
+      std::vector<ExactBacktracker> backtracker2_kmer;
+      std::vector<ExactBacktracker> reverse_backtracker2_kmer;
+
+      std::vector<TVertexDescriptor> matching_vertices1_kmer;
+      std::vector<TVertexDescriptor> reverse_matching_vertices1_kmer;
+      std::vector<TVertexDescriptor> matching_vertices2_kmer;
+      std::vector<TVertexDescriptor> reverse_matching_vertices2_kmer;
+
+      align_sequence_kmer(sequence1,
+                          qual1,
+                          graph,
+                          vertex_vector,
+                          order,
+                          backtracker1_kmer,
+                          reverse_backtracker1_kmer,
+                          free_nodes,
+                          matching_vertices1_kmer,
+                          reverse_matching_vertices1_kmer,
+                          kmer_map
+                         );
+
+
+      std::cout << "matching_vertices1     , reverse_matching_vertices1      = " << matching_vertices1.size()      << " " << reverse_matching_vertices1.size()      << std::endl;
+      std::cout << "matching_vertices1_kmer, reverse_matching_vertices1_kmer = " << matching_vertices1_kmer.size() << " " << reverse_matching_vertices1_kmer.size() << std::endl;
+      if(matching_vertices1_kmer.size() >= 1)
+      {
+        std::cout << "matching_vertices1, matching_vertices1_kmer = " << matching_vertices1[0] << " " << matching_vertices1_kmer[0] << std::endl;
+      }
+
+      if (reverse_matching_vertices1_kmer.size() >= 1)
+      {
+        std::cout << "reverse_matching_vertices1, reverse_matching_vertices1_kmer = " << reverse_matching_vertices1[0] << " " << reverse_matching_vertices1_kmer[0] << std::endl;
+      }
+    }
+    */
 
     // TODO: Add this as options for the program
-    int highest_distance = 800;
+    int highest_distance = 1500;
     int medium_distance = 350;
 
     int best_score = highest_distance;
