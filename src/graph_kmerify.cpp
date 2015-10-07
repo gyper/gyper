@@ -2,12 +2,12 @@
 
 
 void
-checkKmers(seqan::String<seqan::Dna> const & kmer,
+checkKmers(DnaString const & kmer,
            TVertexDescriptor const & source_vertex,
            TGraph const & graph,
            std::vector<VertexLabels> & vertex_vector,
            boost::unordered_set<TVertexDescriptor> const & free_nodes,
-           boost::unordered_map< seqan::String<seqan::Dna>, std::vector<TVertexDescriptor> > & kmer_map)
+           boost::unordered_map< DnaString, std::vector<TVertexDescriptor> > & kmer_map)
 {
   if (length(kmer) == K_SIZE)
   {
@@ -27,7 +27,7 @@ checkKmers(seqan::String<seqan::Dna> const & kmer,
 
   for (Iterator<TGraph, OutEdgeIterator>::Type out_edge_iterator (graph, source_vertex) ; !atEnd(out_edge_iterator) ; ++out_edge_iterator)
   {
-    seqan::String<seqan::Dna> new_kmer(kmer);
+    DnaString new_kmer(kmer);
     TVertexDescriptor const & target_vertex = targetVertex(out_edge_iterator);
     seqan::appendValue(new_kmer, vertex_vector[target_vertex].dna);
     checkKmers(new_kmer, target_vertex, graph, vertex_vector, free_nodes, kmer_map);
@@ -35,7 +35,7 @@ checkKmers(seqan::String<seqan::Dna> const & kmer,
 }
 
 
-boost::unordered_map< seqan::String<seqan::Dna>, std::vector<TVertexDescriptor> >
+boost::unordered_map<DnaString, std::vector<TVertexDescriptor> >
 kmerifyGraph(String<TVertexDescriptor const> const & order,
              TGraph const & graph,
              std::vector<VertexLabels> & vertex_vector,

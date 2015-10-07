@@ -32,7 +32,7 @@ std::size_t hash_value(String<Dna> const& s)
   return hash_val;
 }
 
-};
+}
 
 
 using namespace seqan;
@@ -49,12 +49,6 @@ typedef VertexDescriptor<TGraph>::Type TVertexDescriptor;
 typedef EdgeDescriptor<TGraph>::Type TEdgeDescriptor;
 typedef Size<TGraph>::Type TSize;
 
-// For property maps
-typedef String<unsigned> TLevel;
-typedef String<TLevel> TProperties;
-
-typedef Iterator<TGraph, VertexIterator>::Type TVertexIterator;
-typedef Iterator<TGraph, EdgeIterator>::Type TEdgeIterator;
 
 struct GraphWithLabels {
   TGraph graph;

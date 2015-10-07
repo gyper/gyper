@@ -529,7 +529,7 @@ writeToFile (std::stringstream& ss, CharString &fileName)
 
 
 std::string
-fourDigit(callOptions & CO, std::string my_id)
+fourDigit(std::string my_id)
 {
   size_t n = std::count(my_id.begin(), my_id.end(), ':');
 
@@ -616,7 +616,7 @@ handleOutput (callOptions & CO,
   for (unsigned i = 0; i < ids.size(); ++i)
   {
     // std::cout << "Id before: " << my_id << std::endl;
-    std::string my_id = fourDigit(CO, ids[i]);
+    std::string my_id = fourDigit(ids[i]);
     // std::cout << "Id after: " << my_id << std::endl;
 
     if (!four.count(my_id))
@@ -681,8 +681,8 @@ handleOutput (callOptions & CO,
         continue;
       }
 
-      unsigned i_four = four[fourDigit(CO, ids[i])];
-      unsigned j_four = four[fourDigit(CO, ids[j])];
+      unsigned i_four = four[fourDigit(ids[i])];
+      unsigned j_four = four[fourDigit(ids[j])];
 
       if (seq_scores[i][j] > seq_scores_four[i_four][j_four])
       {

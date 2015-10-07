@@ -28,18 +28,19 @@ struct callOptions
   std::vector<double> beta;
   int bpQclip;
   int bpQskip;
+  int number_of_exons;
+  CharString gene;
+  CharString minSeqLen_list;
+  CharString outputFolder;
+  CharString vcfOutputFolder;
+
   CharString bamFile;
   CharString bam2;
   CharString bam3;
   CharString bam4;
-  CharString gene;
-  int number_of_exons;
-  CharString minSeqLen_list;
   std::vector<unsigned> minSeqLen;
-  // std::vector<int> minSeqs;
-  CharString outputFolder;
   CharString vcfFile;
-  CharString vcfOutputFolder;
+  
   bool verbose;
   bool kmer;
   bool align_all_reads;

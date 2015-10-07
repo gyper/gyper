@@ -13,7 +13,7 @@
 
 #define K_SIZE 16
 
-boost::unordered_map< seqan::String<seqan::Dna>, std::vector<TVertexDescriptor> >
+boost::unordered_map<DnaString, std::vector<TVertexDescriptor> >
 kmerifyGraph(String<TVertexDescriptor const> const & order,
              TGraph const & graph,
              std::vector<VertexLabels> & vertex_vector,
