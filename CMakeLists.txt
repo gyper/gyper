@@ -26,7 +26,7 @@ find_package(ZLIB REQUIRED)
 include_directories( ${ZLIB_INCLUDE_DIRS} )
 
 message (STATUS "Checking for Boost")
-find_package(Boost 1.46.0 REQUIRED)
+find_package(Boost 1.57.0 REQUIRED)
 include_directories( ${Boost_INCLUDE_DIRS} )
 
 # Find SeqAn
