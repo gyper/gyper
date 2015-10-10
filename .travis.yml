@@ -1,11 +1,9 @@
 language: cpp
 
-compiler:
-  - clang
-  - gcc
+compiler: gcc
 
 install:
-  - if [ "$CC" == "gcc" ]; then export CXX=g++-4.8 CC=gcc-4.8; fi
+  - export CXX=g++-4.8
   - wget https://github.com/Viq111/travis-container-packets/releases/download/boost-1.57.0/boost.tar.bz2 # Get boost
   - tar -xjf boost.tar.bz2
   - rm boost.tar.bz2
