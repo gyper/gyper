@@ -6,7 +6,7 @@ compiler:
 
 install:
   - mkdir build; cd build
-  - cmake .. -D
+  - cmake ..
   - make
   - cd ..
 
