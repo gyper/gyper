@@ -52,4 +52,3 @@ include_directories(${CATCH_INCLUDE_DIR} ${COMMON_INCLUDES})
 enable_testing(true)
 
 add_subdirectory(test)
-

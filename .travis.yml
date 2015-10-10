@@ -1,0 +1,15 @@
+language: cpp
+
+compiler:
+  - clang
+  - gcc
+
+install:
+  - cmake --build Build
+  - cd Build
+  - make
+  - cd ..
+
+script:
+  - cd Build
+  - ctest -V
