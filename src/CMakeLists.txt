@@ -1,8 +1,10 @@
+cmake_minimum_required(VERSION 2.8)
+
 # Create a Gyper library
 file(GLOB gyper_SOURCE_FILES *.cpp)
 list(REMOVE_ITEM gyper_SOURCE_FILES main.cpp)
 add_library(gyper_lib ${gyper_SOURCE_FILES} )
-target_include_directories(gyper_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(gyper main.cpp)
 find_package( Threads REQUIRED )
