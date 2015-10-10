@@ -5,6 +5,7 @@ compiler:
   - gcc
 
 install:
+  - if [ "$CC" == "gcc" ]; then export CXX=g++-4.8 CC=gcc-4.8; fi
   - mkdir build; cd build
   - cmake ..
   - make
