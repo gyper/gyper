@@ -9,7 +9,7 @@ set (gyper_VERSION_MINOR 1)
 set (CMAKE_CXX_FLAGS "-W -Wall -Wno-long-long -pedantic -Wno-variadic-macros -lrt -O3 -std=c++11 -DSEQAN_HAS_ZLIB=1 -DNDEBUG -DSEQAN_ENABLE_TESTING=0 -DSEQAN_ENABLE_DEBUG=0")
 
 # Set module path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/utilities/cmake_modules/")
 
 # configure a header file to pass some of the CMake settings
 # to the source code
@@ -33,11 +33,11 @@ include_directories( ${Boost_INCLUDE_DIRS} )
 find_package(SeqAn REQUIRED)
 
 if (NOT SEQAN_FOUND)
-	add_subdirectory(cmake/seqan)
+	add_subdirectory(utilities/seqan)
 	find_package(SeqAn REQUIRED)
 endif(NOT SEQAN_FOUND)
 
-message("SEQAN_INCLUDE_PATH is ${SEQAN_INCLUDE_PATH}")
+message("SeqAn include path is: ${SEQAN_INCLUDE_PATH}")
 include_directories(${SEQAN_INCLUDE_DIRS})
 include_directories(${SEQAN_INCLUDE_PATH})
 # set(LIBS ${LIBS} ${SEQAN_LIBRARIES})
