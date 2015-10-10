@@ -29,17 +29,16 @@ message (STATUS "Checking for Boost")
 find_package(Boost 1.56.0 REQUIRED)
 include_directories( ${Boost_INCLUDE_DIRS} )
 
+# Find SeqAn
 find_package(SeqAn REQUIRED)
-include_directories(${SEQAN_INCLUDE_DIRS})
-message (STATUS "Added include directories: ${SEQAN_INCLUDE_DIRS}")
-set(LIBS ${LIBS} ${SEQAN_LIBRARIES})
 
 if (NOT SEQAN_FOUND)
-	message (ERROR "SeqAn not found!")
+	add_subdirectory(cmake/seqan)
+	find_package(SeqAn REQUIRED)
 endif(NOT SEQAN_FOUND)
 
-# Add SeqAn definitions set by find_package.
-add_definitions (${SEQAN_DEFINITIONS})
+include_directories(${SEQAN_INCLUDE_DIRS})
+# set(LIBS ${LIBS} ${SEQAN_LIBRARIES})
 
 set(EXECUTABLE_OUTPUT_PATH ../bin)
 add_subdirectory(src)

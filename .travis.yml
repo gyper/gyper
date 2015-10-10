@@ -5,11 +5,23 @@ compiler:
   - gcc
 
 install:
-  - cmake --build Build
-  - cd Build
+  - mkdir build; cd build
+  - cmake .. -D
   - make
   - cd ..
 
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - cmake
+      - gcc-4.8
+      - g++-4.8
+      - zlib1g-dev
+      - libbz2-dev
+      - libboost-dev
+
 script:
-  - cd Build
+  - cd build
   - ctest -V
