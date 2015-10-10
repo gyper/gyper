@@ -37,7 +37,9 @@ if (NOT SEQAN_FOUND)
 	find_package(SeqAn REQUIRED)
 endif(NOT SEQAN_FOUND)
 
+message("SEQAN_INCLUDE_PATH is ${SEQAN_INCLUDE_PATH}")
 include_directories(${SEQAN_INCLUDE_DIRS})
+include_directories(${SEQAN_INCLUDE_PATH})
 # set(LIBS ${LIBS} ${SEQAN_LIBRARIES})
 
 set(EXECUTABLE_OUTPUT_PATH ../bin)
