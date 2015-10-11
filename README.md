@@ -1,4 +1,5 @@
-# Gyper
+[![Build Status](https://travis-ci.org/gyper/gyper.svg)](https://travis-ci.org/gyper/gyper)
+
 Gyper (Graph genotYPER) is a genotyper for aligned DNA sequencing data. The input files are BAM files that have been sorted and indexed (e.g. using samtools). Gyper creates a partial order graph which represent haplotypes. Currently only six HLA genes are supported: HLA-A, HLA-B, HLA-C, HLA-DQA1, HLA-DQB1, and HLA-DRB1. Gyper aligns reads from certain position of the input BAM file to the graphs and determines the individual's haplotype in a fast and accurate manner.
 
 ## Dependencies
