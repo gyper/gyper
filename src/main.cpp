@@ -966,7 +966,7 @@ int main (int argc, char const ** argv)
   createGenericGraph(CO, graph, vertex_vector, ids, edge_ids, free_nodes, order);
   printf("[%6.2f] Graph created.\n", double(clock()-begin) / CLOCKS_PER_SEC);
 
-  boost::unordered_map< seqan::String<seqan::Dna>, std::vector<TVertexDescriptor> > kmer_map;
+  TKmerMap kmer_map;
   if (CO.kmer)
   {
     kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes);

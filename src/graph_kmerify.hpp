@@ -12,7 +12,9 @@
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
 
+
 #define K_SIZE 8
+
 
 typedef boost::unordered_map<DnaString, std::vector<TVertexDescriptor> > TKmerMap;
 
@@ -20,7 +22,8 @@ TKmerMap
 kmerifyGraph(String<TVertexDescriptor const> const & order,
              TGraph const & graph,
              std::vector<VertexLabels> & vertex_vector,
-             boost::unordered_set<TVertexDescriptor> const & free_nodes
+             boost::unordered_set<TVertexDescriptor> const & free_nodes,
+             int const & kmer_size = K_SIZE
             );
 
 #endif

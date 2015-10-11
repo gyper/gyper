@@ -482,6 +482,7 @@ TEST_CASE ("test case 3 wih exact matches and alignGraph and extendGraph")
   free_nodes.insert(begin_vertex);
   extendGraph(graph, alignment_file_e2, vertex_vector, edge_ids, new_begin_vertex, begin_vertex);
 
+
   SECTION ("exon 2 and 3, and intron 2")
   {
     String<TVertexDescriptor> order;
@@ -675,13 +676,7 @@ TEST_CASE ("test case 3 wih exact matches and alignGraph and extendGraph")
       REQUIRE (backtracker[3].match[0] == true);
       REQUIRE (backtracker[4].match[1] == true);
       REQUIRE (backtracker[1].match[1] == true);
-
-      if (matching_vertices.size() != 0)
-      {
-        backTrackAndCount(ids, backtracker, matching_vertices[0], edge_ids);
-      }
     }
-
   }
 }
 
