@@ -10,7 +10,7 @@
 using namespace seqan;
 
 
-TEST_CASE ("addSequenceToGraph should be able to add a single sequence")
+TEST_CASE ("addExonToGraph should be able to add a single exon sequence")
 {
   TGraph g;
   
@@ -28,7 +28,7 @@ TEST_CASE ("addSequenceToGraph should be able to add a single sequence")
   TVertexDescriptor begin_vertex = 0;
 
   addInitialAndEndVertex(g, vertex_label_map, vertex_vector, begin_vertex);
-  addSequenceToGraph(g, 0, 1, sequence, vertex_label_map, vertex_vector, edge_ids);
+  addExonToGraph(g, 0, 1, sequence, vertex_label_map, vertex_vector, edge_ids);
 
   SECTION ("graph with sequence 'TAG' should now have 4 vertices and 3 edges")
   {
@@ -37,14 +37,8 @@ TEST_CASE ("addSequenceToGraph should be able to add a single sequence")
   }
 }
 
-void
-changePair(std::pair<TVertexDescriptor, TVertexDescriptor> & my_pair, TVertexDescriptor new_first, TVertexDescriptor new_second)
-{
-  my_pair.first = new_first;
-  my_pair.second = new_second;
-}
 
-TEST_CASE ("addSequenceToGraph should be able to add a single sequence with gaps")
+TEST_CASE ("addExonToGraph should be able to add a single sequence with gaps")
 {
   TGraph g;
   CharString sequence = "TA-G";
@@ -55,7 +49,7 @@ TEST_CASE ("addSequenceToGraph should be able to add a single sequence with gaps
 
   TVertexDescriptor begin_vertex = 0;
   addInitialAndEndVertex(g, vertex_label_map, vertex_vector, begin_vertex);
-  addSequenceToGraph(g, 0, 1, sequence, vertex_label_map, vertex_vector, edge_ids);
+  addExonToGraph(g, 0, 1, sequence, vertex_label_map, vertex_vector, edge_ids);
 
   String<bool> matrix;
   getAdjacencyMatrix(g, matrix);
@@ -87,7 +81,9 @@ TEST_CASE ("addSequenceToGraph should be able to add a single sequence with gaps
     for (unsigned i = 0 ; i < length(matrix) ; ++i)
     {
       if ( matrix[i] != 0 )
+      {
         ++sum;
+      }
     }
     REQUIRE (sum == numEdges(g));
     REQUIRE (sum == 4);
@@ -100,22 +96,25 @@ TEST_CASE ("addSequenceToGraph should be able to add a single sequence with gaps
     REQUIRE (edge_ids.count(my_pair) == 1);
     REQUIRE (edge_ids[my_pair].to_ulong() == 1);
 
-    changePair(my_pair, 2, 3);
+    my_pair.first = 2;
+    my_pair.second = 3;
     REQUIRE (edge_ids.count(my_pair) == 1);
     REQUIRE (edge_ids[my_pair].to_ulong() == 1);
 
-    changePair(my_pair, 3, 4);
+    my_pair.first = 3;
+    my_pair.second = 4;
     REQUIRE (edge_ids.count(my_pair) == 1);
     REQUIRE (edge_ids[my_pair].to_ulong() == 1);
 
-    changePair(my_pair, 4, 1);
+    my_pair.first = 4;
+    my_pair.second = 1;
     REQUIRE (edge_ids.count(my_pair) == 1);
     REQUIRE (edge_ids[my_pair].to_ulong() == 1);
   }
 }
 
 
-TEST_CASE ("addSequenceToGraph should be able to add more than one sequence")
+TEST_CASE ("addExonToGraph should be able to add more than one sequence")
 {
   TGraph g;
   CharString sequence1 = "TA-G";
@@ -127,8 +126,8 @@ TEST_CASE ("addSequenceToGraph should be able to add more than one sequence")
 
   TVertexDescriptor begin_vertex = 0;
   addInitialAndEndVertex(g, vertex_label_map, vertex_vector, begin_vertex);
-  addSequenceToGraph(g, 0, 2, sequence1, vertex_label_map, vertex_vector, edge_ids);
-  addSequenceToGraph(g, 1, 2, sequence2, vertex_label_map, vertex_vector, edge_ids);
+  addExonToGraph(g, 0, 2, sequence1, vertex_label_map, vertex_vector, edge_ids);
+  addExonToGraph(g, 1, 2, sequence2, vertex_label_map, vertex_vector, edge_ids);
 
   SECTION ("graph should now have 2 more edges and 1 more vertix")
   {
@@ -138,7 +137,7 @@ TEST_CASE ("addSequenceToGraph should be able to add more than one sequence")
 
   SECTION ("if we add an existing sequence in again, no new vertices or edges will be added")
   {
-    addSequenceToGraph(g, 1, 2, sequence2, vertex_label_map, vertex_vector, edge_ids);
+    addExonToGraph(g, 1, 2, sequence2, vertex_label_map, vertex_vector, edge_ids);
     REQUIRE (numVertices(g) == 6);
     REQUIRE (numEdges(g) == 6);
   }
@@ -208,7 +207,7 @@ TEST_CASE ("addSequenceToGraph should be able to add more than one sequence")
 }
 
 
-TEST_CASE ("addSequenceToGraph should return a map that can point to each of the vertices")
+TEST_CASE ("addExonToGraph should return a map that can point to each of the vertices")
 {
   TGraph g;
   CharString sequence = "TA-G";
@@ -218,7 +217,7 @@ TEST_CASE ("addSequenceToGraph should return a map that can point to each of the
 
   TVertexDescriptor begin_vertex = 0;
   addInitialAndEndVertex(g, vertex_label_map, vertex_vector, begin_vertex);
-  addSequenceToGraph(g, 0, 1, sequence, vertex_label_map, vertex_vector, edge_ids);
+  addExonToGraph(g, 0, 1, sequence, vertex_label_map, vertex_vector, edge_ids);
 
   VertexLabels label1 = { 0, Dna('A') };
   VertexLabels label2 = { 1, Dna('T') };
@@ -264,8 +263,8 @@ TEST_CASE ("createVertexMap should return a vector with vertices as keys and ver
 
   TVertexDescriptor begin_vertex = 0;
   addInitialAndEndVertex(g, vertex_label_map, vertex_vector, begin_vertex);
-  addSequenceToGraph(g, 0, 2, sequence1, vertex_label_map, vertex_vector, edge_ids);
-  addSequenceToGraph(g, 1, 2, sequence2, vertex_label_map, vertex_vector, edge_ids);
+  addExonToGraph(g, 0, 2, sequence1, vertex_label_map, vertex_vector, edge_ids);
+  addExonToGraph(g, 1, 2, sequence2, vertex_label_map, vertex_vector, edge_ids);
 
   SECTION ("The size should be the same as the vertex label map")
   {
@@ -303,7 +302,7 @@ TEST_CASE ("createVertexMap should return a vector with vertices as keys and ver
 }
 
 
-TEST_CASE ("addSequenceToGraph should work with matrix of boost's dynamic bits")
+TEST_CASE ("addExonToGraph should work with matrix of boost's dynamic bits")
 {
   TGraph g;
   CharString sequence1 = "TA-G";
@@ -317,7 +316,7 @@ TEST_CASE ("addSequenceToGraph should work with matrix of boost's dynamic bits")
 
   TVertexDescriptor begin_vertex = 0;
   addInitialAndEndVertex(g, vertex_label_map, vertex_vector, begin_vertex);
-  addSequenceToGraph(g, bit_id1, bit_n, sequence1, vertex_label_map, vertex_vector, edge_ids);
+  addExonToGraph(g, bit_id1, bit_n, sequence1, vertex_label_map, vertex_vector, edge_ids);
 
   SECTION ("graph should have 5 vertices and 4 edges in total after the first sequence")
   {
@@ -327,7 +326,7 @@ TEST_CASE ("addSequenceToGraph should work with matrix of boost's dynamic bits")
     REQUIRE (vertex_vector.size() == 5);
   }
 
-  addSequenceToGraph(g, bit_id2, bit_n, sequence2, vertex_label_map, vertex_vector, edge_ids);
+  addExonToGraph(g, bit_id2, bit_n, sequence2, vertex_label_map, vertex_vector, edge_ids);
 
   SECTION ("graph should now have 2 more edges and 1 more vertix")
   {
@@ -337,7 +336,7 @@ TEST_CASE ("addSequenceToGraph should work with matrix of boost's dynamic bits")
 
   SECTION ("if we add an existing sequence in again, no new vertices or edges will be added")
   {
-    addSequenceToGraph(g, bit_id2, bit_n, sequence2, vertex_label_map, vertex_vector, edge_ids);
+    addExonToGraph(g, bit_id2, bit_n, sequence2, vertex_label_map, vertex_vector, edge_ids);
     REQUIRE (numVertices(g) == 6);
     REQUIRE (numEdges(g) == 6);
   }

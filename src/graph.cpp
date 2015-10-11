@@ -152,7 +152,7 @@ createGenericGraph(callOptions & CO,
 
     if (CO.verbose)
     {
-      std::cout << "Adding utr " << p3_string << std::endl;
+      std::cout << "Adding utr    " << p3_string << std::endl;
     }
 
     const char* alignment_file_p3 = p3_string.c_str();
@@ -175,7 +175,7 @@ createGenericGraph(callOptions & CO,
 
     if (CO.verbose)
     {
-      std::cout << "Adding exon " << tmp_string << std::endl;
+      std::cout << "Adding exon   " << tmp_string << std::endl;
     }
 
     const char* alignment_file = tmp_string.c_str();
@@ -217,7 +217,7 @@ createGenericGraph(callOptions & CO,
 
       if (CO.verbose)
       {
-        std::cout << "Adding exon " << tmp_string << std::endl;
+        std::cout << "Adding exon   " << tmp_string << std::endl;
       }
 
       const char* alignment_file = tmp_string.c_str();
@@ -237,7 +237,7 @@ createGenericGraph(callOptions & CO,
 
     if (CO.verbose)
     {
-      std::cout << "Adding utr " << tmp_string << std::endl;
+      std::cout << "Adding utr    " << tmp_string << std::endl;
     }
 
     const char* alignment_file = tmp_string.c_str();

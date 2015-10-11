@@ -107,14 +107,14 @@ addLevelsToVertexVector (std::vector<VertexLabels> & vertex_vector,
 
 
 void
-addSequenceToGraph (TGraph & g,
-                    unsigned short const & bit_id,
-                    unsigned short const & bit_n,
-                    CharString const & sequence,
-                    std::map<VertexLabels, TVertexDescriptor> & vertex_label_map,
-                    std::vector<VertexLabels> & vertex_vector,
-                    boost::unordered_map<std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids
-                   );
+addExonToGraph (TGraph & g,
+                unsigned short const & bit_id,
+                unsigned short const & bit_n,
+                CharString const & sequence,
+                std::map<VertexLabels, TVertexDescriptor> & vertex_label_map,
+                std::vector<VertexLabels> & vertex_vector,
+                boost::unordered_map<std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids
+               );
 
 void
 addSequenceToGraph (TGraph & g,

@@ -175,12 +175,11 @@ TEST_CASE("getScoreVector with exact matches and a single reference")
 /*
  * alignToGraphExact
  **/
-TEST_CASE ("I will get the same results with alignToGraphExact as above")
+TEST_CASE ("alignToGraphExact should return a backtracker ")
 {
   SECTION ("Test case 1")
   {
-    DnaString sequence = "GATA";
-
+    // Graph creation
     std::ostringstream ss;
     ss << gyper_SOURCE_DIRECTORY << "/test/alignments/test_case1.fa";
     std::string tmp_str = ss.str();
@@ -196,6 +195,9 @@ TEST_CASE ("I will get the same results with alignToGraphExact as above")
     String<TVertexDescriptor> order;
     topologicalSort(order, graph);
     std::vector< ExactBacktracker > backtracker;
+
+
+    DnaString sequence = "GATA";
 
     initializeExactScoreMatrixAndBacktracker(length(sequence), length(order), backtracker);
 
@@ -389,7 +391,6 @@ TEST_CASE ("I will get the same results with alignToGraphExact as above")
 /*
  * alignToGraph
  **/
-/*
 TEST_CASE ("test case 3 wih exact matches and alignGraph and extendGraph")
 {
   std::ostringstream ss;
@@ -473,6 +474,7 @@ TEST_CASE ("test case 3 wih exact matches and alignGraph and extendGraph")
     }
   }
 
+  
   std::ostringstream ss3;
   ss3 << gyper_SOURCE_DIRECTORY << "/test/alignments/test_case4_e2.fa";
   std::string tmp_str3 = ss3.str();
@@ -480,7 +482,7 @@ TEST_CASE ("test case 3 wih exact matches and alignGraph and extendGraph")
   free_nodes.insert(begin_vertex);
   extendGraph(graph, alignment_file_e2, vertex_vector, edge_ids, new_begin_vertex, begin_vertex);
 
-  SECTION ("exon 2 and 3 and intron 2")
+  SECTION ("exon 2 and 3, and intron 2")
   {
     String<TVertexDescriptor> order;
     topologicalSort(order, graph);
@@ -632,7 +634,7 @@ TEST_CASE ("test case 3 wih exact matches and alignGraph and extendGraph")
       REQUIRE (expected == perfect_match);
     }
 
-    SECTION ("sequence is ATTAGATA")
+    SECTION ("If sequence is ATTAGATA, there shouldn't be any matches")
     {
       DnaString sequence = "ATTAGATA";
 
@@ -679,9 +681,10 @@ TEST_CASE ("test case 3 wih exact matches and alignGraph and extendGraph")
         backTrackAndCount(ids, backtracker, matching_vertices[0], edge_ids);
       }
     }
+
   }
 }
-*/
+
 
 
 TEST_CASE ("Vcf file out")

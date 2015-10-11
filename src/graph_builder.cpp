@@ -26,14 +26,14 @@ addBitsetEdge (boost::dynamic_bitset<> &ref_bitset,
 
 
 void
-addSequenceToGraph (TGraph & g,
-                    unsigned short const & bit_id,
-                    unsigned short const & bit_n,
-                    CharString const & sequence,
-                    std::map<VertexLabels, TVertexDescriptor> & vertex_label_map,
-                    std::vector<VertexLabels> & vertex_vector,
-                    boost::unordered_map<std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids
-                   )
+addExonToGraph (TGraph & g,
+                unsigned short const & bit_id,
+                unsigned short const & bit_n,
+                CharString const & sequence,
+                std::map<VertexLabels, TVertexDescriptor> & vertex_label_map,
+                std::vector<VertexLabels> & vertex_vector,
+                boost::unordered_map<std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids
+               )
 {
   VertexLabels prev_vertex_label = {0, Dna('A')};
   TVertexDescriptor prev = vertex_label_map[prev_vertex_label];
@@ -154,14 +154,14 @@ addSequenceToGraph (TGraph & g,
 
 
 void
-addInitialAndEndVertex (TGraph & g,
+addInitialAndEndVertex (TGraph & graph,
                         std::map<VertexLabels, TVertexDescriptor> & vertex_label_map,
                         std::vector<VertexLabels> & vertex_vector,
                         TVertexDescriptor & begin_vertex
                        )
 {
-  begin_vertex = addVertex(g);
-  TVertexDescriptor end_vertex = addVertex(g);
+  begin_vertex = addVertex(graph);
+  TVertexDescriptor end_vertex = addVertex(graph);
 
   VertexLabels initial_vertex = 
   {
@@ -182,14 +182,14 @@ addInitialAndEndVertex (TGraph & g,
 
 
 void
-addInitialVertex (TGraph &g,
+addInitialVertex (TGraph & graph,
                   std::map<VertexLabels, TVertexDescriptor> &vertex_label_map,
                   std::vector<VertexLabels> &vertex_vector,
                   TVertexDescriptor &begin_vertex,
                   TVertexDescriptor &end_vertex
                  )
 {
-  begin_vertex = addVertex(g);
+  begin_vertex = addVertex(graph);
 
   VertexLabels initial_vertex = 
   {
@@ -213,10 +213,10 @@ addInitialVertex (TGraph &g,
 
 TGraph
 createGraph (const char* fastaFile,
-             std::vector<VertexLabels> &vertex_vector,
-             boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > &edge_ids,
+             std::vector<VertexLabels> & vertex_vector,
+             boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
              std::vector<std::string> &ids,
-             TVertexDescriptor &begin_vertex
+             TVertexDescriptor & begin_vertex
             )
 {
   TGraph graph;
@@ -233,7 +233,7 @@ createGraph (const char* fastaFile,
   while (!atEnd(seqFileIn))
   {
     readRecord(id, sequence, seqFileIn);
-    addSequenceToGraph(graph, id_read, length(count_ids), sequence, vertex_label_map, vertex_vector, edge_ids);
+    addExonToGraph(graph, id_read, length(count_ids), sequence, vertex_label_map, vertex_vector, edge_ids);
     std::string meta = toCString(id);
     ids.push_back(meta.substr(3));
     ++id_read;
@@ -293,12 +293,12 @@ extendGraph (TGraph &graph,
 
   while (!atEnd(seqFileIn))
   {
-    addSequenceToGraph(graph, id_read, length(count_ids), sequence, vertex_label_map, vertex_vector, edge_ids);
+    addExonToGraph(graph, id_read, length(count_ids), sequence, vertex_label_map, vertex_vector, edge_ids);
     readRecord(id, sequence, seqFileIn);
     ++id_read;
   }
   
-  addSequenceToGraph(graph, id_read, length(count_ids), sequence, vertex_label_map, vertex_vector, edge_ids);
+  addExonToGraph(graph, id_read, length(count_ids), sequence, vertex_label_map, vertex_vector, edge_ids);
 }
 
 
