@@ -55,7 +55,6 @@ align_sequence (DnaString & my_sequence,
 
 void
 align_sequence_kmer (DnaString & my_sequence,
-                     boost::dynamic_bitset<> & qual,
                      TGraph const & graph,
                      std::vector<VertexLabels> & vertex_vector,
                      String<TVertexDescriptor> & order,
@@ -77,21 +76,10 @@ align_sequence_kmer (DnaString & my_sequence,
                           vertex_vector,
                           backtracker,
                           free_nodes,
-                          qual,
                           kmer_map
                          );
 
   reverseComplement(my_sequence);
-
-  boost::dynamic_bitset<> qual_reversed(qual.size());
-  std::size_t qual_size = qual.size();
-  for (unsigned pos = 0 ; pos < qual_size ; ++pos)
-  {
-    if (qual.test(pos))
-    {
-      qual_reversed[qual_size-pos-1] = 1;
-    }
-  }
   
   alignToGraphExact_kmer (my_sequence,
                           order,
@@ -100,7 +88,6 @@ align_sequence_kmer (DnaString & my_sequence,
                           vertex_vector,
                           reverse_backtracker,
                           free_nodes,
-                          qual,
                           kmer_map
                          );
 

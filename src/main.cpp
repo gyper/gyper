@@ -1034,7 +1034,6 @@ int main (int argc, char const ** argv)
     if (CO.kmer)
     {
       align_sequence_kmer(sequence1,
-                          qual1,
                           graph,
                           vertex_vector,
                           order,
@@ -1069,7 +1068,6 @@ int main (int argc, char const ** argv)
     if (CO.kmer)
     {
       align_sequence_kmer(sequence2,
-                          qual2,
                           graph,
                           vertex_vector,
                           order,

@@ -177,7 +177,6 @@ align_sequence (DnaString & my_sequence,
 
 void
 align_sequence_kmer (DnaString & my_sequence,
-                     boost::dynamic_bitset<> & qual,
                      TGraph const & graph,
                      std::vector<VertexLabels> & vertex_vector,
                      String<TVertexDescriptor> & order,

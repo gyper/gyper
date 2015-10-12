@@ -172,7 +172,6 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
                         std::vector<VertexLabels> & vertex_vector,
                         std::vector<ExactBacktracker> & backtracker,
                         boost::unordered_set<TVertexDescriptor> const & free_nodes,
-                        boost::dynamic_bitset<> const & qual,
                         TKmerMap & kmer_map
                        )
 {
@@ -188,21 +187,26 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
   String<Dna> seq_last_kmer(sequence);
   erase(seq_last_kmer, 0, length(sequence) - K_SIZE);
 
-  if (kmer_map.count(seq_last_kmer) == 0)
-  {
-    // std::cout << "Last kmer: " << seq_last_kmer << " (" << sequence << ") " << std::endl;
-    return;
-  }
-  
-  // for (int k = K_SIZE ; k < seq.size() - K_SIZE ; k += K_SIZE)
+  // if (kmer_map.count(seq_last_kmer) == 0)
   // {
-  //   std::string seq_center_kmer(seq, k, K_SIZE);
-  //   if (kmer_map.count(seq_center_kmer) == 0)
-  //     return;
+  //   // std::cout << "Last kmer: " << seq_last_kmer << " (" << sequence << ") " << std::endl;
+  //   return;
   // }
+  
+  for (unsigned k = 0 ; k < length(sequence) - K_SIZE ; k += K_SIZE)
+  {
+    String<Dna> seq_center_kmer(sequence);
+    erase(seq_last_kmer, 0, k);
+    resize(seq_center_kmer, K_SIZE);
 
-  // std::cout << "Sequence I have is " << sequence << " with kmers: " << seq_first_kmer << " " << seq_last_kmer << " ";
-  // std::cout << kmer_map[seq_first_kmer].size() << " " << kmer_map[seq_last_kmer].size() << " ";
+    if (kmer_map.count(seq_center_kmer) == 0)
+    {
+      return;
+    }
+  }
+
+  std::cout << "Sequence I have is " << sequence << " with kmers: " << seq_first_kmer << " " << seq_last_kmer << " ";
+  std::cout << kmer_map[seq_first_kmer].size() << " " << kmer_map[seq_last_kmer].size() << " ";
 
   int min_level = vertex_vector[kmer_map[seq_first_kmer][0].start_vertex].level;
   int max_level = vertex_vector[kmer_map[seq_last_kmer][0].start_vertex].level;
@@ -256,23 +260,6 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
             backtracker[target_vertex].match[i] = true;
             backtracker[target_vertex].nodes[i] = source_vertex;
           }
-        }
-      }
-      else if (outDegree(graph, source_vertex) == 1 &&
-               inDegree(graph, target_vertex) == 1
-              )
-      {
-        Dna reference = vertex_vector[target_vertex].dna;
-        if (getScoreVector(backtracker[source_vertex],
-                           backtracker[target_vertex],
-                           sequence,
-                           qual,
-                           reference,
-                           source_vertex
-                          )
-           )
-        {
-          matching_vertices.push_back(target_vertex);
         }
       }
       else

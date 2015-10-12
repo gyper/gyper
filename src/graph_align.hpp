@@ -52,7 +52,6 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
                         std::vector<VertexLabels> & vertex_vector,
                         std::vector<ExactBacktracker> & backtracker,
                         boost::unordered_set<TVertexDescriptor> const & free_nodes,
-                        boost::dynamic_bitset<> const & qual,
                         TKmerMap & kmer_map
                        );
 

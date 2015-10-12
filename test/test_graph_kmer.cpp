@@ -101,33 +101,35 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
     REQUIRE(kmer_map[kmer4][0].end_vertex == 5);
     REQUIRE(kmer_map[kmer4][0].id_bits == expected_bitset_01);
 
-    /*
-    SECTION ("sequence is GATA")
+
+    SECTION ("sequence is TTTTGC")
     {
-      DnaString sequence = "GATA";
+      DnaString sequence = "TTTTGC";
 
       initializeExactScoreMatrixAndBacktracker(length(sequence), length(order), backtracker);
 
       std::vector<TVertexDescriptor> matching_vertices;
-      alignToGraphExact (sequence,
-                       order,
-                       graph,
-                       matching_vertices,
-                       vertex_vector,
-                       backtracker,
-                       free_nodes
-                      );
+      alignToGraphExact_kmer (sequence,
+                              order,
+                              graph,
+                              matching_vertices,
+                              vertex_vector,
+                              backtracker,
+                              free_nodes,
+                              kmer_map
+                             );
 
-      REQUIRE (matching_vertices.size() == 1);
-      REQUIRE (matching_vertices[0] == 5);
+      // REQUIRE (matching_vertices.size() == 1);
+      // REQUIRE (matching_vertices[0] == 5);
 
-      boost::dynamic_bitset<> perfect_match =
-        backTrackAndCount(ids, backtracker, matching_vertices[0], edge_ids);
+      // boost::dynamic_bitset<> perfect_match =
+      //   backTrackAndCount(ids, backtracker, matching_vertices[0], edge_ids);
 
-      boost::dynamic_bitset<> expected(2, 1ul); // Binary: 01
-      REQUIRE (expected == perfect_match);
+      // boost::dynamic_bitset<> expected(2, 1ul); // Binary: 01
+      // REQUIRE (expected == perfect_match);
     }
 
+    /*
     SECTION ("sequence is AGATA")
     {
       DnaString sequence = "AGATA";
