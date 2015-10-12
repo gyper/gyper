@@ -53,45 +53,32 @@ align_sequence (DnaString & my_sequence,
 }
 
 
-void
+boost::dynamic_bitset<>
 align_sequence_kmer (DnaString & my_sequence,
-                     TGraph const & graph,
-                     std::vector<VertexLabels> & vertex_vector,
-                     String<TVertexDescriptor> & order,
-                     std::vector<ExactBacktracker> & backtracker,
-                     std::vector<ExactBacktracker> & reverse_backtracker,
-                     boost::unordered_set<TVertexDescriptor> const & free_nodes,
-                     std::vector<TVertexDescriptor> & matching_vertices,
-                     std::vector<TVertexDescriptor> & reverse_matching_vertices,
+                     unsigned const & id_numbers,
                      TKmerMap & kmer_map
                     )
 {
-  initializeExactScoreMatrixAndBacktracker(length(my_sequence), length(order), backtracker);
-  reverse_backtracker = backtracker;
+  boost::dynamic_bitset<> matched_ids =
+   alignToGraphExact_kmer (my_sequence,
+                           id_numbers,
+                           kmer_map
+                          );
 
-  alignToGraphExact_kmer (my_sequence,
-                          order,
-                          graph,
-                          matching_vertices,
-                          vertex_vector,
-                          backtracker,
-                          free_nodes,
-                          kmer_map
-                         );
+  if (matched_ids.find_first() != matched_ids.npos)
+  {
+    return matched_ids;
+  }
 
   reverseComplement(my_sequence);
   
-  alignToGraphExact_kmer (my_sequence,
-                          order,
-                          graph,
-                          reverse_matching_vertices,
-                          vertex_vector,
-                          reverse_backtracker,
-                          free_nodes,
+  matched_ids = alignToGraphExact_kmer (my_sequence,
+                          id_numbers,
                           kmer_map
                          );
 
   reverseComplement(my_sequence);
+  return matched_ids;
 }
 
 

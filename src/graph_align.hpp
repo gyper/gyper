@@ -44,15 +44,11 @@ alignToGraphExact (DnaString const & sequence,
                    boost::dynamic_bitset<> const & qual
                   );
 
-void
+boost::dynamic_bitset<>
 alignToGraphExact_kmer (String<Dna> const & sequence,
-                        String<TVertexDescriptor const> const & order,
-                        TGraph const & graph,
-                        std::vector<TVertexDescriptor> & matching_vertices,
-                        std::vector<VertexLabels> & vertex_vector,
-                        std::vector<ExactBacktracker> & backtracker,
-                        boost::unordered_set<TVertexDescriptor> const & free_nodes,
-                        TKmerMap & kmer_map
+                        unsigned const & id_numbers,
+                        TKmerMap & kmer_map,
+                        int const & k_size = K_SIZE
                        );
 
 void

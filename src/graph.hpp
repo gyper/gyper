@@ -2,6 +2,7 @@
 #define __GRAPH_HPP_INCLUDED__
 
 #define SEQAN_NO_GLOBAL_EXCEPTION_HANDLER
+#define K_SIZE 11
 
 #include <stdio.h>
 #include <cstddef>
@@ -43,9 +44,6 @@ std::size_t hash_value(String<Dna> const& s)
 }
 
 }
-
-
-using namespace seqan;
 
 
 struct VertexLabels {
@@ -175,16 +173,9 @@ align_sequence (DnaString & my_sequence,
                 std::vector<TVertexDescriptor> & reverse_matching_vertices
                );
 
-void
+boost::dynamic_bitset<>
 align_sequence_kmer (DnaString & my_sequence,
-                     TGraph const & graph,
-                     std::vector<VertexLabels> & vertex_vector,
-                     String<TVertexDescriptor> & order,
-                     std::vector<ExactBacktracker> & backtracker,
-                     std::vector<ExactBacktracker> & reverse_backtracker,
-                     boost::unordered_set<TVertexDescriptor> const & free_nodes,
-                     std::vector<TVertexDescriptor> & matching_vertices,
-                     std::vector<TVertexDescriptor> & reverse_matching_vertices,
+                     unsigned const & id_numbers,
                      TKmerMap & kmer_map
                     );
 
