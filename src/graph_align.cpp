@@ -173,7 +173,7 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
                         std::vector<ExactBacktracker> & backtracker,
                         boost::unordered_set<TVertexDescriptor> const & free_nodes,
                         boost::dynamic_bitset<> const & qual,
-                        boost::unordered_map< seqan::String<seqan::Dna>, std::vector<TVertexDescriptor> > & kmer_map
+                        TKmerMap & kmer_map
                        )
 {
   String<Dna> seq_first_kmer(sequence);
@@ -204,17 +204,17 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
   // std::cout << "Sequence I have is " << sequence << " with kmers: " << seq_first_kmer << " " << seq_last_kmer << " ";
   // std::cout << kmer_map[seq_first_kmer].size() << " " << kmer_map[seq_last_kmer].size() << " ";
 
-  int min_level = vertex_vector[kmer_map[seq_first_kmer][0]].level;
-  int max_level = vertex_vector[kmer_map[seq_last_kmer][0]].level;
+  int min_level = vertex_vector[kmer_map[seq_first_kmer][0].start_vertex].level;
+  int max_level = vertex_vector[kmer_map[seq_last_kmer][0].start_vertex].level;
 
   {
     auto min_level_it = kmer_map[seq_first_kmer].begin();
     ++min_level_it;
     for ( ; min_level_it != kmer_map[seq_first_kmer].end() ; ++min_level_it)
     {
-      if (vertex_vector[*min_level_it].level < min_level)
+      if (vertex_vector[min_level_it->start_vertex].level < min_level)
       {
-        min_level = vertex_vector[*min_level_it].level;
+        min_level = vertex_vector[min_level_it->start_vertex].level;
       }
     }
   }
@@ -224,9 +224,9 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
     ++max_level_it;
     for ( ; max_level_it != kmer_map[seq_last_kmer].end() ; ++max_level_it)
     {
-      if (vertex_vector[*max_level_it].level > max_level)
+      if (vertex_vector[max_level_it->start_vertex].level > max_level)
       {
-        max_level = vertex_vector[*max_level_it].level;
+        max_level = vertex_vector[max_level_it->start_vertex].level;
       }
     }
   }

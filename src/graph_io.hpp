@@ -9,8 +9,7 @@
 #include <iostream>
 #include <time.h>
 
-#include "graph_align.hpp"
-#include "graph_builder.hpp" // Needs the templates defined there
+#include "graph.hpp"
 
 #include <seqan/vcf_io.h>
 #include <seqan/sequence.h> 

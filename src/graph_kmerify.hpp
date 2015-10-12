@@ -4,10 +4,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "graph_io.hpp"
-#include "graph_builder.hpp"
-#include "graph_align.hpp"
-// #include "graph.hpp"
+#include "graph.hpp"
 
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
@@ -16,13 +13,12 @@
 #define K_SIZE 8
 
 
-typedef boost::unordered_map<DnaString, std::vector<TVertexDescriptor> > TKmerMap;
-
 TKmerMap
 kmerifyGraph(String<TVertexDescriptor const> const & order,
              TGraph const & graph,
              std::vector<VertexLabels> & vertex_vector,
              boost::unordered_set<TVertexDescriptor> const & free_nodes,
+             boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
              int const & kmer_size = K_SIZE
             );
 

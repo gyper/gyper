@@ -969,7 +969,7 @@ int main (int argc, char const ** argv)
   TKmerMap kmer_map;
   if (CO.kmer)
   {
-    kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes);
+    kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, edge_ids);
     printf("[%6.2f] Graph kmerification done.\n", double(clock()-begin) / CLOCKS_PER_SEC);
   }
 

@@ -34,12 +34,13 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
     String<TVertexDescriptor> order;
     topologicalSort(order, graph);
 
-    TKmerMap kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, kmer_size);
+    TKmerMap kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, edge_ids, kmer_size);
     REQUIRE(kmer_map.size() == 1);
     DnaString kmer1 = "TGCC";
     REQUIRE(kmer_map.count(kmer1) == 1);
     REQUIRE(kmer_map[kmer1].size() == 1);
-    REQUIRE(kmer_map[kmer1][0] == 2);
+    REQUIRE(kmer_map[kmer1][0].start_vertex == 2);
+    REQUIRE(kmer_map[kmer1][0].end_vertex == 5);
   }
 
   std::ostringstream ss2;
@@ -56,29 +57,49 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
   {
     String<TVertexDescriptor> order;
     topologicalSort(order, graph);
-    TKmerMap kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, kmer_size);
+    TKmerMap kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, edge_ids, kmer_size);
+    std::size_t num_ids = edge_ids.begin()->second.size();
     // REQUIRE(kmer_map.size() == 4);
+
+    boost::dynamic_bitset<> expected_bitset_11(num_ids, 3ul);
+    boost::dynamic_bitset<> expected_bitset_10(num_ids, 2ul);
+    boost::dynamic_bitset<> expected_bitset_01(num_ids, 1ul);
+    boost::dynamic_bitset<> expected_bitset_00(num_ids, 0ul);
 
     DnaString kmer1 = "TTTT";
     REQUIRE(kmer_map.count(kmer1) == 1);
     REQUIRE(kmer_map[kmer1].size() == 2);
-    REQUIRE(kmer_map[kmer1][0] == 7);
-    REQUIRE(kmer_map[kmer1][1] == 8);
+    REQUIRE(kmer_map[kmer1][0].start_vertex == 7);
+    REQUIRE(kmer_map[kmer1][0].end_vertex == 10);
+    REQUIRE(kmer_map[kmer1][0].id_bits == expected_bitset_11);
+    REQUIRE(kmer_map[kmer1][1].start_vertex == 8);
+    REQUIRE(kmer_map[kmer1][1].end_vertex == 2);
+    
+    REQUIRE(kmer_map[kmer1][1].id_bits == expected_bitset_11);
 
     DnaString kmer2 = "TTTG";
     REQUIRE(kmer_map.count(kmer2) == 1);
     REQUIRE(kmer_map[kmer2].size() == 1);
-    REQUIRE(kmer_map[kmer2][0] == 9);
+    REQUIRE(kmer_map[kmer2][0].start_vertex == 9);
+    REQUIRE(kmer_map[kmer2][0].end_vertex == 3);
+    REQUIRE(kmer_map[kmer2][0].id_bits == expected_bitset_11);
 
     DnaString kmer3 = "TTGC";
     REQUIRE(kmer_map.count(kmer3) == 1);
-    REQUIRE(kmer_map[kmer3].size() == 1);
-    REQUIRE(kmer_map[kmer3][0] == 10);
+    REQUIRE(kmer_map[kmer3].size() == 2);
+    REQUIRE(kmer_map[kmer3][0].start_vertex == 10);
+    REQUIRE(kmer_map[kmer3][0].end_vertex == 5);
+    REQUIRE(kmer_map[kmer3][0].id_bits == expected_bitset_10);
+    REQUIRE(kmer_map[kmer3][1].start_vertex == 10);
+    REQUIRE(kmer_map[kmer3][1].end_vertex == 4);
+    REQUIRE(kmer_map[kmer3][1].id_bits == expected_bitset_01);
 
     DnaString kmer4 = "TGCC";
     REQUIRE(kmer_map.count(kmer4) == 1);
     REQUIRE(kmer_map[kmer4].size() == 1);
-    REQUIRE(kmer_map[kmer4][0] == 2);
+    REQUIRE(kmer_map[kmer4][0].start_vertex == 2);
+    REQUIRE(kmer_map[kmer4][0].end_vertex == 5);
+    REQUIRE(kmer_map[kmer4][0].id_bits == expected_bitset_01);
 
     /*
     SECTION ("sequence is GATA")

@@ -4,21 +4,108 @@
 #define SEQAN_NO_GLOBAL_EXCEPTION_HANDLER
 
 #include <stdio.h>
+#include <cstddef>
+#include <string>
 #include <ctime>
 
 #include "constants.hpp"
-#include "graph_builder.hpp"
-#include "graph_align.hpp"
-#include "graph_io.hpp"
 
 #include <boost/unordered/unordered_set.hpp>
 
 #include <seqan/bam_io.h>
 #include <seqan/basic.h>
+#include <seqan/sequence.h>
 #include <seqan/graph_types.h>
 #include <seqan/seq_io.h>
 
+#include <boost/unordered/unordered_map.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/dynamic_bitset.hpp>
+
+
 using namespace seqan;
+
+
+namespace seqan
+{
+
+inline
+std::size_t hash_value(String<Dna> const& s)
+{
+  std::size_t hash_val = 0;
+
+  for (Iterator<String<Dna> const>::Type it = begin(s) ; it != end(s) ; ++it)
+  {
+    hash_val = hash_val * 4 + ordValue(*it);
+  }
+
+  return hash_val;
+}
+
+}
+
+
+using namespace seqan;
+
+
+struct VertexLabels {
+  int level;
+  Dna dna;
+};
+
+// For graph
+typedef Graph<Directed<void, WithSourceId> > TGraph;
+typedef VertexDescriptor<TGraph>::Type TVertexDescriptor;
+typedef EdgeDescriptor<TGraph>::Type TEdgeDescriptor;
+typedef Size<TGraph>::Type TSize;
+
+
+struct KmerLabels
+{
+  TVertexDescriptor start_vertex;
+  TVertexDescriptor end_vertex;
+  boost::dynamic_bitset<> id_bits;
+};
+
+
+struct GraphWithLabels {
+  TGraph graph;
+  std::vector<VertexLabels> vertex_labels;
+};
+
+struct ExactBacktracker {
+  std::vector<TVertexDescriptor> nodes;
+  std::vector<bool> match; // True if diagonal match, false otherwise
+};
+
+
+inline bool
+operator==(const VertexLabels &lhs, const VertexLabels &rhs)
+{
+  return lhs.level == rhs.level && lhs.dna == rhs.dna;
+}
+
+
+inline bool
+operator<(const VertexLabels &lhs, const VertexLabels &rhs)
+{
+  return lhs.level < rhs.level || (lhs.level == rhs.level && lhs.dna < rhs.dna);
+}
+
+
+inline std::size_t
+hash_value(const VertexLabels &a)
+{
+  std::size_t seed = 0;
+  boost::hash_combine(seed, a.level);
+  boost::hash_combine(seed, ordValue(a.dna));
+  return seed;
+}
+
+
+
+
+typedef boost::unordered_map<DnaString, std::vector<KmerLabels> > TKmerMap;
 
 
 struct callOptions
@@ -99,7 +186,7 @@ align_sequence_kmer (DnaString & my_sequence,
                      boost::unordered_set<TVertexDescriptor> const & free_nodes,
                      std::vector<TVertexDescriptor> & matching_vertices,
                      std::vector<TVertexDescriptor> & reverse_matching_vertices,
-                     boost::unordered_map< seqan::String<seqan::Dna>, std::vector<TVertexDescriptor> > & kmer_map
+                     TKmerMap & kmer_map
                     );
 
 CharString myExtractTagValue(String<char> &tags);
@@ -161,5 +248,11 @@ createHlacGraph(TGraph & graph,
                 boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
                 boost::unordered_set<TVertexDescriptor> & free_nodes,
                 String<TVertexDescriptor> & order);
+
+
+#include "graph_builder.hpp"
+#include "graph_align.hpp"
+#include "graph_io.hpp"
+#include "graph_kmerify.hpp"
 
 #endif
