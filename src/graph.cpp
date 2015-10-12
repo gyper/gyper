@@ -53,58 +53,32 @@ align_sequence (DnaString & my_sequence,
 }
 
 
-void
+boost::dynamic_bitset<>
 align_sequence_kmer (DnaString & my_sequence,
-                     boost::dynamic_bitset<> & qual,
-                     TGraph const & graph,
-                     std::vector<VertexLabels> & vertex_vector,
-                     String<TVertexDescriptor> & order,
-                     std::vector<ExactBacktracker> & backtracker,
-                     std::vector<ExactBacktracker> & reverse_backtracker,
-                     boost::unordered_set<TVertexDescriptor> const & free_nodes,
-                     std::vector<TVertexDescriptor> & matching_vertices,
-                     std::vector<TVertexDescriptor> & reverse_matching_vertices,
+                     unsigned const & id_numbers,
                      TKmerMap & kmer_map
                     )
 {
-  initializeExactScoreMatrixAndBacktracker(length(my_sequence), length(order), backtracker);
-  reverse_backtracker = backtracker;
+  boost::dynamic_bitset<> matched_ids =
+   alignToGraphExact_kmer (my_sequence,
+                           id_numbers,
+                           kmer_map
+                          );
 
-  alignToGraphExact_kmer (my_sequence,
-                          order,
-                          graph,
-                          matching_vertices,
-                          vertex_vector,
-                          backtracker,
-                          free_nodes,
-                          qual,
-                          kmer_map
-                         );
-
-  reverseComplement(my_sequence);
-
-  boost::dynamic_bitset<> qual_reversed(qual.size());
-  std::size_t qual_size = qual.size();
-  for (unsigned pos = 0 ; pos < qual_size ; ++pos)
+  if (matched_ids.find_first() != matched_ids.npos)
   {
-    if (qual.test(pos))
-    {
-      qual_reversed[qual_size-pos-1] = 1;
-    }
+    return matched_ids;
   }
+
+  reverseComplement(my_sequence);
   
-  alignToGraphExact_kmer (my_sequence,
-                          order,
-                          graph,
-                          reverse_matching_vertices,
-                          vertex_vector,
-                          reverse_backtracker,
-                          free_nodes,
-                          qual,
+  matched_ids = alignToGraphExact_kmer (my_sequence,
+                          id_numbers,
                           kmer_map
                          );
 
   reverseComplement(my_sequence);
+  return matched_ids;
 }
 
 

@@ -50,26 +50,22 @@ checkKmers(DnaString const & kmer,
 
     // std::cout << source_vertex << " -> " << target_vertex << std::endl;
 
+    boost::dynamic_bitset<> new_id_bits(id_bits);
+
     if (free_nodes.count(target_vertex) == 0)
     {
       seqan::appendValue(new_kmer, vertex_vector[target_vertex].dna);
       std::pair<TVertexDescriptor, TVertexDescriptor> edge_pair(source_vertex, target_vertex);
       
-      boost::dynamic_bitset<> new_id_bits(id_bits);
-
       if (edge_ids.count(edge_pair) == 1)
       {
         // std::cout << new_id_bits << " to ";
         new_id_bits = id_bits & edge_ids[edge_pair];
         // std::cout << new_id_bits << " (" << edge_ids[edge_pair] << ")" << std::endl;
       }
+    }
 
-      checkKmers(new_kmer, starting_vertex, target_vertex, graph, vertex_vector, free_nodes, edge_ids, new_id_bits, kmer_map, kmer_size);
-    }
-    else
-    {
-      checkKmers(new_kmer, starting_vertex, target_vertex, graph, vertex_vector, free_nodes, edge_ids, id_bits, kmer_map, kmer_size);
-    }
+    checkKmers(new_kmer, starting_vertex, target_vertex, graph, vertex_vector, free_nodes, edge_ids, new_id_bits, kmer_map, kmer_size);
   }
 }
 

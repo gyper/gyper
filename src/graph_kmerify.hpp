@@ -10,9 +10,6 @@
 #include <boost/unordered_map.hpp>
 
 
-#define K_SIZE 8
-
-
 TKmerMap
 kmerifyGraph(String<TVertexDescriptor const> const & order,
              TGraph const & graph,

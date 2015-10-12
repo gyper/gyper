@@ -164,133 +164,154 @@ alignToGraphExact (DnaString const & sequence,
 }
 
 
-void
+boost::dynamic_bitset<>
 alignToGraphExact_kmer (String<Dna> const & sequence,
-                        String<TVertexDescriptor const> const & order,
-                        TGraph const & graph,
-                        std::vector<TVertexDescriptor> & matching_vertices,
-                        std::vector<VertexLabels> & vertex_vector,
-                        std::vector<ExactBacktracker> & backtracker,
-                        boost::unordered_set<TVertexDescriptor> const & free_nodes,
-                        boost::dynamic_bitset<> const & qual,
-                        TKmerMap & kmer_map
+                        unsigned const & id_numbers,
+                        TKmerMap & kmer_map,
+                        int const & k_size
                        )
 {
   String<Dna> seq_first_kmer(sequence);
-  resize(seq_first_kmer, K_SIZE);
+  resize(seq_first_kmer, k_size);
+  std::vector< KmerLabels > matches;
+  boost::dynamic_bitset<> id_bits(id_numbers);
 
   if (kmer_map.count(seq_first_kmer) == 0)
   {
-    // std::cout << "First kmer: " << seq_first_kmer << " (" << sequence << ") " << std::endl;
-    return;
+    return id_bits;
   }
-
-  String<Dna> seq_last_kmer(sequence);
-  erase(seq_last_kmer, 0, length(sequence) - K_SIZE);
-
-  if (kmer_map.count(seq_last_kmer) == 0)
+  else
   {
-    // std::cout << "Last kmer: " << seq_last_kmer << " (" << sequence << ") " << std::endl;
-    return;
+    matches = kmer_map[seq_first_kmer];
   }
-  
-  // for (int k = K_SIZE ; k < seq.size() - K_SIZE ; k += K_SIZE)
-  // {
-  //   std::string seq_center_kmer(seq, k, K_SIZE);
-  //   if (kmer_map.count(seq_center_kmer) == 0)
-  //     return;
-  // }
+  // std::cout << "Sequence: " << sequence << std::endl;
 
-  // std::cout << "Sequence I have is " << sequence << " with kmers: " << seq_first_kmer << " " << seq_last_kmer << " ";
-  // std::cout << kmer_map[seq_first_kmer].size() << " " << kmer_map[seq_last_kmer].size() << " ";
+  if (kmer_map.count(seq_first_kmer) == 0)
+    return id_bits;
 
-  int min_level = vertex_vector[kmer_map[seq_first_kmer][0].start_vertex].level;
-  int max_level = vertex_vector[kmer_map[seq_last_kmer][0].start_vertex].level;
+  int const & increment_size = k_size - 1;
 
+  for (unsigned k = increment_size ; k < length(sequence) - increment_size ; k += increment_size)
   {
-    auto min_level_it = kmer_map[seq_first_kmer].begin();
-    ++min_level_it;
-    for ( ; min_level_it != kmer_map[seq_first_kmer].end() ; ++min_level_it)
+    // std::cout << "Sequence: " << sequence << std::endl;
+    // std::cout << "matches.size() = " << matches.size() << std::endl;
+    
+    String<Dna> seq_center_kmer(sequence);
+    erase(seq_center_kmer, 0, k);
+    resize(seq_center_kmer, k_size);
+
+    if (kmer_map.count(seq_center_kmer) == 0)
     {
-      if (vertex_vector[min_level_it->start_vertex].level < min_level)
-      {
-        min_level = vertex_vector[min_level_it->start_vertex].level;
-      }
+      // std::cout << "No match for kmer: " << seq_center_kmer << " (" << matches.size() << ") " << std::endl;
+      return id_bits;
     }
-  }
-
-  {
-    auto max_level_it = kmer_map[seq_last_kmer].begin();
-    ++max_level_it;
-    for ( ; max_level_it != kmer_map[seq_last_kmer].end() ; ++max_level_it)
+    else
     {
-      if (vertex_vector[max_level_it->start_vertex].level > max_level)
+      // std::cout << "Match for kmer " << seq_center_kmer << std::endl;
+
+      unsigned new_matches = 0;
+      for (unsigned pos = 0; pos < matches.size() - new_matches ; ++pos)
       {
-        max_level = vertex_vector[max_level_it->start_vertex].level;
-      }
-    }
-  }
+        KmerLabels original_matches = matches[pos];
+        // std::cout << "pos = " << pos << " is searching for " << matches[pos].end_vertex << std::endl;
+        bool matched = false;
 
-  // std::cout << min_level << " " << max_level << std::endl;
-
-  for (Iterator<String<TVertexDescriptor const> const>::Type it = begin(order) ; it != end(order) ; ++it)
-  {
-    TVertexDescriptor const & source_vertex = *it;
-
-    if (vertex_vector[source_vertex].level < (min_level - 50))
-      continue;
-
-    if (vertex_vector[source_vertex].level > (max_level + K_SIZE + 50))
-      break;
-
-    for (Iterator<TGraph, OutEdgeIterator>::Type out_edge_iterator (graph, source_vertex) ; !atEnd(out_edge_iterator) ; ++out_edge_iterator)
-    {
-      TVertexDescriptor const & target_vertex = targetVertex(out_edge_iterator);
-
-      if (free_nodes.find(target_vertex) != free_nodes.end())
-      {
-        for (unsigned i = 0 ; i < length(sequence) ; ++i)
+        for (auto current_matches_it = kmer_map[seq_center_kmer].begin() ; current_matches_it != kmer_map[seq_center_kmer].end() ; ++current_matches_it)
         {
-          if (backtracker[source_vertex].match[i])
+          // TVertexDescriptor new_end_vertex;
+          // std::cout << "Considering kmer " << seq_center_kmer << ": " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
+          
+          if (matched && (original_matches.end_vertex == current_matches_it->start_vertex))
           {
-            backtracker[target_vertex].match[i] = true;
-            backtracker[target_vertex].nodes[i] = source_vertex;
+            // std::cout << "Another match found! " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
+            
+            KmerLabels new_label = {
+              original_matches.start_vertex,
+              current_matches_it->end_vertex,
+              original_matches.id_bits & current_matches_it->id_bits
+            };
+
+            matches.push_back(new_label);
+            ++new_matches;
+          }
+          else if (original_matches.end_vertex == current_matches_it->start_vertex)
+          {
+            // std::cout << "Match found! " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
+            matched = true;
+            matches[pos].end_vertex = current_matches_it->end_vertex;
+            matches[pos].id_bits &= current_matches_it->id_bits;
           }
         }
-      }
-      else if (outDegree(graph, source_vertex) == 1 &&
-               inDegree(graph, target_vertex) == 1
-              )
-      {
-        Dna reference = vertex_vector[target_vertex].dna;
-        if (getScoreVector(backtracker[source_vertex],
-                           backtracker[target_vertex],
-                           sequence,
-                           qual,
-                           reference,
-                           source_vertex
-                          )
-           )
+
+        // if (matched)
+        // {
+        //   break;
+        // }
+        if (!matched)
         {
-          matching_vertices.push_back(target_vertex);
+          // std::cout << "Erased. " << matches[pos].start_vertex << " " << matches[pos].end_vertex << " " << matches[pos].id_bits << std::endl;
+          matches.erase(matches.begin() + pos);
+          --pos;
         }
       }
-      else
-      {
-        Dna reference = vertex_vector[target_vertex].dna;
-        if (getScoreVector(backtracker[source_vertex],
-                           backtracker[target_vertex],
-                           sequence,
-                           reference,
-                           source_vertex
-                          )
-           )
-        {
-          matching_vertices.push_back(target_vertex);
-        }
-      }
+
+      // matches = new_matches;
+      // std::cout << "Kmer: " << seq_center_kmer << " (" << matches.size() << ") " << std::endl;
     }
   }
+
+  // std::cout << "Sequence I have is " << sequence << " with " << matches.size() << " kmers." << std::endl;
+
+  for (auto matches_it = matches.begin() ; matches_it != matches.end() ; ++matches_it)
+  {
+    id_bits = id_bits | matches_it->id_bits;
+  }
+
+  // std::cout << "Result: " << id_bits << std::endl;
+
+  return id_bits;
+
+  // for (auto match_it = matches.begin() ; match_it != matches.end() ; ++match_it)
+  // {
+
+  //   std::vector<KmerLabels> kmer_labels = *match_it;
+  //   auto label_it = kmer_labels.begin()
+  //   KmerLabels label = *label_it;
+
+  //   for ( ; label_it != kmer_labels.end() ; ++label_it)
+  //   {
+  //     std::cout << label_it->end_vertex << std::endl;
+  //   }
+  // }
+
+  // int min_level = vertex_vector[kmer_map[seq_first_kmer][0].start_vertex].level;
+  // int max_level = vertex_vector[kmer_map[seq_last_kmer][0].start_vertex].level;
+  // 
+  // {
+  //   auto min_level_it = kmer_map[seq_first_kmer].begin();
+  //   ++min_level_it;
+  //   for ( ; min_level_it != kmer_map[seq_first_kmer].end() ; ++min_level_it)
+  //   {
+  //     if (vertex_vector[min_level_it->start_vertex].level < min_level)
+  //     {
+  //       min_level = vertex_vector[min_level_it->start_vertex].level;
+  //     }
+  //   }
+  // }
+  // 
+  // {
+  //   auto max_level_it = kmer_map[seq_last_kmer].begin();
+  //   ++max_level_it;
+  //   for ( ; max_level_it != kmer_map[seq_last_kmer].end() ; ++max_level_it)
+  //   {
+  //     if (vertex_vector[max_level_it->start_vertex].level > max_level)
+  //     {
+  //       max_level = vertex_vector[max_level_it->start_vertex].level;
+  //     }
+  //   }
+  // }
+
+  // std::cout << min_level << " " << max_level << std::endl;
 }
 
 
