@@ -16,7 +16,8 @@ checkKmers(DnaString const & kmer,
 {
   if (length(kmer) == kmer_size)
   {
-    KmerLabels new_kmer_label = {
+    KmerLabels new_kmer_label =
+    {
       starting_vertex,
       source_vertex,
       id_bits
@@ -29,14 +30,6 @@ checkKmers(DnaString const & kmer,
     }
     else
     {
-      // for (std::vector<KmerLabels>::iterator vertex_it = kmer_map[kmer].begin() ; vertex_it != kmer_map[kmer].end() ; ++vertex_it)
-      // {
-      //   if (vertex_it->start_vertex == starting_vertex)
-      //   {
-      //     return;
-      //   }
-      // }
-
       kmer_map[kmer].push_back(new_kmer_label);
     }
 

@@ -54,6 +54,7 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
 
   std::size_t num_ids = ids.size();
   
+
   SECTION ("Add intron 2 and align using 4 mers")
   {
     // Use 4-mers when testing
@@ -105,72 +106,79 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
     REQUIRE(kmer_map[kmer4][0].id_bits == expected_bitset_01);
 
 
-    // SECTION ("sequence is TGCC")
-    // {
-    //   DnaString sequence = "TGCC";
-
-    //   initializeExactScoreMatrixAndBacktracker(length(sequence), length(order), backtracker);
-
-    //   std::vector<TVertexDescriptor> matching_vertices;
-    //   boost::dynamic_bitset<> actual_bitset =
-    //     alignToGraphExact_kmer (sequence,
-    //                             num_ids,
-    //                             kmer_map,
-    //                             kmer_size
-    //                            );
-
-    //   REQUIRE (expected_bitset_01 == actual_bitset);
-    // }
-
-    // SECTION ("sequence is TTGC")
-    // {
-    //   DnaString sequence = "TTGC";
-
-    //   initializeExactScoreMatrixAndBacktracker(length(sequence), length(order), backtracker);
-
-    //   std::vector<TVertexDescriptor> matching_vertices;
-    //   boost::dynamic_bitset<> actual_bitset =
-    //     alignToGraphExact_kmer (sequence,
-    //                             num_ids,
-    //                             kmer_map,
-    //                             kmer_size
-    //                            );
-
-    //   REQUIRE (expected_bitset_11 == actual_bitset);
-    // }
-
-    // SECTION ("sequence is TTTTGCC")
-    // {
-    //   DnaString sequence = "TTTTGCC";
-
-    //   initializeExactScoreMatrixAndBacktracker(length(sequence), length(order), backtracker);
-
-    //   std::vector<TVertexDescriptor> matching_vertices;
-    //   boost::dynamic_bitset<> actual_bitset =
-    //     alignToGraphExact_kmer (sequence,
-    //                             num_ids,
-    //                             kmer_map,
-    //                             kmer_size
-    //                            );
-
-    //   REQUIRE (expected_bitset_01 == actual_bitset);
-    // }
-
-    SECTION ("sequence is TTTTTGC")
+    SECTION ("sequence is TGCC")
     {
-      DnaString sequence = "TTTTTGC";
-
-      initializeExactScoreMatrixAndBacktracker(length(sequence), length(order), backtracker);
-
+      DnaString sequence = "TGCC";
       std::vector<TVertexDescriptor> matching_vertices;
       boost::dynamic_bitset<> actual_bitset =
         alignToGraphExact_kmer (sequence,
                                 num_ids,
                                 kmer_map,
+                                0,
+                                kmer_size
+                               );
+
+      REQUIRE (expected_bitset_01 == actual_bitset);
+    }
+
+    SECTION ("sequence is TTGC")
+    {
+      DnaString sequence = "TTGC";
+      std::vector<TVertexDescriptor> matching_vertices;
+      boost::dynamic_bitset<> actual_bitset =
+        alignToGraphExact_kmer (sequence,
+                                num_ids,
+                                kmer_map,
+                                0,
                                 kmer_size
                                );
 
       REQUIRE (expected_bitset_11 == actual_bitset);
+    }
+
+    SECTION ("sequence is TTTTGCC")
+    {
+      DnaString sequence = "TTTTGCC";
+      std::vector<TVertexDescriptor> matching_vertices;
+      boost::dynamic_bitset<> actual_bitset =
+        alignToGraphExact_kmer (sequence,
+                                num_ids,
+                                kmer_map,
+                                0,
+                                kmer_size
+                               );
+
+      REQUIRE (expected_bitset_01 == actual_bitset);
+    }
+
+    SECTION ("sequence is TTTTTGC")
+    {
+      DnaString sequence = "TTTTTGC";
+      std::vector<TVertexDescriptor> matching_vertices;
+      boost::dynamic_bitset<> actual_bitset =
+        alignToGraphExact_kmer (sequence,
+                                num_ids,
+                                kmer_map,
+                                0,
+                                kmer_size
+                               );
+
+      REQUIRE (expected_bitset_11 == actual_bitset);
+    }
+
+    SECTION ("sequence is TTTTGCCA. The A should be ignored(!)")
+    {
+      DnaString sequence = "TTTTGCCA";
+      std::vector<TVertexDescriptor> matching_vertices;
+      boost::dynamic_bitset<> actual_bitset =
+        alignToGraphExact_kmer (sequence,
+                                num_ids,
+                                kmer_map,
+                                0,
+                                kmer_size
+                               );
+
+      REQUIRE (expected_bitset_01 == actual_bitset);
     }
   }
 
@@ -185,11 +193,6 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
     boost::dynamic_bitset<> expected_bitset_10(num_ids, 2ul);
     boost::dynamic_bitset<> expected_bitset_01(num_ids, 1ul);
     boost::dynamic_bitset<> expected_bitset_00(num_ids, 0ul);
-
-    // for (auto kmer_it = kmer_map.begin() ; kmer_it != kmer_map.end() ; ++kmer_it)
-    // {
-    //   std::cout << kmer_it->first << " " << kmer_it->second[0].start_vertex << " " << kmer_it->second[0].end_vertex << std::endl;
-    // }
 
     REQUIRE(kmer_map.size() == 4);
 
@@ -238,13 +241,12 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
     {
       DnaString sequence = "TTTTTGCC";
 
-      initializeExactScoreMatrixAndBacktracker(length(sequence), length(order), backtracker);
-
       std::vector<TVertexDescriptor> matching_vertices;
       boost::dynamic_bitset<> actual_bitset =
         alignToGraphExact_kmer (sequence,
                                 num_ids,
                                 kmer_map,
+                                0,
                                 kmer_size
                                );
 
@@ -255,13 +257,12 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
     {
       DnaString sequence = "TGCC";
 
-      initializeExactScoreMatrixAndBacktracker(length(sequence), length(order), backtracker);
-
       std::vector<TVertexDescriptor> matching_vertices;
       boost::dynamic_bitset<> actual_bitset =
         alignToGraphExact_kmer (sequence,
                                 num_ids,
                                 kmer_map,
+                                0,
                                 kmer_size
                                );
 
@@ -272,45 +273,95 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
     {
       DnaString sequence = "TTGC";
 
-      initializeExactScoreMatrixAndBacktracker(length(sequence), length(order), backtracker);
+      std::vector<TVertexDescriptor> matching_vertices;
+      boost::dynamic_bitset<> actual_bitset =
+        alignToGraphExact_kmer (sequence,
+                                num_ids,
+                                kmer_map,
+                                0,
+                                kmer_size
+                               );
+
+      REQUIRE (expected_bitset_11 == actual_bitset);
+    }
+  }
+
+  SECTION ("Using mismatches with 2 mers.")
+  {
+    int kmer_size = 2;
+    String<TVertexDescriptor> order;
+    topologicalSort(order, graph);
+    TKmerMap kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, edge_ids, kmer_size);
+
+    boost::dynamic_bitset<> expected_bitset_11(num_ids, 3ul);
+    boost::dynamic_bitset<> expected_bitset_10(num_ids, 2ul);
+    boost::dynamic_bitset<> expected_bitset_01(num_ids, 1ul);
+    boost::dynamic_bitset<> expected_bitset_00(num_ids, 0ul);
+
+    // for (auto kmer_it = kmer_map.begin() ; kmer_it != kmer_map.end() ; ++kmer_it)
+    // {
+    //   std::cout << kmer_it->first << " " << kmer_it->second[0].start_vertex << " " << kmer_it->second[0].end_vertex << std::endl;
+    // }
+
+    SECTION ("sequence is TTAGCC")
+    {
+      DnaString sequence = "TTAGCC";
 
       std::vector<TVertexDescriptor> matching_vertices;
       boost::dynamic_bitset<> actual_bitset =
         alignToGraphExact_kmer (sequence,
                                 num_ids,
                                 kmer_map,
+                                1,
                                 kmer_size
                                );
 
-      REQUIRE (expected_bitset_11 == actual_bitset);
+      REQUIRE (expected_bitset_01 == actual_bitset);
     }
+  }
 
-    /*
-    SECTION ("sequence is AGATA")
+  SECTION ("Using mismatches with 3 mers.")
+  {
+    int kmer_size = 3;
+    String<TVertexDescriptor> order;
+    topologicalSort(order, graph);
+    TKmerMap kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, edge_ids, kmer_size);
+
+    boost::dynamic_bitset<> expected_bitset_11(num_ids, 3ul);
+    boost::dynamic_bitset<> expected_bitset_10(num_ids, 2ul);
+    boost::dynamic_bitset<> expected_bitset_01(num_ids, 1ul);
+    boost::dynamic_bitset<> expected_bitset_00(num_ids, 0ul);
+
+    SECTION ("sequence is TTTATGCC")
     {
-      DnaString sequence = "AGATA";
-
-      initializeExactScoreMatrixAndBacktracker(length(sequence), length(order), backtracker);
+      DnaString sequence = "TTTATGCC";
 
       std::vector<TVertexDescriptor> matching_vertices;
-      alignToGraphExact (sequence,
-                       order,
-                       graph,
-                       matching_vertices,
-                       vertex_vector,
-                       backtracker,
-                       free_nodes
-                      );
+      boost::dynamic_bitset<> actual_bitset =
+        alignToGraphExact_kmer (sequence,
+                                num_ids,
+                                kmer_map,
+                                1,
+                                kmer_size
+                               );
 
-      REQUIRE (matching_vertices.size() == 1);
-      REQUIRE (matching_vertices[0] == 5);
-
-      boost::dynamic_bitset<> perfect_match =
-        backTrackAndCount(ids, backtracker, matching_vertices[0], edge_ids);
-
-      boost::dynamic_bitset<> expected(2, 1ul); // Binary: 00001
-      REQUIRE (expected == perfect_match);
+      REQUIRE (expected_bitset_01 == actual_bitset);
     }
-    */
+
+    SECTION ("sequence is TTTAG. Nothing should be found.")
+    {
+      DnaString sequence = "TTTAG";
+
+      std::vector<TVertexDescriptor> matching_vertices;
+      boost::dynamic_bitset<> actual_bitset =
+        alignToGraphExact_kmer (sequence,
+                                num_ids,
+                                kmer_map,
+                                1,
+                                kmer_size
+                               );
+
+      REQUIRE (expected_bitset_00 == actual_bitset);
+    }
   }
 }

@@ -2,7 +2,7 @@
 #define __GRAPH_HPP_INCLUDED__
 
 #define SEQAN_NO_GLOBAL_EXCEPTION_HANDLER
-#define K_SIZE 11
+#define K_SIZE 8
 
 #include <stdio.h>
 #include <cstddef>
@@ -114,11 +114,11 @@ struct callOptions
   int bpQclip;
   int bpQskip;
   int number_of_exons;
+  int mismatches;
   CharString gene;
   CharString minSeqLen_list;
   CharString outputFolder;
   CharString vcfOutputFolder;
-
   CharString bamFile;
   CharString bam2;
   CharString bam3;
@@ -143,6 +143,7 @@ struct callOptions
     std::cout << "CO.bpQskip " << bpQskip << std::endl;
     std::cout << "CO.gene " << gene << std::endl;
     std::cout << "CO.number_of_exons " << number_of_exons << std::endl;
+    std::cout << "CO.mismatches " << mismatches << std::endl;
     std::cout << "CO.minSeqLen_list " << minSeqLen_list << std::endl;
     std::cout << "CO.minSeqLen.size() " << minSeqLen.size() << std::endl;
     std::cout << "CO.outputFolder " << outputFolder << std::endl;
@@ -156,7 +157,8 @@ struct callOptions
   };
 
 callOptions():
-  beta_list("0.6"), bpQclip(30), bpQskip(25), number_of_exons(4), gene("DQA1"), minSeqLen_list("60"), outputFolder(), vcfOutputFolder(), verbose(false), kmer(false), align_all_reads(false), thousand_genomes(false), read_gap(1000) {}
+  beta_list("0.6"), bpQclip(30), bpQskip(25), number_of_exons(4), mismatches(0), gene("DQA1"), minSeqLen_list("60"), outputFolder(),
+  vcfOutputFolder(), verbose(false), kmer(false), align_all_reads(false), thousand_genomes(false), read_gap(1000) {}
 };
 
 
@@ -176,7 +178,8 @@ align_sequence (DnaString & my_sequence,
 boost::dynamic_bitset<>
 align_sequence_kmer (DnaString & my_sequence,
                      unsigned const & id_numbers,
-                     TKmerMap & kmer_map
+                     TKmerMap & kmer_map,
+                     int const & mismatched_kmers = 0
                     );
 
 CharString myExtractTagValue(String<char> &tags);

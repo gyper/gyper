@@ -168,6 +168,7 @@ boost::dynamic_bitset<>
 alignToGraphExact_kmer (String<Dna> const & sequence,
                         unsigned const & id_numbers,
                         TKmerMap & kmer_map,
+                        int mismatched_kmers,
                         int const & k_size
                        )
 {
@@ -184,11 +185,12 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
   {
     matches = kmer_map[seq_first_kmer];
   }
-  // std::cout << "Sequence: " << sequence << std::endl;
-
+  
   if (kmer_map.count(seq_first_kmer) == 0)
     return id_bits;
 
+  std::vector<KmerLabels> rewind_matches(matches);
+  bool rewinded = false;
   int const & increment_size = k_size - 1;
 
   for (unsigned k = increment_size ; k < length(sequence) - increment_size ; k += increment_size)
@@ -200,16 +202,13 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
     erase(seq_center_kmer, 0, k);
     resize(seq_center_kmer, k_size);
 
-    if (kmer_map.count(seq_center_kmer) == 0)
-    {
-      // std::cout << "No match for kmer: " << seq_center_kmer << " (" << matches.size() << ") " << std::endl;
-      return id_bits;
-    }
-    else
+    if (kmer_map.count(seq_center_kmer) == 1)
     {
       // std::cout << "Match for kmer " << seq_center_kmer << std::endl;
 
       unsigned new_matches = 0;
+      std::vector<KmerLabels> rewind_matches = matches;
+
       for (unsigned pos = 0; pos < matches.size() - new_matches ; ++pos)
       {
         KmerLabels original_matches = matches[pos];
@@ -221,25 +220,27 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
           // TVertexDescriptor new_end_vertex;
           // std::cout << "Considering kmer " << seq_center_kmer << ": " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
           
-          if (matched && (original_matches.end_vertex == current_matches_it->start_vertex))
+          if (rewinded || (original_matches.end_vertex == current_matches_it->start_vertex))
           {
-            // std::cout << "Another match found! " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
-            
-            KmerLabels new_label = {
-              original_matches.start_vertex,
-              current_matches_it->end_vertex,
-              original_matches.id_bits & current_matches_it->id_bits
-            };
+            if (matched)
+            {
+              // std::cout << "Another match found! " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
+              KmerLabels new_label = {
+                original_matches.start_vertex,
+                current_matches_it->end_vertex,
+                original_matches.id_bits & current_matches_it->id_bits
+              };
 
-            matches.push_back(new_label);
-            ++new_matches;
-          }
-          else if (original_matches.end_vertex == current_matches_it->start_vertex)
-          {
-            // std::cout << "Match found! " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
-            matched = true;
-            matches[pos].end_vertex = current_matches_it->end_vertex;
-            matches[pos].id_bits &= current_matches_it->id_bits;
+              matches.push_back(new_label);
+              ++new_matches;
+            }
+            else
+            {
+              // std::cout << "Match found! " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
+              matched = true;
+              matches[pos].end_vertex = current_matches_it->end_vertex;
+              matches[pos].id_bits &= current_matches_it->id_bits;
+            }
           }
         }
 
@@ -258,13 +259,42 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
       // matches = new_matches;
       // std::cout << "Kmer: " << seq_center_kmer << " (" << matches.size() << ") " << std::endl;
     }
+    else
+    {
+      matches.clear();
+    }
+
+    if (matches.size() == 0)
+    {
+      if (mismatched_kmers > 0)
+      {
+        matches = rewind_matches;
+        --mismatched_kmers;
+        rewinded = true;
+        ++k;
+        // std::cout << "Rewinded matches when seq_center_kmer = " << seq_center_kmer << std::endl;
+      }
+      else
+      {
+        return id_bits;
+      }
+    }
+    else
+    {
+      rewinded = false;
+    }
+  }
+
+  if (rewinded)
+  {
+    return id_bits;
   }
 
   // std::cout << "Sequence I have is " << sequence << " with " << matches.size() << " kmers." << std::endl;
 
   for (auto matches_it = matches.begin() ; matches_it != matches.end() ; ++matches_it)
   {
-    id_bits = id_bits | matches_it->id_bits;
+    id_bits |= matches_it->id_bits;
   }
 
   // std::cout << "Result: " << id_bits << std::endl;

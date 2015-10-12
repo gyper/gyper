@@ -54,6 +54,7 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
   addOption(parser, ArgParseOption("ms", "minSeqLen", "Minimum sequence length ", ArgParseArgument::STRING, "STRING"));
   addOption(parser, ArgParseOption("qc", "bpQclip", "Quality Clip Threshold for clipping. ", ArgParseArgument::INTEGER, "INT"));
   addOption(parser, ArgParseOption("qs", "bpQskip", "Quality Clip Threshold for skipping. ", ArgParseArgument::INTEGER, "INT"));
+  addOption(parser, ArgParseOption("m", "mismatches", "The number of mismatched kmers are allowed.", ArgParseArgument::INTEGER, "INT"));
   addOption(parser, ArgParseOption("v", "verbose", "Verbosity flag"));
   addOption(parser, ArgParseOption("k", "kmer", "Use kmer alignment."));
   addOption(parser, ArgParseOption("a", "align_all_reads", "If used Gyper will use every read pair in the BAM file provided. Should only be used for very small BAMs, unless you have huge amount of RAM and patience."));
@@ -87,6 +88,8 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
     getOptionValue(CO.bpQclip, parser, "bpQclip");
   if (isSet(parser, "bpQskip" ))
     getOptionValue(CO.bpQskip, parser, "bpQskip");
+  if (isSet(parser, "mismatches" ))
+    getOptionValue(CO.mismatches, parser, "mismatches");
   if (isSet(parser, "bam2" ))
     getOptionValue(CO.bam2, parser, "bam2");
   if (isSet(parser, "bam3" ))
@@ -1000,7 +1003,8 @@ int main (int argc, char const ** argv)
       boost::dynamic_bitset<> ids_found1 = 
            align_sequence_kmer(sequence1,
                                ids.size(),
-                               kmer_map
+                               kmer_map,
+                               CO.mismatches
                               );
 
       if (ids_found1.find_first() == ids_found1.npos)
@@ -1009,31 +1013,29 @@ int main (int argc, char const ** argv)
       boost::dynamic_bitset<> ids_found2 = 
            align_sequence_kmer(sequence2,
                                ids.size(),
-                               kmer_map
+                               kmer_map,
+                               CO.mismatches
                               );
 
       if (ids_found2.find_first() == ids_found2.npos)
         continue;
 
-      boost::dynamic_bitset<> ids_intersection(ids_found1.size());
-      ids_intersection = ids_found1 & ids_found2;
-      bool hit;
+      ids_found1 &= ids_found2;
 
+      if (ids_found1.find_first() == ids_found1.npos)
+        continue;
+
+      total_matches += 1.0;
       // Full reference alleles
       for (unsigned i = 0 ; i < ids.size() ; ++i)
       {
         for (unsigned j = 0 ; j <= i ; ++j)
         {
-          if (ids_intersection[i] || ids_intersection[j])
+          if (ids_found1[i] || ids_found1[j])
           {
             seq_scores[i][j] += 1.0;
-            hit = true;
           }
         }
-      }
-      if (hit)
-      {
-        total_matches += 1.0;
       }
     }
 

@@ -48,6 +48,7 @@ boost::dynamic_bitset<>
 alignToGraphExact_kmer (String<Dna> const & sequence,
                         unsigned const & id_numbers,
                         TKmerMap & kmer_map,
+                        int mismatched_kmers = 0,
                         int const & k_size = K_SIZE
                        );
 
