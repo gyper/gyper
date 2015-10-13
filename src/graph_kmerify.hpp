@@ -19,4 +19,9 @@ kmerifyGraph(String<TVertexDescriptor const> const & order,
              int const & kmer_size = K_SIZE
             );
 
+unsigned
+find_best_kmer(String<char> qual,
+               unsigned const & k
+              );
+
 #endif

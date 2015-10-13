@@ -365,3 +365,40 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
     }
   }
 }
+
+TEST_CASE("find_best_kmer should find the kmer with the best quality")
+{
+  // !"#$%&'()*+.-./0123456789:;<=>?@ABCDEFGHIJ
+  unsigned k = 4;
+
+  SECTION ("Last kmer has the highest quality")
+  {
+    String<char> qual = "44440";
+    REQUIRE(0 == find_best_kmer(qual, k));
+  }
+  
+  SECTION ("First kmer has the highest quality")
+  {
+    String<char> qual = "04444";
+    REQUIRE(1 == find_best_kmer(qual, k));
+  }
+
+  SECTION ("Middle kmer has the highest quality")
+  {
+    String<char> qual = "044440";
+    REQUIRE(1 == find_best_kmer(qual, k));
+  }
+
+  SECTION ("Just another test case")
+  {
+    String<char> qual = "0000099990000";
+    REQUIRE(5 == find_best_kmer(qual, k));
+  }
+
+  SECTION ("Don't break if with highest quality with k = 16")
+  {
+    k = 16;
+    String<char> qual = "0000JJJJJJJJJJJJJJJJ0000";
+    REQUIRE(4 == find_best_kmer(qual, k));
+  }
+}

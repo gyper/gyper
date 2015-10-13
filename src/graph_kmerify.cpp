@@ -1,5 +1,6 @@
 #include "graph_kmerify.hpp"
 
+#include <array>
 
 void
 checkKmers(DnaString const & kmer,
@@ -89,4 +90,43 @@ kmerifyGraph(String<TVertexDescriptor const> const & order,
   }
 
   return kmer_map;
+}
+
+
+unsigned
+find_best_kmer(String<char> qual,
+               unsigned const & k
+              )
+{
+  unsigned best_index = 0;
+  unsigned sum = 0;
+
+  auto end_it = begin(qual);
+  auto first_end = begin(qual)+k;
+  
+  for ( ; end_it != first_end ; ++end_it)
+  {
+    // std::cout << 1 << std::endl;
+    sum += (static_cast<unsigned>(*end_it) - 33) * 4;
+  }
+
+  // sum += (static_cast<unsigned>(*end_it) - 33) * 4;
+  unsigned best_sum = sum;
+  unsigned index = 1;
+
+  for (auto start = begin(qual) ; end_it != end(qual) ; ++start, ++end_it, ++index)
+  {
+    // std::cout << 2 << " " << sum << " " << best_sum << " " << index << " " << best_index << std::endl;
+    sum += (static_cast<unsigned>(*end_it) - 33) * 4 - (static_cast<unsigned>(*start) - 33) * 4;
+    
+    if (sum > best_sum)
+    {
+      // std::cout << "Changing best sum to " << sum << std::endl;
+      best_index = index;
+      best_sum = sum;
+    }
+  }
+
+  // std::cout << 3 << " " << sum << " " << best_sum << " " << index << " " << best_index << std::endl;
+  return best_index;
 }
