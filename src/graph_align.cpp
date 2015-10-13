@@ -193,6 +193,8 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
   bool rewinded = false;
   int const & increment_size = k_size - 1;
 
+
+  // TODO: Make this loop simpler
   for (unsigned k = increment_size ; k < length(sequence) - increment_size ; k += increment_size)
   {
     // std::cout << "Sequence: " << sequence << std::endl;
@@ -219,7 +221,7 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
         {
           // TVertexDescriptor new_end_vertex;
           // std::cout << "Considering kmer " << seq_center_kmer << ": " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
-          
+
           if (rewinded || (original_matches.end_vertex == current_matches_it->start_vertex))
           {
             if (matched)
@@ -244,10 +246,6 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
           }
         }
 
-        // if (matched)
-        // {
-        //   break;
-        // }
         if (!matched)
         {
           // std::cout << "Erased. " << matches[pos].start_vertex << " " << matches[pos].end_vertex << " " << matches[pos].id_bits << std::endl;
@@ -255,7 +253,7 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
           --pos;
         }
       }
-
+ 
       // matches = new_matches;
       // std::cout << "Kmer: " << seq_center_kmer << " (" << matches.size() << ") " << std::endl;
     }
@@ -297,51 +295,7 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
     id_bits |= matches_it->id_bits;
   }
 
-  // std::cout << "Result: " << id_bits << std::endl;
-
   return id_bits;
-
-  // for (auto match_it = matches.begin() ; match_it != matches.end() ; ++match_it)
-  // {
-
-  //   std::vector<KmerLabels> kmer_labels = *match_it;
-  //   auto label_it = kmer_labels.begin()
-  //   KmerLabels label = *label_it;
-
-  //   for ( ; label_it != kmer_labels.end() ; ++label_it)
-  //   {
-  //     std::cout << label_it->end_vertex << std::endl;
-  //   }
-  // }
-
-  // int min_level = vertex_vector[kmer_map[seq_first_kmer][0].start_vertex].level;
-  // int max_level = vertex_vector[kmer_map[seq_last_kmer][0].start_vertex].level;
-  // 
-  // {
-  //   auto min_level_it = kmer_map[seq_first_kmer].begin();
-  //   ++min_level_it;
-  //   for ( ; min_level_it != kmer_map[seq_first_kmer].end() ; ++min_level_it)
-  //   {
-  //     if (vertex_vector[min_level_it->start_vertex].level < min_level)
-  //     {
-  //       min_level = vertex_vector[min_level_it->start_vertex].level;
-  //     }
-  //   }
-  // }
-  // 
-  // {
-  //   auto max_level_it = kmer_map[seq_last_kmer].begin();
-  //   ++max_level_it;
-  //   for ( ; max_level_it != kmer_map[seq_last_kmer].end() ; ++max_level_it)
-  //   {
-  //     if (vertex_vector[max_level_it->start_vertex].level > max_level)
-  //     {
-  //       max_level = vertex_vector[max_level_it->start_vertex].level;
-  //     }
-  //   }
-  // }
-
-  // std::cout << min_level << " " << max_level << std::endl;
 }
 
 

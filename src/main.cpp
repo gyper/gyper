@@ -285,7 +285,10 @@ jumpAround(callOptions & CO,
           )
 {
   if (region.size() < 6)
+  {
+    // std::cerr << "Region too small: " << region << std::endl;
     return false;
+  }
 
   std::string delimiter = " ";
   size_t pos = region.find(delimiter);
@@ -304,6 +307,7 @@ jumpAround(callOptions & CO,
     if (rID == 99999)
     {
       std::cerr << "I can't find the rID!" << std::endl;
+      return false;
     }
   }
 
@@ -340,13 +344,15 @@ jumpAround(callOptions & CO,
   return true;
 }
 
+typedef boost::unordered_map< String<char>, String<Dna> > TBarMap;
+
 
 int
 addToBars(callOptions & CO,
-          std::map<CharString, BamAlignmentRecord> & bars1,
-          std::map<CharString, BamAlignmentRecord> & bars2,
+          TBarMap & bars1,
+          TBarMap & bars2,
           CharString & bam,
-          std::string & region
+          std::string region
          )
 {
   if (bam == "")
@@ -411,7 +417,7 @@ addToBars(callOptions & CO,
             continue;
           }
 
-          bars1[record.qName] = record;
+          bars1[record.qName] = record.seq;
         }
         else
         {
@@ -421,7 +427,7 @@ addToBars(callOptions & CO,
             continue;
           }
 
-          bars2[record.qName] = record;
+          bars2[record.qName] = record.seq;
         }
 
         readRecord(record, bamFileIn);
@@ -444,7 +450,7 @@ addToBars(callOptions & CO,
           continue;
         }
 
-        bars1[record.qName] = record;
+        bars1[record.qName] = record.seq;
       }
       else
       {
@@ -453,7 +459,7 @@ addToBars(callOptions & CO,
           continue;
         }
 
-        bars2[record.qName] = record;
+        bars2[record.qName] = record.seq;
       }
     }
   }
@@ -607,7 +613,7 @@ handleOutput (callOptions & CO,
               std::vector<std::string> & ids,
               std::vector<std::vector<double> > seq_scores,
               double const & total_matches
-              )
+             )
 {
   // Four digit vector
   std::vector<std::string> ids_four;
@@ -615,6 +621,7 @@ handleOutput (callOptions & CO,
   // The 4 digit index numbers
   boost::unordered_map<std::string, unsigned> four;
   unsigned j = 0;
+  // bool no_available_alleles = false;
 
   for (unsigned i = 0; i < ids.size(); ++i)
   {
@@ -630,6 +637,24 @@ handleOutput (callOptions & CO,
     }
   }
 
+  // if (ids_four.size() == 0)
+  // {
+  //   no_available_alleles = true;
+  //   ids_four = ids;
+    
+  //   for (unsigned i = 0; i < ids.size(); ++i)
+  //   {
+  //     std::string my_id = ids[i];
+
+  //     if (!four.count(my_id))
+  //     {
+  //       four[my_id] = j;
+  //       ids_four.push_back(my_id);
+  //       ++j;
+  //     }
+  //   }
+  // }
+
   std::vector<std::vector<double> > seq_scores_four;
   boost::unordered_map<std::pair<unsigned, unsigned>, std::pair<unsigned, unsigned> > index_map;
 
@@ -642,7 +667,7 @@ handleOutput (callOptions & CO,
 
   boost::unordered_set<std::string> available_alleles;
   unsigned available_digits = findAvailableGenotypes(CO, available_alleles);
-  std::cout << "available_digits = " << available_digits << std::endl;
+  // std::cout << "available_digits = " << available_digits << std::endl;
 
   std::string short_id_i;
   std::string short_id_j;
@@ -684,8 +709,19 @@ handleOutput (callOptions & CO,
         continue;
       }
 
-      unsigned i_four = four[fourDigit(ids[i])];
-      unsigned j_four = four[fourDigit(ids[j])];
+      unsigned i_four;
+      unsigned j_four;
+
+      // if (no_available_alleles)
+      // {
+      //   i_four = i;
+      //   j_four = j;
+      // }
+      // else
+      // {
+        i_four = four[fourDigit(ids[i])];
+        j_four = four[fourDigit(ids[j])];
+      // }
 
       if (seq_scores[i][j] > seq_scores_four[i_four][j_four])
       {
@@ -729,13 +765,17 @@ handleOutput (callOptions & CO,
     if (seq_scores_four[i][0] < 0.1)
       continue;
 
-    std::cout << std::setw(15) << ids_four[i] << ": ";
+    if (CO.verbose)
+    {
+      std::cout << std::setw(15) << ids_four[i] << ": ";
+    }
+    
     for (unsigned j = 0; j < ids_four.size(); ++j)
     {
       if (seq_scores_four[i][j] < 0.1)
         continue;
 
-      if (i >= j)
+      if (i >= j && CO.verbose)
         printf("%6.1f ", seq_scores_four[i][j]);
 
       if (seq_scores_four[i][j] > max_score_short)
@@ -745,7 +785,11 @@ handleOutput (callOptions & CO,
         max_score_short = seq_scores_four[i][j];
       }
     }
-    std::cout << std::endl;
+
+    if (CO.verbose)
+    {
+      std::cout << std::endl;
+    }
   }
   
   // Get the original alleles
@@ -759,8 +803,13 @@ handleOutput (callOptions & CO,
 
   if (total_matches != 0)
   {
-    std::cout << "Oracle: Out of all the alleles, I'd say this person has   " << ids[i_max] << " and " << ids[j_max] << " with a score " << max_score << "!" << std::endl;
-    std::cout << "Oracle: Out of available alleles, I'd say this person has " << ids[allele_ids.first] << " and " << ids[allele_ids.second] << " with a score " << max_score_short << "!" << std::endl;
+    if (CO.verbose)
+    {
+      std::cout << "Oracle: Out of all the alleles, I'd say this person has   " << ids[i_max] << " and " << ids[j_max] << " with a score " << max_score << "!" << std::endl;
+      std::cout << "Oracle: Out of available alleles, I'd say this person has " << ids[allele_ids.first] << " and " << ids[allele_ids.second] << " with a score " << max_score_short << "!" << std::endl;
+    }
+
+    std::cout << pn << " " << std::setw(19) << ids[allele_ids.first] << " " << std::setw(19) << ids[allele_ids.second] << std::endl;
   
     // if (i_max != j_max)
     // {
@@ -794,11 +843,16 @@ handleOutput (callOptions & CO,
       // my_ss << ids[i_max] << "\t" << ids[j_max];
       // my_ss << ids[i_max] << "\t" << ids[j_max] << "\t" << CO.minSeqLen[min_seq_index];
       // my_ss << "\t" << beta << "\t" << CO.bpQclip << "\t" << CO.bpQskip << std::endl;
-      std::cout << "Gyper output: " << outputFolder << std::endl;
+      if (CO.verbose)
+      {
+        std::cout << "Gyper output: " << outputFolder << std::endl;
+      }
+      
       writeToFile(my_ss, outputFolder);
     }
   }
 
+  /*
   // Print VCF
   {
     if (CO.verbose)
@@ -854,6 +908,7 @@ handleOutput (callOptions & CO,
                  max_score_short
                 );
   }
+  */
 }
 
 
@@ -875,92 +930,16 @@ int main (int argc, char const ** argv)
   if (parseCommandLine(CO, parser, argc, argv) != ArgumentParser::PARSE_OK)
     return ArgumentParser::PARSE_ERROR;
 
-  std::string bam_file_name_str(toCString(CO.bamFile));
-  std::string forward_slash("/");
-  std::string pn;
-
-  if (bam_file_name_str.find(forward_slash) != std::string::npos)
-  {
-    std::string::iterator str_it = std::find_end(bam_file_name_str.begin(), bam_file_name_str.end(), forward_slash.begin(), forward_slash.end())+1;
-    char buffer[7];
-    std::size_t length = bam_file_name_str.copy(buffer,7,str_it-bam_file_name_str.begin());
-    buffer[length]='\0';
-    pn.assign(buffer);
-  }
-  else
-  {
-    pn = bam_file_name_str.substr(0, 7);
-  }
-
-  std::string region = getRegion(CO, toCString(CO.gene));
-
-  if (CO.verbose)
-  {
-    std::cout << "region = " << region << std::endl;
-  }
-
-  std::map< CharString, BamAlignmentRecord > bars1;
-  std::map< CharString, BamAlignmentRecord > bars2;
- 
-  if (addToBars(CO, bars1, bars2, CO.bamFile, region))
-    return 1;
-
-  if (addToBars(CO, bars1, bars2, CO.bam2, region))
-    return 1;
-
-  if (addToBars(CO, bars1, bars2, CO.bam3, region))
-    return 1;
-
-  if (addToBars(CO, bars1, bars2, CO.bam4, region))
-    return 1;
-
-  if (CO.verbose)
-  {
-    std::cout << "Bam alignment records:" << std::endl;
-    std::cout << "Before: bars1.size() = " << bars1.size();
-    std::cout << ", bars2.size() = " << bars2.size() << std::endl;
-  }
   
-  std::vector<CharString> no_mates;
-
-  for (std::map<CharString, BamAlignmentRecord>::iterator it = bars1.begin() ; it != bars1.end() ; ++it)
-  {
-    if (bars2.count(it->first) == 0)
-    {
-      no_mates.push_back(it->first);
-    }
-  }
-
-  for (std::map<CharString, BamAlignmentRecord>::iterator it = bars2.begin() ; it != bars2.end() ; ++it)
-  {
-    if (bars1.count(it->first) == 0)
-    {
-      no_mates.push_back(it->first);
-    }
-  }
-
-  for (std::vector<CharString>::iterator it = no_mates.begin() ; it != no_mates.end() ; ++it)
-  {
-    bars1.erase(*it);
-    bars2.erase(*it);
-  }
-
-  if (CO.verbose)
-  {
-    std::cout << "After : bars1.size() = " << bars1.size();
-    std::cout << ", bars2.size() = " << bars2.size() << std::endl;
-  }
-
-  printf("[%6.2f] Read pairs filtered.\n", double(clock()-begin) / CLOCKS_PER_SEC);
 
   std::vector<std::string> ids;
   std::vector<VertexLabels> vertex_vector;
   boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > edge_ids;
   String<TVertexDescriptor> order;
-  std::vector<ExactBacktracker> backtracker1;
-  std::vector<ExactBacktracker> reverse_backtracker1;
-  std::vector<ExactBacktracker> backtracker2;
-  std::vector<ExactBacktracker> reverse_backtracker2;
+  // std::vector<ExactBacktracker> backtracker1;
+  // std::vector<ExactBacktracker> reverse_backtracker1;
+  // std::vector<ExactBacktracker> backtracker2;
+  // std::vector<ExactBacktracker> reverse_backtracker2;
   boost::unordered_set<TVertexDescriptor> free_nodes;
   free_nodes.insert(1);
   TGraph graph;
@@ -969,24 +948,84 @@ int main (int argc, char const ** argv)
   createGenericGraph(CO, graph, vertex_vector, ids, edge_ids, free_nodes, order);
   printf("[%6.2f] Graph created.\n", double(clock()-begin) / CLOCKS_PER_SEC);
 
-  TKmerMap kmer_map;
-  if (CO.kmer)
+  TKmerMap kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, edge_ids);
+  printf("[%6.2f] Graph kmerification done.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+
+  std::string pn;
+  std::string region = getRegion(CO, toCString(CO.gene));
+
+  if (CO.verbose)
   {
-    kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, edge_ids);
-    printf("[%6.2f] Graph kmerification done.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+    std::cout << "region = " << region << std::endl;
   }
 
-  DnaString sequence1;
-  DnaString sequence2;
+  std::string bam_file_name_string(toCString(CO.bamFile));
 
-  // boost::unordered_map<std::string, int> highest_interval_map;
-  // boost::unordered_map<std::string, int> medium_interval_map;
+  TBarMap bars1;
+  TBarMap bars2;
+  std::vector<std::string> bamlist;
 
-
-  if (CO.kmer)
+  if (bam_file_name_string.size() >= 4 && bam_file_name_string.substr(bam_file_name_string.size()-4, 4) == ".bam")
   {
-    std::vector<std::vector<double> > seq_scores;
+    // std::cout << "It is a bam file!" << std::endl;
+    bamlist.push_back(bam_file_name_string);
+  }
+  else
+  {
+    // std::cout << "It is a bamlist!" << std::endl;
+    std::ifstream bamlist_input(toCString(CO.bamFile));
+
+    for (std::string line; getline( bamlist_input, line);)
+    {
+      bamlist.push_back(line);
+    }
+  }
+
+  for (std::vector<std::string>::iterator bam_it = bamlist.begin() ; bam_it != bamlist.end() ; ++bam_it)
+  {
+    bars1.clear();
+    bars2.clear();
+
+    String<char> bam_file = bam_it->c_str();
+    std::string bam_file_name_str(*bam_it);
+
+    // std::cout << "Processing " << bam_file_name_str << std::endl;
+
+    if (addToBars(CO, bars1, bars2, bam_file, region))
+    {
+      return 1;
+    }
+
+    // std::cout << "Bar sizes: " << bars1.size() << " " << bars2.size() << std::endl;
+    std::string forward_slash("/");
   
+    if (bam_file_name_str.find(forward_slash) != std::string::npos)
+    {
+      std::string::iterator str_it = std::find_end(bam_file_name_str.begin(), bam_file_name_str.end(), forward_slash.begin(), forward_slash.end())+1;
+      char buffer[7];
+      std::size_t length = bam_file_name_str.copy(buffer,7,str_it-bam_file_name_str.begin());
+      buffer[length]='\0';
+      pn.assign(buffer);
+    }
+    else
+    {
+      pn = bam_file_name_str.substr(0, 7);
+    }
+
+    if (CO.verbose)
+    {
+      std::cout << "Bam alignment records:" << std::endl;
+      std::cout << "Before: bars1.size() = " << bars1.size();
+      std::cout << ", bars2.size() = " << bars2.size() << std::endl;
+    }
+
+    if (CO.verbose)
+    {
+      printf("[%6.2f] Read pairs filtered for %s.\n", double(clock()-begin) / CLOCKS_PER_SEC, pn.c_str());
+    }
+    
+    std::vector<std::vector<double> > seq_scores;
+
     {
       std::vector<double> inner_seq_scores;
       inner_seq_scores.resize(ids.size());
@@ -995,10 +1034,16 @@ int main (int argc, char const ** argv)
 
     double total_matches = 0.0;
 
-    for (std::map<CharString, BamAlignmentRecord>::iterator it = bars1.begin() ; it != bars1.end() ; ++it)
+    for (TBarMap::iterator it = bars1.begin() ; it != bars1.end() ; ++it)
     {
-      sequence1 = it->second.seq;
-      sequence2 = bars2[it->first].seq;
+      String<Dna> sequence1 = it->second;
+      
+      if (bars2.count(it->first) == 0)
+      {
+        continue;
+      }
+
+      String<Dna> sequence2 = bars2[it->first];
 
       boost::dynamic_bitset<> ids_found1 = 
            align_sequence_kmer(sequence1,
@@ -1026,6 +1071,7 @@ int main (int argc, char const ** argv)
         continue;
 
       total_matches += 1.0;
+      
       // Full reference alleles
       for (unsigned i = 0 ; i < ids.size() ; ++i)
       {
@@ -1039,211 +1085,22 @@ int main (int argc, char const ** argv)
       }
     }
 
-    printf("[%6.2f] Sequences aligned.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+    if (CO.verbose)
+    {
+      printf("[%6.2f] Sequences aligned.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+    }
 
     for (std::vector<double>::iterator it = CO.beta.begin() ; it != CO.beta.end() ; ++it)
     {
-      printf("[%6.2f] Output with beta = %.2f\n", 
-        double(clock()-begin) / CLOCKS_PER_SEC,
-        *it
-      );
+      if (CO.verbose)
+      {
+        printf("[%6.2f] Output with beta = %.2f\n", 
+          double(clock()-begin) / CLOCKS_PER_SEC,
+          *it
+        );
+      }
 
       handleOutput(CO, *it, pn, ids, seq_scores, total_matches);
-    }
-  }
-  else
-  {
-    std::vector<std::vector<std::vector<double> > > seq_scores;
-  
-    {
-      std::vector<double> inner_seq_scores;
-      inner_seq_scores.resize(ids.size());
-      std::vector<std::vector<double> > outer_seq_scores;
-      outer_seq_scores.resize(ids.size(), inner_seq_scores);
-      seq_scores.resize(CO.minSeqLen.size(), outer_seq_scores);
-    }
-
-    std::vector<double> total_matches;
-    total_matches.resize(CO.minSeqLen.size(), 0.0);
-
-    for (std::map<CharString, BamAlignmentRecord>::iterator it = bars1.begin() ; it != bars1.end() ; ++it)
-    {
-      sequence1 = it->second.seq;
-      sequence2 = bars2[it->first].seq;
-
-      boost::dynamic_bitset<> qual1 = trimReadEnds(sequence1, it->second.qual, CO.bpQclip, CO.bpQskip);
-      boost::dynamic_bitset<> qual2 = trimReadEnds(sequence2, bars2[it->first].qual, CO.bpQclip, CO.bpQskip);
-      std::vector<unsigned> seq_scores_indices;
-
-      for (unsigned min_seq = 0; min_seq < CO.minSeqLen.size(); ++min_seq)
-      {
-        if (seqan::length(sequence1) >= CO.minSeqLen[min_seq] && seqan::length(sequence2) >= CO.minSeqLen[min_seq])
-        {
-          seq_scores_indices.push_back(min_seq);
-        }
-      }
-
-      if (seq_scores_indices.size() == 0)
-        continue;
-
-      std::vector<TVertexDescriptor> matching_vertices1;
-      std::vector<TVertexDescriptor> reverse_matching_vertices1;
-      std::vector<TVertexDescriptor> matching_vertices2;
-      std::vector<TVertexDescriptor> reverse_matching_vertices2;
-
-      // Check kmer alignment
-      DnaString sequence1_kmer(sequence1);
-      DnaString sequence2_kmer(sequence2);
-      boost::dynamic_bitset<> qual1_kmer(qual1);
-      boost::dynamic_bitset<> qual2_kmer(qual2);
-
-      align_sequence(sequence1,
-                   qual1,
-                   graph,
-                   vertex_vector,
-                   order,
-                   backtracker1,
-                   reverse_backtracker1,
-                   free_nodes,
-                   matching_vertices1,
-                   reverse_matching_vertices1
-                  );
-
-      if (matching_vertices1.size() == 0 && reverse_matching_vertices1.size() == 0)
-      {
-        continue;
-      }
-
-      align_sequence(sequence2,
-                     qual2,
-                     graph,
-                     vertex_vector,
-                     order,
-                     backtracker2,
-                     reverse_backtracker2,
-                     free_nodes,
-                     matching_vertices2,
-                     reverse_matching_vertices2
-                    );
-
-      if (matching_vertices2.size() == 0 && reverse_matching_vertices2.size() == 0)
-      {
-        continue;
-      }
-
-      std::string read_group = toCString(myExtractTagValue(it->second.tags));
-
-      // TODO: Add this as options for the program
-      int highest_distance = 1500;
-      int medium_distance = 350;
-
-      int best_score = highest_distance;
-      TVertexDescriptor best_vertex1 = -1;
-      TVertexDescriptor best_vertex2 = -1;
-
-      bool reverse = false;
-      for (std::vector<TVertexDescriptor>::iterator match_it = matching_vertices1.begin() ; match_it != matching_vertices1.end() ; ++match_it)
-      {
-        for (std::vector<TVertexDescriptor>::iterator match_it2 = matching_vertices2.begin() ; match_it2 != matching_vertices2.end() ; ++match_it2)
-        {
-          // std::cout << vertex_vector[*match_it].level << " " << vertex_vector[*match_it2].level << std::endl;
-          int difference = abs(vertex_vector[*match_it].level - vertex_vector[*match_it2].level);
-          if (difference < highest_distance)
-          {
-            int offset = abs(medium_distance - difference);
-            best_score = offset;
-            best_vertex1 = *match_it;
-            best_vertex2 = *match_it2;
-          }
-        }
-      }
-
-      for (std::vector<TVertexDescriptor>::iterator match_it = reverse_matching_vertices1.begin() ; match_it != reverse_matching_vertices1.end() ; ++match_it)
-      {
-        for (std::vector<TVertexDescriptor>::iterator match_it2 = reverse_matching_vertices2.begin() ; match_it2 != reverse_matching_vertices2.end() ; ++match_it2)
-        {
-          // std::cout << vertex_vector[*match_it].level << " " << vertex_vector[*match_it2].level << std::endl;
-          int difference = abs(vertex_vector[*match_it].level - vertex_vector[*match_it2].level);
-          if (difference < highest_distance)
-          {
-            int offset = abs(medium_distance - difference);
-            if (offset < best_score)
-            {
-              best_score = offset;
-              best_vertex1 = *match_it;
-              best_vertex2 = *match_it2;
-              reverse = true;
-            }
-          }
-        }
-      }
-      
-      if (reverse)
-      {
-        backtracker1 = reverse_backtracker1;
-        backtracker2 = reverse_backtracker2;
-      }
-
-      if (best_vertex1 == (TVertexDescriptor) -1)
-      {
-        continue;
-      }
-
-      boost::dynamic_bitset<> ids_found1 = backTrackAndCount(ids, backtracker1, best_vertex1, edge_ids);
-      // std::cout << "ids_found1 = " << ids_found1 << std::endl;
-      if (ids_found1.find_first() == ids_found1.npos)
-      {
-        // No bits are set in ids_found1
-        continue;
-      }
-
-      boost::dynamic_bitset<> ids_found2 = backTrackAndCount(ids, backtracker2, best_vertex2, edge_ids);
-      // std::cout << "ids_found2 = " << ids_found2 << std::endl;
-      if (ids_found2.find_first() == ids_found2.npos)
-      {
-        // No bits are set in ids_found2
-        continue;
-      }
-
-      boost::dynamic_bitset<> ids_intersection(ids_found1.size());
-      ids_intersection = ids_found1 & ids_found2;
-      std::vector<bool> hit;
-      hit.resize(CO.minSeqLen.size(), false);
-
-      for (std::vector<unsigned>::iterator seq_it = seq_scores_indices.begin(); seq_it != seq_scores_indices.end(); ++seq_it)
-      {
-        // Full reference alleles
-        for (unsigned i = 0 ; i < ids.size() ; ++i)
-        {
-          for (unsigned j = 0 ; j <= i ; ++j)
-          {
-            if (ids_intersection[i] || ids_intersection[j])
-            {
-              seq_scores[*seq_it][i][j] += 1.0;
-              hit[*seq_it] = true;
-            }
-          }
-        }
-        if (hit[*seq_it])
-        {
-          total_matches[*seq_it] += 1.0;
-        }
-      }
-    }
-
-    printf("[%6.2f] Sequences aligned.\n", double(clock()-begin) / CLOCKS_PER_SEC);
-
-    for (unsigned min_seq_index = 0; min_seq_index < CO.minSeqLen.size(); ++min_seq_index)
-    {
-      for (std::vector<double>::iterator it = CO.beta.begin() ; it != CO.beta.end() ; ++it)
-      {
-        printf("[%6.2f] Output with beta = %.2f and minSeqLen = %u\n", 
-          double(clock()-begin) / CLOCKS_PER_SEC,
-          *it,
-          CO.minSeqLen[min_seq_index]
-        );
-        handleOutput(CO, *it, pn, ids, seq_scores[min_seq_index], total_matches[min_seq_index]);
-      }
     }
   }
 
