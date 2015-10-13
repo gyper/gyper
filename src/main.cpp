@@ -1053,7 +1053,6 @@ int main (int argc, char const ** argv)
 
       boost::dynamic_bitset<> ids_found1 = 
            align_sequence_kmer(sequence1,
-                               it->second.qual,
                                ids.size(),
                                kmer_map,
                                CO.mismatches
