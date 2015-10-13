@@ -344,7 +344,7 @@ jumpAround(callOptions & CO,
   return true;
 }
 
-typedef boost::unordered_map< String<char>, String<Dna> > TBarMap;
+typedef boost::unordered_map< String<char>, seqan::BamAlignmentRecord > TBarMap;
 
 
 int
@@ -417,7 +417,7 @@ addToBars(callOptions & CO,
             continue;
           }
 
-          bars1[record.qName] = record.seq;
+          bars1[record.qName] = record;
         }
         else
         {
@@ -427,7 +427,7 @@ addToBars(callOptions & CO,
             continue;
           }
 
-          bars2[record.qName] = record.seq;
+          bars2[record.qName] = record;
         }
 
         readRecord(record, bamFileIn);
@@ -450,7 +450,7 @@ addToBars(callOptions & CO,
           continue;
         }
 
-        bars1[record.qName] = record.seq;
+        bars1[record.qName] = record;
       }
       else
       {
@@ -459,7 +459,7 @@ addToBars(callOptions & CO,
           continue;
         }
 
-        bars2[record.qName] = record.seq;
+        bars2[record.qName] = record;
       }
     }
   }
@@ -475,11 +475,10 @@ qualToInt( char c )
 }
 
 
-boost::dynamic_bitset<>
+void
 trimReadEnds (DnaString & seq,
               CharString & qual,
-              int const & bpQclip,
-              int const & bpQskip
+              int const & bpQclip
              )
 {
   using namespace seqan;
@@ -500,16 +499,16 @@ trimReadEnds (DnaString & seq,
     qual = infix(qual, beg, end+1);
   }
 
-  boost::dynamic_bitset<> quality_bitset(length(seq));
+  // boost::dynamic_bitset<> quality_bitset(length(seq));
 
-  for (unsigned pos = 0 ; pos < length(seq) ; ++pos)
-  {
-    if (qualToInt(qual[pos]) < bpQskip)
-    {
-      quality_bitset[pos] = 1;
-    }
-  }
-  return quality_bitset;
+  // for (unsigned pos = 0 ; pos < length(seq) ; ++pos)
+  // {
+  //   if (qualToInt(qual[pos]) < bpQskip)
+  //   {
+  //     quality_bitset[pos] = 1;
+  //   }
+  // }
+  // return quality_bitset;
 }
 
 
@@ -1036,17 +1035,25 @@ int main (int argc, char const ** argv)
 
     for (TBarMap::iterator it = bars1.begin() ; it != bars1.end() ; ++it)
     {
-      String<Dna> sequence1 = it->second;
-      
       if (bars2.count(it->first) == 0)
       {
         continue;
       }
 
-      String<Dna> sequence2 = bars2[it->first];
+      String<Dna> sequence1 = it->second.seq;
+      String<Dna> sequence2 = bars2[it->first].seq;
+
+      // trimReadEnds(sequence1, it->second.qual, CO.bpQclip);
+      // trimReadEnds(sequence2, bars2[it->first].qual, CO.bpQclip);
+      // if (length(sequence1) < CO.minSeqLen[0] || length(sequence2) < CO.minSeqLen[0])
+      // {
+      //   continue;
+      // }
+      // std::cout << sequence1 << " " << sequence2 << std::endl;
 
       boost::dynamic_bitset<> ids_found1 = 
            align_sequence_kmer(sequence1,
+                               it->second.qual,
                                ids.size(),
                                kmer_map,
                                CO.mismatches

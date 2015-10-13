@@ -185,9 +185,6 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
   {
     matches = kmer_map[seq_first_kmer];
   }
-  
-  if (kmer_map.count(seq_first_kmer) == 0)
-    return id_bits;
 
   std::vector<KmerLabels> rewind_matches(matches);
   bool rewinded = false;
