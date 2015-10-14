@@ -401,4 +401,11 @@ TEST_CASE("find_best_kmer should find the kmer with the best quality")
     String<char> qual = "0000JJJJJJJJJJJJJJJJ0000";
     REQUIRE(4 == find_best_kmer(qual, k));
   }
+
+  SECTION ("*,A,A,A,A is far worse than 1,1,1,1,1 even though its sum is higher")
+  {
+    k = 5;
+    String<char> qual = "000033333000000*AAAA";
+    REQUIRE(4 == find_best_kmer(qual, k));
+  }
 }

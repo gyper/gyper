@@ -1,6 +1,6 @@
 #include "graph_kmerify.hpp"
 
-#include <array>
+#include <cmath>
 
 void
 checkKmers(DnaString const & kmer,
@@ -99,34 +99,32 @@ find_best_kmer(String<char> qual,
               )
 {
   unsigned best_index = 0;
-  unsigned sum = 0;
+  double P_error = 1;
 
   auto end_it = begin(qual);
   auto first_end = begin(qual)+k;
   
   for ( ; end_it != first_end ; ++end_it)
   {
-    // std::cout << 1 << std::endl;
-    sum += (static_cast<unsigned>(*end_it) - 33) * 4;
+    P_error *= 1.0 - std::pow(10.0, static_cast<double>(*end_it - 33) / -10.0);
   }
 
-  // sum += (static_cast<unsigned>(*end_it) - 33) * 4;
-  unsigned best_sum = sum;
+  double min_P_error = P_error;
   unsigned index = 1;
 
-  for (auto start = begin(qual) ; end_it != end(qual) ; ++start, ++end_it, ++index)
+  for (auto start_it = begin(qual) ; end_it != end(qual) ; ++start_it, ++end_it, ++index)
   {
-    // std::cout << 2 << " " << sum << " " << best_sum << " " << index << " " << best_index << std::endl;
-    sum += (static_cast<unsigned>(*end_it) - 33) * 4 - (static_cast<unsigned>(*start) - 33) * 4;
+    std::cout << P_error << std::endl;
+    P_error *= 1.0 - std::pow(10.0, static_cast<double>(*end_it - 33) / -10.0);
+    P_error /= 1.0 - std::pow(10.0, static_cast<double>(*start_it - 33) / -10.0);
     
-    if (sum > best_sum)
+    if (P_error > min_P_error)
     {
-      // std::cout << "Changing best sum to " << sum << std::endl;
       best_index = index;
-      best_sum = sum;
+      min_P_error = P_error;
     }
   }
 
-  // std::cout << 3 << " " << sum << " " << best_sum << " " << index << " " << best_index << std::endl;
+  std::cout << P_error << std::endl;
   return best_index;
 }
