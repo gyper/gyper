@@ -107,10 +107,8 @@ hash_value(const VertexLabels &a)
 }
 
 
-
-
 typedef boost::unordered_map<DnaString, std::vector<KmerLabels> > TKmerMap;
-
+typedef boost::unordered_map<DnaString, boost::dynamic_bitset<> > TKmerMapSimple;
 
 struct callOptions
 {
@@ -184,6 +182,7 @@ align_sequence_kmer (String<Dna> & my_sequence,
                      String<char> & qual,
                      unsigned const & id_numbers,
                      TKmerMap & kmer_map,
+                     std::vector<VertexLabels> & vertex_vector,
                      int const & kmer_size
                     );
 

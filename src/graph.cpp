@@ -58,6 +58,7 @@ align_sequence_kmer (String<Dna> & my_sequence,
                      String<char> & qual,
                      unsigned const & id_numbers,
                      TKmerMap & kmer_map,
+                     std::vector<VertexLabels> & vertex_vector,
                      int const & kmer_size
                     )
 {
@@ -66,6 +67,7 @@ align_sequence_kmer (String<Dna> & my_sequence,
    align_kmer_to_graph (my_sequence,
                         id_numbers,
                         kmer_map,
+                        vertex_vector,
                         best_kmer_index,
                         kmer_size
                        );
@@ -80,6 +82,7 @@ align_sequence_kmer (String<Dna> & my_sequence,
    align_kmer_to_graph (my_sequence,
                         id_numbers,
                         kmer_map,
+                        vertex_vector,
                         best_kmer_index,
                         kmer_size
                        );

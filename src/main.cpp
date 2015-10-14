@@ -939,13 +939,28 @@ int main (int argc, char const ** argv)
   // std::vector<ExactBacktracker> reverse_backtracker2;
   boost::unordered_set<TVertexDescriptor> free_nodes;
   free_nodes.insert(1);
+  free_nodes.insert(0);
   TGraph graph;
   std::string gene(toCString(CO.gene));
 
   createGenericGraph(CO, graph, vertex_vector, ids, edge_ids, free_nodes, order);
   printf("[%6.2f] Graph created.\n", double(clock()-begin) / CLOCKS_PER_SEC);
 
-  TKmerMap kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, edge_ids, CO.kmer);
+  TKmerMap kmer_map;
+  TKmerMapSimple kmer_map_simple;
+  bool simple_alignment = false;
+  
+  if (simple_alignment)
+  {
+    kmer_map_simple = kmerify_graph_simple(order, graph, vertex_vector, free_nodes, edge_ids, CO.kmer);
+  }
+  else
+  {
+    kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, edge_ids, CO.kmer);
+  }
+
+   
+  
   printf("[%6.2f] Graph kmerification done.\n", double(clock()-begin) / CLOCKS_PER_SEC);
 
   std::string pn;
@@ -1031,62 +1046,134 @@ int main (int argc, char const ** argv)
 
     double total_matches = 0.0;
 
-    for (TBarMap::iterator it = bars1.begin() ; it != bars1.end() ; ++it)
+    if (!simple_alignment)
     {
-      if (bars2.count(it->first) == 0)
+      for (TBarMap::iterator it = bars1.begin() ; it != bars1.end() ; ++it)
       {
-        continue;
-      }
-
-      String<Dna> sequence1 = it->second.seq;
-      String<Dna> sequence2 = bars2[it->first].seq;
-
-      // trimReadEnds(sequence1, it->second.qual, CO.bpQclip);
-      // trimReadEnds(sequence2, bars2[it->first].qual, CO.bpQclip);
-      // if (length(sequence1) < CO.minSeqLen[0] || length(sequence2) < CO.minSeqLen[0])
-      // {
-      //   continue;
-      // }
-      // std::cout << sequence1 << " " << sequence2 << std::endl;
-
-      boost::dynamic_bitset<> ids_found1 = 
-           align_sequence_kmer(sequence1,
-                               it->second.qual,
-                               ids.size(),
-                               kmer_map,
-                               CO.kmer
-                              );
-
-      if (ids_found1.find_first() == ids_found1.npos)
-        continue;
-
-      boost::dynamic_bitset<> ids_found2 = 
-           align_sequence_kmer(sequence2,
-                               bars2[it->first].qual,
-                               ids.size(),
-                               kmer_map,
-                               CO.kmer
-                              );
-
-      if (ids_found2.find_first() == ids_found2.npos)
-        continue;
-
-      ids_found1 &= ids_found2;
-
-      if (ids_found1.find_first() == ids_found1.npos)
-        continue;
-
-      total_matches += 1.0;
-      
-      // Full reference alleles
-      for (unsigned i = 0 ; i < ids.size() ; ++i)
-      {
-        for (unsigned j = 0 ; j <= i ; ++j)
+        if (bars2.count(it->first) == 0)
         {
-          if (ids_found1[i] || ids_found1[j])
+          continue;
+        }
+
+        String<Dna> sequence1 = it->second.seq;
+        String<Dna> sequence2 = bars2[it->first].seq;
+
+        // trimReadEnds(sequence1, it->second.qual, CO.bpQclip);
+        // trimReadEnds(sequence2, bars2[it->first].qual, CO.bpQclip);
+        // if (length(sequence1) < CO.minSeqLen[0] || length(sequence2) < CO.minSeqLen[0])
+        // {
+        //   continue;
+        // }
+        // std::cout << sequence1 << " " << sequence2 << std::endl;
+
+        boost::dynamic_bitset<> ids_found1 = 
+             align_sequence_kmer(sequence1,
+                                 it->second.qual,
+                                 ids.size(),
+                                 kmer_map,
+                                 vertex_vector,
+                                 CO.kmer
+                                );
+
+        if (ids_found1.none())
+          continue;
+
+        boost::dynamic_bitset<> ids_found2 = 
+             align_sequence_kmer(sequence2,
+                                 bars2[it->first].qual,
+                                 ids.size(),
+                                 kmer_map,
+                                 vertex_vector,
+                                 CO.kmer
+                                );
+
+        if (ids_found2.none())
+          continue;
+
+        ids_found1 &= ids_found2;
+
+        if (ids_found1.none())
+          continue;
+
+        total_matches += 1.0;
+
+        if (!ids_found1[2936])
+        {
+          std::cout << sequence1 << "\n" << sequence2 << std::endl;
+        }
+        
+        // Full reference alleles
+        for (unsigned i = 0 ; i < ids.size() ; ++i)
+        {
+          for (unsigned j = 0 ; j <= i ; ++j)
           {
-            seq_scores[i][j] += 1.0;
+            if (ids_found1[i] || ids_found1[j])
+            {
+              seq_scores[i][j] += 1.0;
+            }
           }
+        }
+      }
+    }
+    else
+    {
+      for (TBarMap::iterator it = bars1.begin() ; it != bars1.end() ; ++it)
+      {
+        if (bars2.count(it->first) == 0)
+        {
+          continue;
+        }
+
+        String<Dna> sequence1 = it->second.seq;
+        String<Dna> sequence2 = bars2[it->first].seq;
+
+        boost::dynamic_bitset<> minimal_bitset1(ids.size());
+        minimal_bitset1.flip();
+
+        unsigned pos = find_best_kmer(it->second.qual, CO.kmer);
+        String<Dna> cropped_seq1(sequence1);
+        erase(cropped_seq1, 0, pos);
+        resize(cropped_seq1, CO.kmer);
+
+        if (kmer_map_simple.count(cropped_seq1) == 1)
+        {
+          boost::dynamic_bitset<> bitset = kmer_map_simple[cropped_seq1];
+
+          for (unsigned i = 0 ; i < ids.size() ; ++i)
+          {
+            for (unsigned j = 0 ; j <= i ; ++j)
+            {
+              if (bitset[i] || bitset[j])
+              {
+                seq_scores[i][j] += 1.0;
+              }
+            }
+          }
+
+          total_matches += 1.0;
+        }
+
+        pos = find_best_kmer(bars2[it->first].qual, CO.kmer);
+        String<Dna> cropped_seq2(sequence2);
+        erase(cropped_seq2, 0, pos);
+        resize(cropped_seq2, CO.kmer);
+
+        if (kmer_map_simple.count(cropped_seq2) == 1)
+        {
+          boost::dynamic_bitset<> bitset = kmer_map_simple[cropped_seq2];
+
+          for (unsigned i = 0 ; i < ids.size() ; ++i)
+          {
+            for (unsigned j = 0 ; j <= i ; ++j)
+            {
+              if (bitset[i] || bitset[j])
+              {
+                seq_scores[i][j] += 1.0;
+              }
+            }
+          }
+
+          total_matches += 1.0;
         }
       }
     }

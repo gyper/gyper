@@ -164,10 +164,125 @@ alignToGraphExact (DnaString const & sequence,
 }
 
 
+void
+find_forward_matches(std::vector< KmerLabels > & matches,
+                     String<Dna> const & kmer,
+                     TKmerMap & kmer_map,
+                      std::vector<VertexLabels> & vertex_vector
+                    )
+{
+  std::vector< KmerLabels > original_matches(matches);
+  unsigned new_matches = 0;
+
+  for (unsigned pos = 0; pos < matches.size() - new_matches ; ++pos)
+  {
+    KmerLabels original_matches_pos = matches[pos];
+    bool matched = false;
+
+    for (auto current_matches_it = kmer_map[kmer].begin() ; current_matches_it != kmer_map[kmer].end() ; ++current_matches_it)
+    {
+      if (original_matches_pos.end_vertex == current_matches_it->start_vertex)
+      {
+        if (matched)
+        {
+          // std::cout << "Another match found! " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
+          KmerLabels new_label = {
+            original_matches_pos.start_vertex,
+            current_matches_it->end_vertex,
+            original_matches_pos.id_bits & current_matches_it->id_bits
+          };
+
+          matches.push_back(new_label);
+          ++new_matches;
+        }
+        else
+        {
+          // std::cout << "Match found! " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
+          matched = true;
+          matches[pos].end_vertex = current_matches_it->end_vertex;
+          matches[pos].id_bits &= current_matches_it->id_bits;
+        }
+      }
+    }
+
+    if (!matched)
+    {
+      // std::cout << "Erased. " << matches[pos].start_vertex << " " << matches[pos].end_vertex << " " << matches[pos].id_bits << std::endl;
+      matches.erase(matches.begin() + pos);
+      --pos;
+    }
+  }
+  
+  if (matches.size() == 0)
+  {
+    matches = original_matches;
+    std::cout << kmer << "  forward@" << vertex_vector[matches[0].start_vertex].level << std::endl;
+  }
+}
+
+
+void
+find_backward_matches(std::vector< KmerLabels > & matches,
+                      String<Dna> const & kmer,
+                      TKmerMap & kmer_map,
+                      std::vector<VertexLabels> & vertex_vector
+                     )
+{
+  std::vector< KmerLabels > original_matches(matches);
+  unsigned new_matches = 0;
+
+  for (unsigned pos = 0; pos < matches.size() - new_matches ; ++pos)
+  {
+    KmerLabels original_matches_pos = matches[pos];
+    bool matched = false;
+
+    for (auto current_matches_it = kmer_map[kmer].begin() ; current_matches_it != kmer_map[kmer].end() ; ++current_matches_it)
+    {
+      if (original_matches_pos.start_vertex == current_matches_it->end_vertex)
+      {
+        if (matched)
+        {
+          // std::cout << "Another match found! " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
+          KmerLabels new_label = {
+            current_matches_it->start_vertex,
+            original_matches_pos.end_vertex,
+            original_matches_pos.id_bits & current_matches_it->id_bits
+          };
+
+          matches.push_back(new_label);
+          ++new_matches;
+        }
+        else
+        {
+          // std::cout << "Match found! " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
+          matched = true;
+          matches[pos].start_vertex = current_matches_it->start_vertex;
+          matches[pos].id_bits &= current_matches_it->id_bits;
+        }
+      }
+    }
+
+    if (!matched)
+    {
+      // std::cout << "Erased. " << matches[pos].start_vertex << " " << matches[pos].end_vertex << " " << matches[pos].id_bits << std::endl;
+      matches.erase(matches.begin() + pos);
+      --pos;
+    }
+  }
+  
+  if (matches.size() == 0)
+  {
+    matches = original_matches;
+    std::cout << kmer << " backward@" << vertex_vector[matches[0].start_vertex].level << std::endl;
+  }
+}
+
+
 boost::dynamic_bitset<>
 align_kmer_to_graph (String<Dna> const & sequence,
                      unsigned const & id_numbers,
                      TKmerMap & kmer_map,
+                     std::vector<VertexLabels> & vertex_vector,
                      unsigned const & best_kmer_index,
                      int const & kmer_size
                     )
@@ -180,6 +295,7 @@ align_kmer_to_graph (String<Dna> const & sequence,
 
   if (kmer_map.count(seq_best_kmer) == 0)
   {
+    // If we cant find the best_kmer, just give up
     return id_bits;
   }
   else
@@ -189,84 +305,95 @@ align_kmer_to_graph (String<Dna> const & sequence,
 
   int const & increment_size = kmer_size - 1;
 
-  // TODO: Make this loop simpler
-  for (unsigned k = best_kmer_index + increment_size ; k < length(sequence) - increment_size ; k += increment_size)
+  // Forward loop
+  for (int k = best_kmer_index + increment_size ; k < static_cast<int>(length(sequence)) - increment_size ; k += increment_size)
   {
-    // std::cout << "Sequence: " << sequence << std::endl;
-    // std::cout << "matches.size() = " << matches.size() << std::endl;
-    String<Dna> seq_center_kmer(sequence);
-    erase(seq_center_kmer, 0, k);
-    resize(seq_center_kmer, kmer_size);
+    String<Dna> kmer(sequence);
+    erase(kmer, 0, k);
+    resize(kmer, kmer_size);
 
-    if (kmer_map.count(seq_center_kmer) == 1)
+    if (kmer_map.count(kmer) == 1)
     {
-      // std::cout << "Match for kmer " << seq_center_kmer << std::endl;
-      unsigned new_matches = 0;
-
-      for (unsigned pos = 0; pos < matches.size() - new_matches ; ++pos)
-      {
-        KmerLabels original_matches = matches[pos];
-        // std::cout << "pos = " << pos << " is searching for " << matches[pos].end_vertex << std::endl;
-        bool matched = false;
-
-        for (auto current_matches_it = kmer_map[seq_center_kmer].begin() ; current_matches_it != kmer_map[seq_center_kmer].end() ; ++current_matches_it)
-        {
-          // std::cout << "Considering kmer " << seq_center_kmer << ": " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
-
-          if (original_matches.end_vertex == current_matches_it->start_vertex)
-          {
-            if (matched)
-            {
-              // std::cout << "Another match found! " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
-              KmerLabels new_label = {
-                original_matches.start_vertex,
-                current_matches_it->end_vertex,
-                original_matches.id_bits & current_matches_it->id_bits
-              };
-
-              matches.push_back(new_label);
-              ++new_matches;
-            }
-            else
-            {
-              // std::cout << "Match found! " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
-              matched = true;
-              matches[pos].end_vertex = current_matches_it->end_vertex;
-              matches[pos].id_bits &= current_matches_it->id_bits;
-            }
-          }
-        }
-
-        if (!matched)
-        {
-          // std::cout << "Erased. " << matches[pos].start_vertex << " " << matches[pos].end_vertex << " " << matches[pos].id_bits << std::endl;
-          matches.erase(matches.begin() + pos);
-          --pos;
-        }
-      }
- 
-      // matches = new_matches;
-      // std::cout << "Kmer: " << seq_center_kmer << " (" << matches.size() << ") " << std::endl;
+      find_forward_matches(matches, kmer, kmer_map, vertex_vector);
     }
     else
     {
-      return id_bits;
-    }
-
-    if (matches.size() == 0)
-    {
-      return id_bits;
+      break;
     }
   }
 
-  // std::cout << "Sequence I have is " << sequence << " with " << matches.size() << " kmers." << std::endl;
+  // Backward loop
+  for (int k = best_kmer_index - increment_size ; k >= 0 ; k -= increment_size)
+  {
+    String<Dna> kmer(sequence);
+    erase(kmer, 0, k);
+    resize(kmer, kmer_size);
+
+    if (kmer_map.count(kmer) == 1)
+    {
+      find_backward_matches(matches, kmer, kmer_map, vertex_vector);
+    }
+    else
+    {
+      break;
+    }
+  }
 
   for (auto matches_it = matches.begin() ; matches_it != matches.end() ; ++matches_it)
   {
     id_bits |= matches_it->id_bits;
   }
 
-  return id_bits;
+  // Check if the last kmer could potentially give any information
+  String<Dna> seq_first_kmer(sequence);
+  resize(seq_first_kmer, kmer_size);
+  boost::dynamic_bitset<> potential_backward(id_numbers);
+
+  if (kmer_map.count(seq_first_kmer) == 1)
+  {
+    for (auto current_matches_it = kmer_map[seq_first_kmer].begin() ; current_matches_it != kmer_map[seq_first_kmer].end() ; ++current_matches_it)
+    {
+      for (auto original_matches_it = matches.begin() ; original_matches_it != matches.end() ; ++original_matches_it)
+      {
+        if (abs(vertex_vector[current_matches_it->start_vertex].level - vertex_vector[original_matches_it->start_vertex].level) < kmer_size * 2)
+        {
+          potential_backward |= current_matches_it->id_bits;
+          continue;
+        }
+      }
+    }
+  }
+
+  String<Dna> seq_last_kmer(sequence);
+  erase(seq_last_kmer, 0, length(sequence) - kmer_size);
+  boost::dynamic_bitset<> potential_forward(id_numbers);
+
+  if (kmer_map.count(seq_last_kmer) == 1)
+  {
+    for (auto current_matches_it = kmer_map[seq_last_kmer].begin() ; current_matches_it != kmer_map[seq_last_kmer].end() ; ++current_matches_it)
+    {
+      for (auto original_matches_it = matches.begin() ; original_matches_it != matches.end() ; ++original_matches_it)
+      {
+        if (abs(vertex_vector[current_matches_it->start_vertex].level - vertex_vector[original_matches_it->start_vertex].level) < kmer_size * 2)
+        {
+          potential_forward |= current_matches_it->id_bits;
+          continue;
+        }
+      }
+    }
+  }
+
+  if (potential_forward.none())
+  {
+    potential_forward.flip();
+  }
+
+  if (potential_backward.none())
+  {
+    potential_backward.flip();
+  }
+
+  return id_bits & potential_forward & potential_backward;
 }
 
 

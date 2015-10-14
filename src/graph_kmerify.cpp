@@ -2,6 +2,92 @@
 
 #include <cmath>
 
+
+void
+check_kmers_simple(DnaString const & kmer,
+                   TGraph const & graph,
+                   TVertexDescriptor const & source_vertex,
+                   std::vector<VertexLabels> & vertex_vector,
+                   boost::unordered_set<TVertexDescriptor> const & free_nodes,
+                   boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
+                   boost::dynamic_bitset<> const & id_bits,
+                   TKmerMapSimple & kmer_map,
+                   std::size_t const & kmer_size
+                  )
+{
+  if (id_bits.none())
+    return;
+
+  if (length(kmer) == kmer_size)
+  {
+    if (id_bits.all())
+      return;
+
+    if (kmer_map.count(kmer) == 0)
+    {
+      kmer_map[kmer] = id_bits;
+    }
+    else
+    {
+      kmer_map[kmer] |= id_bits;
+    }
+
+    return;
+  }
+
+  for (Iterator<TGraph, OutEdgeIterator>::Type out_edge_iterator (graph, source_vertex) ; !atEnd(out_edge_iterator) ; ++out_edge_iterator)
+  {
+    DnaString new_kmer(kmer);
+    TVertexDescriptor const & target_vertex = targetVertex(out_edge_iterator);
+
+    // std::cout << source_vertex << " -> " << target_vertex << std::endl;
+
+    boost::dynamic_bitset<> new_id_bits(id_bits);
+
+    if (free_nodes.count(target_vertex) == 0)
+    {
+      seqan::appendValue(new_kmer, vertex_vector[target_vertex].dna);
+      std::pair<TVertexDescriptor, TVertexDescriptor> edge_pair(source_vertex, target_vertex);
+      
+      if (edge_ids.count(edge_pair) == 1)
+      {
+        new_id_bits = id_bits & edge_ids[edge_pair];
+      }
+    }
+
+    check_kmers_simple(new_kmer, graph, target_vertex, vertex_vector, free_nodes, edge_ids, new_id_bits, kmer_map, kmer_size);
+  }
+}
+
+
+TKmerMapSimple
+kmerify_graph_simple(String<TVertexDescriptor const> const & order,
+                     TGraph const & graph,
+                     std::vector<VertexLabels> & vertex_vector,
+                     boost::unordered_set<TVertexDescriptor> const & free_nodes,
+                     boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
+                     int const & kmer_size
+                    )
+{
+  TKmerMapSimple kmer_map;
+
+  for (Iterator<String<TVertexDescriptor const> const>::Type it = begin(order) ; it != end(order) ; ++it)
+  {
+    TVertexDescriptor const & source_vertex = *it;
+
+    if (free_nodes.count(source_vertex) == 0)
+    {
+      boost::dynamic_bitset<> id_bits(edge_ids.begin()->second.size());
+      id_bits.flip();
+      check_kmers_simple(vertex_vector[source_vertex].dna, graph, source_vertex, vertex_vector, free_nodes, edge_ids, id_bits, kmer_map, static_cast<std::size_t>(kmer_size));
+    }
+  }
+
+  return kmer_map;
+}
+
+
+
 void
 checkKmers(DnaString const & kmer,
            TVertexDescriptor const & starting_vertex,
@@ -15,6 +101,9 @@ checkKmers(DnaString const & kmer,
            std::size_t const & kmer_size
           )
 {
+  if (id_bits.none())
+    return;
+
   if (length(kmer) == kmer_size)
   {
     KmerLabels new_kmer_label =
@@ -41,9 +130,6 @@ checkKmers(DnaString const & kmer,
   {
     DnaString new_kmer(kmer);
     TVertexDescriptor const & target_vertex = targetVertex(out_edge_iterator);
-
-    // std::cout << source_vertex << " -> " << target_vertex << std::endl;
-
     boost::dynamic_bitset<> new_id_bits(id_bits);
 
     if (free_nodes.count(target_vertex) == 0)
@@ -53,9 +139,7 @@ checkKmers(DnaString const & kmer,
       
       if (edge_ids.count(edge_pair) == 1)
       {
-        // std::cout << new_id_bits << " to ";
         new_id_bits = id_bits & edge_ids[edge_pair];
-        // std::cout << new_id_bits << " (" << edge_ids[edge_pair] << ")" << std::endl;
       }
     }
 

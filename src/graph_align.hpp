@@ -48,6 +48,7 @@ boost::dynamic_bitset<>
 align_kmer_to_graph (String<Dna> const & sequence,
                      unsigned const & id_numbers,
                      TKmerMap & kmer_map,
+                     std::vector<VertexLabels> & vertex_vector,
                      unsigned const & best_kmer_index,
                      int const & kmer_size
                     );
