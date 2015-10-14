@@ -165,48 +165,43 @@ alignToGraphExact (DnaString const & sequence,
 
 
 boost::dynamic_bitset<>
-alignToGraphExact_kmer (String<Dna> const & sequence,
-                        unsigned const & id_numbers,
-                        TKmerMap & kmer_map,
-                        int mismatched_kmers,
-                        int const & k_size
-                       )
+align_kmer_to_graph (String<Dna> const & sequence,
+                     unsigned const & id_numbers,
+                     TKmerMap & kmer_map,
+                     unsigned const & best_kmer_index,
+                     int const & kmer_size
+                    )
 {
-  String<Dna> seq_first_kmer(sequence);
-  resize(seq_first_kmer, k_size);
+  String<Dna> seq_best_kmer(sequence);
+  erase(seq_best_kmer, 0, best_kmer_index);
+  resize(seq_best_kmer, kmer_size);
   std::vector< KmerLabels > matches;
   boost::dynamic_bitset<> id_bits(id_numbers);
 
-  if (kmer_map.count(seq_first_kmer) == 0)
+  if (kmer_map.count(seq_best_kmer) == 0)
   {
     return id_bits;
   }
   else
   {
-    matches = kmer_map[seq_first_kmer];
+    matches = kmer_map[seq_best_kmer];
   }
 
-  std::vector<KmerLabels> rewind_matches(matches);
-  bool rewinded = false;
-  int const & increment_size = k_size - 1;
-
+  int const & increment_size = kmer_size - 1;
 
   // TODO: Make this loop simpler
-  for (unsigned k = increment_size ; k < length(sequence) - increment_size ; k += increment_size)
+  for (unsigned k = best_kmer_index + increment_size ; k < length(sequence) - increment_size ; k += increment_size)
   {
     // std::cout << "Sequence: " << sequence << std::endl;
     // std::cout << "matches.size() = " << matches.size() << std::endl;
-    
     String<Dna> seq_center_kmer(sequence);
     erase(seq_center_kmer, 0, k);
-    resize(seq_center_kmer, k_size);
+    resize(seq_center_kmer, kmer_size);
 
     if (kmer_map.count(seq_center_kmer) == 1)
     {
       // std::cout << "Match for kmer " << seq_center_kmer << std::endl;
-
       unsigned new_matches = 0;
-      std::vector<KmerLabels> rewind_matches = matches;
 
       for (unsigned pos = 0; pos < matches.size() - new_matches ; ++pos)
       {
@@ -216,10 +211,9 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
 
         for (auto current_matches_it = kmer_map[seq_center_kmer].begin() ; current_matches_it != kmer_map[seq_center_kmer].end() ; ++current_matches_it)
         {
-          // TVertexDescriptor new_end_vertex;
           // std::cout << "Considering kmer " << seq_center_kmer << ": " << current_matches_it->start_vertex << " " << current_matches_it->end_vertex << " " << current_matches_it->id_bits << std::endl;
 
-          if (rewinded || (original_matches.end_vertex == current_matches_it->start_vertex))
+          if (original_matches.end_vertex == current_matches_it->start_vertex)
           {
             if (matched)
             {
@@ -256,33 +250,13 @@ alignToGraphExact_kmer (String<Dna> const & sequence,
     }
     else
     {
-      matches.clear();
+      return id_bits;
     }
 
     if (matches.size() == 0)
     {
-      if (mismatched_kmers > 0)
-      {
-        matches = rewind_matches;
-        --mismatched_kmers;
-        rewinded = true;
-        ++k;
-        // std::cout << "Rewinded matches when seq_center_kmer = " << seq_center_kmer << std::endl;
-      }
-      else
-      {
-        return id_bits;
-      }
+      return id_bits;
     }
-    else
-    {
-      rewinded = false;
-    }
-  }
-
-  if (rewinded)
-  {
-    return id_bits;
   }
 
   // std::cout << "Sequence I have is " << sequence << " with " << matches.size() << " kmers." << std::endl;

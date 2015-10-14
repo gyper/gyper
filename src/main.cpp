@@ -54,9 +54,8 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
   addOption(parser, ArgParseOption("ms", "minSeqLen", "Minimum sequence length ", ArgParseArgument::STRING, "STRING"));
   addOption(parser, ArgParseOption("qc", "bpQclip", "Quality Clip Threshold for clipping. ", ArgParseArgument::INTEGER, "INT"));
   addOption(parser, ArgParseOption("qs", "bpQskip", "Quality Clip Threshold for skipping. ", ArgParseArgument::INTEGER, "INT"));
-  addOption(parser, ArgParseOption("m", "mismatches", "The number of mismatched kmers are allowed.", ArgParseArgument::INTEGER, "INT"));
+  addOption(parser, ArgParseOption("k", "kmer", "The length of the k-mers.", ArgParseArgument::INTEGER, "INT"));
   addOption(parser, ArgParseOption("v", "verbose", "Verbosity flag"));
-  addOption(parser, ArgParseOption("k", "kmer", "Use kmer alignment."));
   addOption(parser, ArgParseOption("a", "align_all_reads", "If used Gyper will use every read pair in the BAM file provided. Should only be used for very small BAMs, unless you have huge amount of RAM and patience."));
   addOption(parser, ArgParseOption("1k", "thousand_genomes", "Use reference from the 1000 Genomes project."));
   addOption(parser, ArgParseOption("b",
@@ -88,8 +87,8 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
     getOptionValue(CO.bpQclip, parser, "bpQclip");
   if (isSet(parser, "bpQskip" ))
     getOptionValue(CO.bpQskip, parser, "bpQskip");
-  if (isSet(parser, "mismatches" ))
-    getOptionValue(CO.mismatches, parser, "mismatches");
+  if (isSet(parser, "kmer" ))
+    getOptionValue(CO.kmer, parser, "kmer");
   if (isSet(parser, "bam2" ))
     getOptionValue(CO.bam2, parser, "bam2");
   if (isSet(parser, "bam3" ))
@@ -110,7 +109,6 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
   parseArgList(CO.minSeqLen_list, CO.minSeqLen);
   getArgumentValue( CO.gene, parser, 0);
   getArgumentValue( CO.bamFile, parser, 1);
-  CO.kmer = isSet(parser, "kmer");
   CO.verbose = isSet(parser, "verbose");
 
   // Remove the HLA- part from genes if it is there
@@ -947,7 +945,7 @@ int main (int argc, char const ** argv)
   createGenericGraph(CO, graph, vertex_vector, ids, edge_ids, free_nodes, order);
   printf("[%6.2f] Graph created.\n", double(clock()-begin) / CLOCKS_PER_SEC);
 
-  TKmerMap kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, edge_ids);
+  TKmerMap kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, edge_ids, CO.kmer);
   printf("[%6.2f] Graph kmerification done.\n", double(clock()-begin) / CLOCKS_PER_SEC);
 
   std::string pn;
@@ -1053,9 +1051,10 @@ int main (int argc, char const ** argv)
 
       boost::dynamic_bitset<> ids_found1 = 
            align_sequence_kmer(sequence1,
+                               it->second.qual,
                                ids.size(),
                                kmer_map,
-                               CO.mismatches
+                               CO.kmer
                               );
 
       if (ids_found1.find_first() == ids_found1.npos)
@@ -1063,9 +1062,10 @@ int main (int argc, char const ** argv)
 
       boost::dynamic_bitset<> ids_found2 = 
            align_sequence_kmer(sequence2,
+                               bars2[it->first].qual,
                                ids.size(),
                                kmer_map,
-                               CO.mismatches
+                               CO.kmer
                               );
 
       if (ids_found2.find_first() == ids_found2.npos)

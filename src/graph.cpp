@@ -54,18 +54,21 @@ align_sequence (DnaString & my_sequence,
 
 
 boost::dynamic_bitset<>
-align_sequence_kmer (DnaString & my_sequence,
+align_sequence_kmer (String<Dna> & my_sequence,
+                     String<char> & qual,
                      unsigned const & id_numbers,
                      TKmerMap & kmer_map,
-                     int const & mismatched_kmers
+                     int const & kmer_size
                     )
 {
+  unsigned best_kmer_index = find_best_kmer(qual, kmer_size);
   boost::dynamic_bitset<> matched_ids =
-   alignToGraphExact_kmer (my_sequence,
-                           id_numbers,
-                           kmer_map,
-                           mismatched_kmers
-                          );
+   align_kmer_to_graph (my_sequence,
+                        id_numbers,
+                        kmer_map,
+                        best_kmer_index,
+                        kmer_size
+                       );
 
   if (matched_ids.find_first() != matched_ids.npos)
   {
@@ -73,12 +76,13 @@ align_sequence_kmer (DnaString & my_sequence,
   }
 
   reverseComplement(my_sequence);
-  
-  matched_ids = alignToGraphExact_kmer (my_sequence,
-                          id_numbers,
-                          kmer_map,
-                          mismatched_kmers
-                         );
+  matched_ids =
+   align_kmer_to_graph (my_sequence,
+                        id_numbers,
+                        kmer_map,
+                        best_kmer_index,
+                        kmer_size
+                       );
 
   reverseComplement(my_sequence);
   return matched_ids;

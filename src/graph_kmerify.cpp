@@ -114,7 +114,7 @@ find_best_kmer(String<char> qual,
 
   for (auto start_it = begin(qual) ; end_it != end(qual) ; ++start_it, ++end_it, ++index)
   {
-    std::cout << P_error << std::endl;
+    // std::cout << P_error << std::endl;
     P_error *= 1.0 - std::pow(10.0, static_cast<double>(*end_it - 33) / -10.0);
     P_error /= 1.0 - std::pow(10.0, static_cast<double>(*start_it - 33) / -10.0);
     
@@ -125,6 +125,6 @@ find_best_kmer(String<char> qual,
     }
   }
 
-  std::cout << P_error << std::endl;
+  // std::cout << P_error << std::endl;
   return best_index;
 }

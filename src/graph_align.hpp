@@ -45,12 +45,12 @@ alignToGraphExact (DnaString const & sequence,
                   );
 
 boost::dynamic_bitset<>
-alignToGraphExact_kmer (String<Dna> const & sequence,
-                        unsigned const & id_numbers,
-                        TKmerMap & kmer_map,
-                        int mismatched_kmers = 0,
-                        int const & k_size = K_SIZE
-                       );
+align_kmer_to_graph (String<Dna> const & sequence,
+                     unsigned const & id_numbers,
+                     TKmerMap & kmer_map,
+                     unsigned const & best_kmer_index,
+                     int const & kmer_size
+                    );
 
 void
 alignToGraphExact (DnaString const & sequence,

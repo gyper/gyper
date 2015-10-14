@@ -2,7 +2,6 @@
 #define __GRAPH_HPP_INCLUDED__
 
 #define SEQAN_NO_GLOBAL_EXCEPTION_HANDLER
-#define K_SIZE 8
 
 #include <stdio.h>
 #include <cstddef>
@@ -38,7 +37,7 @@ std::size_t hash_value(String<Dna> const& s)
   for (Iterator<String<Dna> const>::Type it = begin(s) ; it != end(s) ; ++it)
   {
     hash_val = hash_val * 4 + ordValue(*it);
-    
+
   }
 
   return hash_val;
@@ -121,7 +120,7 @@ struct callOptions
   int bpQclip;
   int bpQskip;
   int number_of_exons;
-  int mismatches;
+  int kmer;
   CharString gene;
   CharString minSeqLen_list;
   CharString outputFolder;
@@ -134,7 +133,6 @@ struct callOptions
   CharString vcfFile;
   
   bool verbose;
-  bool kmer;
   bool align_all_reads;
   bool thousand_genomes;
   int read_gap;
@@ -150,22 +148,21 @@ struct callOptions
     std::cout << "CO.bpQskip " << bpQskip << std::endl;
     std::cout << "CO.gene " << gene << std::endl;
     std::cout << "CO.number_of_exons " << number_of_exons << std::endl;
-    std::cout << "CO.mismatches " << mismatches << std::endl;
+    std::cout << "CO.kmer " << kmer << std::endl;
     std::cout << "CO.minSeqLen_list " << minSeqLen_list << std::endl;
     std::cout << "CO.minSeqLen.size() " << minSeqLen.size() << std::endl;
     std::cout << "CO.outputFolder " << outputFolder << std::endl;
     std::cout << "CO.vcfFile " << vcfFile << std::endl;
     std::cout << "CO.vcfOutputFolder" << vcfOutputFolder << std::endl;
     std::cout << "CO.verbose " << verbose << std::endl;
-    std::cout << "CO.kmer " << kmer << std::endl;
     std::cout << "CO.align_all_reads " << align_all_reads << std::endl;
     std::cout << "CO.thousand_genomes " << thousand_genomes << std::endl;
     std::cout << "CO.read_gap " << read_gap << std::endl;
   };
 
 callOptions():
-  beta_list("0.6"), bpQclip(30), bpQskip(25), number_of_exons(4), mismatches(0), gene("DQA1"), minSeqLen_list("60"), outputFolder(),
-  vcfOutputFolder(), verbose(false), kmer(false), align_all_reads(false), thousand_genomes(false), read_gap(1000) {}
+  beta_list("0.6"), bpQclip(30), bpQskip(25), number_of_exons(4), kmer(15), gene("DQA1"), minSeqLen_list("60"), outputFolder(),
+  vcfOutputFolder(), verbose(false), align_all_reads(false), thousand_genomes(false), read_gap(1000) {}
 };
 
 
@@ -183,10 +180,11 @@ align_sequence (DnaString & my_sequence,
                );
 
 boost::dynamic_bitset<>
-align_sequence_kmer (DnaString & my_sequence,
+align_sequence_kmer (String<Dna> & my_sequence,
+                     String<char> & qual,
                      unsigned const & id_numbers,
                      TKmerMap & kmer_map,
-                     int const & mismatched_kmers = 0
+                     int const & kmer_size
                     );
 
 CharString myExtractTagValue(String<char> &tags);

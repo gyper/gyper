@@ -16,7 +16,7 @@ kmerifyGraph(String<TVertexDescriptor const> const & order,
              std::vector<VertexLabels> & vertex_vector,
              boost::unordered_set<TVertexDescriptor> const & free_nodes,
              boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
-             int const & kmer_size = K_SIZE
+             int const & kmer_size
             );
 
 unsigned
