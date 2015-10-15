@@ -280,19 +280,29 @@ create_exon_2_and_3_graph(callOptions & CO,
     exon.append(extension);
     tmp_string.append(exon);
 
-    if (CO.verbose)
-    {
-      std::cout << "Adding exon   " << tmp_string << std::endl;
-    }
+    // if (CO.verbose)
+    // {
+    //   std::cout << "Adding exon   " << tmp_string << std::endl;
+    // }
 
     const char* alignment_file = tmp_string.c_str();
     free_nodes.insert(begin_vertex);
     if (number_of_exons == 2 || number_of_exons == 3)
     {
+      if (CO.verbose)
+      {
+        std::cout << "Adding exon   " << tmp_string << std::endl;
+      }
+      
       extendGraph(graph, alignment_file, vertex_vector, edge_ids, new_begin_vertex, begin_vertex);
     }
     else
     {
+      if (CO.verbose)
+      {
+        std::cout << "Adding exon   " << tmp_string << " as intron" << std::endl;
+      }
+
       extendGraph(graph, alignment_file, vertex_vector, new_begin_vertex, begin_vertex);
     }
 
@@ -329,14 +339,31 @@ create_exon_2_and_3_graph(callOptions & CO,
       exon.append(extension);
       tmp_string.append(exon);
 
-      if (CO.verbose)
-      {
-        std::cout << "Adding exon   " << tmp_string << std::endl;
-      }
+      // if (CO.verbose)
+      // {
+      //   std::cout << "Adding exon   " << tmp_string << std::endl;
+      // }
 
       const char* alignment_file = tmp_string.c_str();
       free_nodes.insert(begin_vertex);
-      extendGraph(graph, alignment_file, vertex_vector, edge_ids, new_begin_vertex, begin_vertex);
+      if (number_of_exons == 2 || number_of_exons == 3)
+      {
+        if (CO.verbose)
+        {
+          std::cout << "Adding exon   " << tmp_string << std::endl;
+        }
+
+        extendGraph(graph, alignment_file, vertex_vector, edge_ids, new_begin_vertex, begin_vertex);
+      }
+      else
+      {
+        if (CO.verbose)
+        {
+          std::cout << "Adding exon   " << tmp_string << " as intron" << std::endl;
+        }
+        
+        extendGraph(graph, alignment_file, vertex_vector, new_begin_vertex, begin_vertex);
+      }
     }
 
     --number_of_exons;
