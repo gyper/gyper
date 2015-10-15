@@ -131,7 +131,8 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
                              kmer_map,
                              vertex_vector,
                              0,
-                             kmer_size
+                             kmer_size,
+                             0
                             );
 
       REQUIRE (expected_bitset_01 == actual_bitset);
@@ -147,7 +148,8 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
                              kmer_map,
                              vertex_vector,
                              0,
-                             kmer_size
+                             kmer_size,
+                             0
                             );
 
       REQUIRE (expected_bitset_11 == actual_bitset);
@@ -163,7 +165,8 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
                              kmer_map,
                              vertex_vector,
                              0,
-                             kmer_size
+                             kmer_size,
+                             0
                             );
 
       REQUIRE (expected_bitset_01 == actual_bitset);
@@ -179,7 +182,8 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
                              kmer_map,
                              vertex_vector,
                              0,
-                             kmer_size
+                             kmer_size,
+                             0
                             );
 
       REQUIRE (expected_bitset_11 == actual_bitset);
@@ -195,7 +199,8 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
                              kmer_map,
                              vertex_vector,
                              0,
-                             kmer_size
+                             kmer_size,
+                             0
                             );
 
       REQUIRE (expected_bitset_10 == actual_bitset);
@@ -275,7 +280,8 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
                              kmer_map,
                              vertex_vector,
                              0,
-                             kmer_size
+                             kmer_size,
+                             0
                             );
 
       REQUIRE (expected_bitset_01 == actual_bitset);
@@ -292,7 +298,8 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
                              kmer_map,
                              vertex_vector,
                              0,
-                             kmer_size
+                             kmer_size,
+                             0
                             );
 
       REQUIRE (expected_bitset_01 == actual_bitset);
@@ -309,7 +316,8 @@ TEST_CASE ("kmerifyGraph should create a non-empty kmer map")
                              kmer_map,
                              vertex_vector,
                              0,
-                             kmer_size
+                             kmer_size,
+                             0
                             );
 
       REQUIRE (expected_bitset_11 == actual_bitset);
@@ -359,7 +367,8 @@ TEST_CASE ("Try to align with backward alignments")
                            kmer_map,
                            vertex_vector,
                            0,
-                           kmer_size
+                           kmer_size,
+                           0
                           );
 
     REQUIRE (expected_bitset_11 == actual_bitset);
@@ -375,7 +384,8 @@ TEST_CASE ("Try to align with backward alignments")
                            kmer_map,
                            vertex_vector,
                            0,
-                           kmer_size
+                           kmer_size,
+                           0
                           );
 
     REQUIRE (expected_bitset_11 == actual_bitset);
@@ -391,7 +401,8 @@ TEST_CASE ("Try to align with backward alignments")
                            kmer_map,
                            vertex_vector,
                            2,
-                           kmer_size
+                           kmer_size,
+                           0
                           );
 
     REQUIRE (expected_bitset_11 == actual_bitset);
@@ -407,7 +418,8 @@ TEST_CASE ("Try to align with backward alignments")
                            kmer_map,
                            vertex_vector,
                            2,
-                           kmer_size
+                           kmer_size,
+                           0
                           );
 
     REQUIRE (expected_bitset_10 == actual_bitset);
@@ -423,13 +435,80 @@ TEST_CASE ("Try to align with backward alignments")
                            kmer_map,
                            vertex_vector,
                            1,
-                           kmer_size
+                           kmer_size,
+                           0
                           );
 
     REQUIRE (expected_bitset_10 == actual_bitset);
   }
 }
 
+
+TEST_CASE ("Reads failing after best kmer should still allow partial reads")
+{
+  std::ostringstream ss;
+  ss << gyper_SOURCE_DIRECTORY << "/test/alignments/test_case6.fa";
+  std::string tmp_str = ss.str();
+  const char* alignment_file_e3 = tmp_str.c_str();
+
+  std::vector<std::string> ids;
+  std::vector<VertexLabels> vertex_vector;
+  boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > edge_ids;
+  boost::unordered_set<TVertexDescriptor> free_nodes;
+  free_nodes.insert(1);
+  free_nodes.insert(0);
+
+  TVertexDescriptor begin_vertex;
+  TGraph graph = createGraph(alignment_file_e3, vertex_vector, edge_ids, ids, begin_vertex);
+
+  std::size_t num_ids = ids.size();
+
+  boost::dynamic_bitset<> expected_bitset_11(num_ids, 3ul);
+  boost::dynamic_bitset<> expected_bitset_10(num_ids, 2ul);
+  boost::dynamic_bitset<> expected_bitset_01(num_ids, 1ul);
+  boost::dynamic_bitset<> expected_bitset_00(num_ids, 0ul);
+
+  int kmer_size = 3;
+  String<TVertexDescriptor> order;
+  topologicalSort(order, graph);
+
+  TKmerMap kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, edge_ids, kmer_size);
+
+
+  SECTION ("sequence is TATTAGGG")
+  {
+    DnaString sequence = "TATTAGGG";
+    std::vector<TVertexDescriptor> matching_vertices;
+    boost::dynamic_bitset<> actual_bitset =
+      align_kmer_to_graph (sequence,
+                           num_ids,
+                           kmer_map,
+                           vertex_vector,
+                           1,
+                           kmer_size,
+                           0
+                          );
+
+    REQUIRE (expected_bitset_01 == actual_bitset);
+  }
+
+  SECTION ("sequence is GTTTGG")
+  {
+    DnaString sequence = "GTTTGG";
+    std::vector<TVertexDescriptor> matching_vertices;
+    boost::dynamic_bitset<> actual_bitset =
+      align_kmer_to_graph (sequence,
+                           num_ids,
+                           kmer_map,
+                           vertex_vector,
+                           3,
+                           kmer_size,
+                           0
+                          );
+
+    REQUIRE (expected_bitset_10 == actual_bitset);
+  }
+}
 
 
 TEST_CASE("find_best_kmer should find the kmer with the best quality")

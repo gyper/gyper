@@ -164,7 +164,7 @@ alignToGraphExact (DnaString const & sequence,
 }
 
 
-void
+bool
 find_forward_matches(std::vector< KmerLabels > & matches,
                      String<Dna> const & kmer,
                      TKmerMap & kmer_map,
@@ -216,12 +216,15 @@ find_forward_matches(std::vector< KmerLabels > & matches,
   if (matches.size() == 0)
   {
     matches = original_matches;
-    std::cout << kmer << "  forward@" << vertex_vector[matches[0].start_vertex].level << std::endl;
+    // std::cout << kmer << "  forward@" << vertex_vector[matches[0].start_vertex].level << std::endl;
+    return false;
   }
+
+  return true;
 }
 
 
-void
+bool
 find_backward_matches(std::vector< KmerLabels > & matches,
                       String<Dna> const & kmer,
                       TKmerMap & kmer_map,
@@ -268,13 +271,17 @@ find_backward_matches(std::vector< KmerLabels > & matches,
       matches.erase(matches.begin() + pos);
       --pos;
     }
+
   }
   
   if (matches.size() == 0)
   {
     matches = original_matches;
-    std::cout << kmer << " backward@" << vertex_vector[matches[0].start_vertex].level << std::endl;
+    // std::cout << kmer << " backward@" << vertex_vector[matches[0].start_vertex].level << std::endl;
+    return false;
   }
+
+  return true;
 }
 
 
@@ -284,11 +291,19 @@ align_kmer_to_graph (String<Dna> const & sequence,
                      TKmerMap & kmer_map,
                      std::vector<VertexLabels> & vertex_vector,
                      unsigned const & best_kmer_index,
-                     int const & kmer_size
+                     int const & kmer_size,
+                     int min_kmers
                     )
 {
   String<Dna> seq_best_kmer(sequence);
   erase(seq_best_kmer, 0, best_kmer_index);
+
+  // Debugging
+  // if (length(seq_best_kmer) < static_cast<std::size_t>(kmer_size))
+  // {
+  //   std::cerr << "Best kmer is shorter than k! " << seq_best_kmer << std::endl;
+  // }
+
   resize(seq_best_kmer, kmer_size);
   std::vector< KmerLabels > matches;
   boost::dynamic_bitset<> id_bits(id_numbers);
@@ -296,6 +311,7 @@ align_kmer_to_graph (String<Dna> const & sequence,
   if (kmer_map.count(seq_best_kmer) == 0)
   {
     // If we cant find the best_kmer, just give up
+    // std::cout << "Didn't find " << seq_best_kmer << std::endl;
     return id_bits;
   }
   else
@@ -303,7 +319,19 @@ align_kmer_to_graph (String<Dna> const & sequence,
     matches = kmer_map[seq_best_kmer];
   }
 
+  --min_kmers;
+
+  // Debugging
+  // boost::dynamic_bitset<> id_bits_debug(id_numbers);
+  // for (auto matches_it = matches.begin() ; matches_it != matches.end() ; ++matches_it)
+  // {
+  //   id_bits_debug |= matches_it->id_bits;
+  // }
+  // std::cout << "id_bits, best kmer = " << id_bits_debug << " " << seq_best_kmer << std::endl;
+
   int const & increment_size = kmer_size - 1;
+
+  bool check_forward_potential = true;
 
   // Forward loop
   for (int k = best_kmer_index + increment_size ; k < static_cast<int>(length(sequence)) - increment_size ; k += increment_size)
@@ -312,15 +340,43 @@ align_kmer_to_graph (String<Dna> const & sequence,
     erase(kmer, 0, k);
     resize(kmer, kmer_size);
 
-    if (kmer_map.count(kmer) == 1)
+    // std::cout << kmer << std::endl;
+
+    if (kmer_map.count(kmer) == 0 || !find_forward_matches(matches, kmer, kmer_map, vertex_vector))
     {
-      find_forward_matches(matches, kmer, kmer_map, vertex_vector);
-    }
-    else
-    {
+      // std::cout << "Mismatch forward." << std::endl;
+      check_forward_potential = false;
       break;
     }
+
+    --min_kmers;
   }
+
+  boost::dynamic_bitset<> potential_forward(id_numbers);
+
+  if (check_forward_potential)
+  {
+    String<Dna> seq_last_kmer(sequence);
+    erase(seq_last_kmer, 0, length(sequence) - kmer_size);
+    
+    if (kmer_map.count(seq_last_kmer) == 1)
+    {
+      for (auto current_matches_it = kmer_map[seq_last_kmer].begin() ; current_matches_it != kmer_map[seq_last_kmer].end() ; ++current_matches_it)
+      {
+        for (auto original_matches_it = matches.begin() ; original_matches_it != matches.end() ; ++original_matches_it)
+        {
+          if (abs(vertex_vector[current_matches_it->start_vertex].level - vertex_vector[original_matches_it->start_vertex].level) < kmer_size * 2)
+          {
+            potential_forward |= current_matches_it->id_bits;
+            continue;
+          }
+        }
+      }
+    }
+  }
+
+
+  bool check_backward_potential = true;
 
   // Backward loop
   for (int k = best_kmer_index - increment_size ; k >= 0 ; k -= increment_size)
@@ -329,71 +385,74 @@ align_kmer_to_graph (String<Dna> const & sequence,
     erase(kmer, 0, k);
     resize(kmer, kmer_size);
 
-    if (kmer_map.count(kmer) == 1)
+    // std::cout << kmer << std::endl;
+
+    if (kmer_map.count(kmer) == 0 || !find_backward_matches(matches, kmer, kmer_map, vertex_vector))
     {
-      find_backward_matches(matches, kmer, kmer_map, vertex_vector);
-    }
-    else
-    {
+      // std::cout << "Mismatch backward." << std::endl;
+      check_backward_potential = false;
       break;
+    }
+
+    --min_kmers;
+  }
+
+  boost::dynamic_bitset<> potential_backward(id_numbers);
+
+  // Check if the last kmer could potentially give any information
+  if (check_backward_potential)
+  {
+    // std::cout << "Checking backward potentially" << std::endl;
+    String<Dna> seq_first_kmer(sequence);
+    resize(seq_first_kmer, kmer_size);
+
+    if (kmer_map.count(seq_first_kmer) == 1)
+    {
+      for (auto current_matches_it = kmer_map[seq_first_kmer].begin() ; current_matches_it != kmer_map[seq_first_kmer].end() ; ++current_matches_it)
+      {
+        for (auto original_matches_it = matches.begin() ; original_matches_it != matches.end() ; ++original_matches_it)
+        {
+          if (abs(vertex_vector[current_matches_it->start_vertex].level - vertex_vector[original_matches_it->start_vertex].level) < kmer_size * 2)
+          {
+            potential_backward |= current_matches_it->id_bits;
+            continue;
+          }
+        }
+      }
     }
   }
 
+  if (min_kmers > 0)
+  {
+    return id_bits;
+  }
+  
   for (auto matches_it = matches.begin() ; matches_it != matches.end() ; ++matches_it)
   {
     id_bits |= matches_it->id_bits;
   }
-
-  // Check if the last kmer could potentially give any information
-  String<Dna> seq_first_kmer(sequence);
-  resize(seq_first_kmer, kmer_size);
-  boost::dynamic_bitset<> potential_backward(id_numbers);
-
-  if (kmer_map.count(seq_first_kmer) == 1)
-  {
-    for (auto current_matches_it = kmer_map[seq_first_kmer].begin() ; current_matches_it != kmer_map[seq_first_kmer].end() ; ++current_matches_it)
-    {
-      for (auto original_matches_it = matches.begin() ; original_matches_it != matches.end() ; ++original_matches_it)
-      {
-        if (abs(vertex_vector[current_matches_it->start_vertex].level - vertex_vector[original_matches_it->start_vertex].level) < kmer_size * 2)
-        {
-          potential_backward |= current_matches_it->id_bits;
-          continue;
-        }
-      }
-    }
-  }
-
-  String<Dna> seq_last_kmer(sequence);
-  erase(seq_last_kmer, 0, length(sequence) - kmer_size);
-  boost::dynamic_bitset<> potential_forward(id_numbers);
-
-  if (kmer_map.count(seq_last_kmer) == 1)
-  {
-    for (auto current_matches_it = kmer_map[seq_last_kmer].begin() ; current_matches_it != kmer_map[seq_last_kmer].end() ; ++current_matches_it)
-    {
-      for (auto original_matches_it = matches.begin() ; original_matches_it != matches.end() ; ++original_matches_it)
-      {
-        if (abs(vertex_vector[current_matches_it->start_vertex].level - vertex_vector[original_matches_it->start_vertex].level) < kmer_size * 2)
-        {
-          potential_forward |= current_matches_it->id_bits;
-          continue;
-        }
-      }
-    }
-  }
+  
 
   if (potential_forward.none())
   {
     potential_forward.flip();
+  }
+  else
+  {
+    --min_kmers;
   }
 
   if (potential_backward.none())
   {
     potential_backward.flip();
   }
+  else
+  {
+    --min_kmers;
+  }
 
   return id_bits & potential_forward & potential_backward;
+  // return id_bits;
 }
 
 

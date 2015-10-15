@@ -50,7 +50,8 @@ align_kmer_to_graph (String<Dna> const & sequence,
                      TKmerMap & kmer_map,
                      std::vector<VertexLabels> & vertex_vector,
                      unsigned const & best_kmer_index,
-                     int const & kmer_size
+                     int const & kmer_size,
+                     int min_kmers
                     );
 
 void

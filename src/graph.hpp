@@ -119,6 +119,7 @@ struct callOptions
   int bpQskip;
   int number_of_exons;
   int kmer;
+  int min_kmers;
   CharString gene;
   CharString minSeqLen_list;
   CharString outputFolder;
@@ -131,7 +132,8 @@ struct callOptions
   CharString vcfFile;
   
   bool verbose;
-  bool align_all_reads;
+  bool exon_2_and_3;
+  bool bias_check;
   bool thousand_genomes;
   int read_gap;
 
@@ -147,20 +149,22 @@ struct callOptions
     std::cout << "CO.gene " << gene << std::endl;
     std::cout << "CO.number_of_exons " << number_of_exons << std::endl;
     std::cout << "CO.kmer " << kmer << std::endl;
+    std::cout << "CO.min_kmers " << min_kmers << std::endl;
     std::cout << "CO.minSeqLen_list " << minSeqLen_list << std::endl;
     std::cout << "CO.minSeqLen.size() " << minSeqLen.size() << std::endl;
     std::cout << "CO.outputFolder " << outputFolder << std::endl;
     std::cout << "CO.vcfFile " << vcfFile << std::endl;
     std::cout << "CO.vcfOutputFolder" << vcfOutputFolder << std::endl;
     std::cout << "CO.verbose " << verbose << std::endl;
-    std::cout << "CO.align_all_reads " << align_all_reads << std::endl;
+    std::cout << "CO.exon_2_and_3 " << exon_2_and_3 << std::endl;
+    std::cout << "CO.bias_check " << bias_check << std::endl;
     std::cout << "CO.thousand_genomes " << thousand_genomes << std::endl;
     std::cout << "CO.read_gap " << read_gap << std::endl;
   };
 
 callOptions():
-  beta_list("0.6"), bpQclip(30), bpQskip(25), number_of_exons(4), kmer(15), gene("DQA1"), minSeqLen_list("60"), outputFolder(),
-  vcfOutputFolder(), verbose(false), align_all_reads(false), thousand_genomes(false), read_gap(1000) {}
+  beta_list("0.6"), bpQclip(30), bpQskip(25), number_of_exons(4), kmer(15), min_kmers(1), gene("DQA1"), minSeqLen_list("60"), outputFolder(),
+  vcfOutputFolder(), verbose(false), exon_2_and_3(false), bias_check(false), thousand_genomes(false), read_gap(1000) {}
 };
 
 
@@ -183,7 +187,8 @@ align_sequence_kmer (String<Dna> & my_sequence,
                      unsigned const & id_numbers,
                      TKmerMap & kmer_map,
                      std::vector<VertexLabels> & vertex_vector,
-                     int const & kmer_size
+                     int const & kmer_size,
+                     int const & min_kmers
                     );
 
 CharString myExtractTagValue(String<char> &tags);
@@ -197,6 +202,16 @@ createGenericGraph(callOptions & CO,
                    boost::unordered_set<TVertexDescriptor> & free_nodes,
                    String<TVertexDescriptor> & order
                   );
+
+void
+create_exon_2_and_3_graph(callOptions & CO,
+                          TGraph & graph,
+                          std::vector<VertexLabels> & vertex_vector,
+                          std::vector<std::string> & ids,
+                          boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
+                          boost::unordered_set<TVertexDescriptor> & free_nodes,
+                          String<TVertexDescriptor> & order
+                         );
 
 void
 createDqa1Graph(TGraph & graph,

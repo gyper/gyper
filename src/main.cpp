@@ -55,8 +55,10 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
   addOption(parser, ArgParseOption("qc", "bpQclip", "Quality Clip Threshold for clipping. ", ArgParseArgument::INTEGER, "INT"));
   addOption(parser, ArgParseOption("qs", "bpQskip", "Quality Clip Threshold for skipping. ", ArgParseArgument::INTEGER, "INT"));
   addOption(parser, ArgParseOption("k", "kmer", "The length of the k-mers.", ArgParseArgument::INTEGER, "INT"));
+  addOption(parser, ArgParseOption("mk", "min_kmers", "The minimum amount of k-mers.", ArgParseArgument::INTEGER, "INT"));
   addOption(parser, ArgParseOption("v", "verbose", "Verbosity flag"));
-  addOption(parser, ArgParseOption("a", "align_all_reads", "If used Gyper will use every read pair in the BAM file provided. Should only be used for very small BAMs, unless you have huge amount of RAM and patience."));
+  addOption(parser, ArgParseOption("23", "exon_2_and_3", "Only use graph with exons 2 and 3."));
+  addOption(parser, ArgParseOption("bc", "bias_check", "If used Gyper will use every read pair in the BAM file provided. Should only be used for very small BAMs, unless you have huge amount of RAM and patience."));
   addOption(parser, ArgParseOption("1k", "thousand_genomes", "Use reference from the 1000 Genomes project."));
   addOption(parser, ArgParseOption("b",
     "beta",
@@ -89,6 +91,8 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
     getOptionValue(CO.bpQskip, parser, "bpQskip");
   if (isSet(parser, "kmer" ))
     getOptionValue(CO.kmer, parser, "kmer");
+  if (isSet(parser, "min_kmers" ))
+    getOptionValue(CO.min_kmers, parser, "min_kmers");
   if (isSet(parser, "bam2" ))
     getOptionValue(CO.bam2, parser, "bam2");
   if (isSet(parser, "bam3" ))
@@ -97,8 +101,8 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
     getOptionValue(CO.bam4, parser, "bam4");
   if (isSet(parser, "beta"))
     getOptionValue(CO.beta_list, parser, "beta");
-  if (isSet(parser, "align_all_reads"))
-    getOptionValue(CO.align_all_reads, parser, "align_all_reads");
+  if (isSet(parser, "bias_check"))
+    getOptionValue(CO.bias_check, parser, "bias_check");
   if (isSet(parser, "thousand_genomes"))
     getOptionValue(CO.thousand_genomes, parser, "thousand_genomes");
   if (isSet(parser, "read_gap"))
@@ -110,6 +114,7 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
   getArgumentValue( CO.gene, parser, 0);
   getArgumentValue( CO.bamFile, parser, 1);
   CO.verbose = isSet(parser, "verbose");
+  CO.exon_2_and_3 = isSet(parser, "exon_2_and_3");
 
   // Remove the HLA- part from genes if it is there
   if (CO.gene == "HLA-A")
@@ -372,7 +377,7 @@ addToBars(callOptions & CO,
   
   BamAlignmentRecord record;
 
-  if (!CO.align_all_reads)
+  if (!CO.bias_check)
   {
     BamIndex<Bai> baiIndex;
     if (!open(baiIndex, strcat(bam_file_name, ".bai")))
@@ -756,99 +761,108 @@ handleOutput (callOptions & CO,
   unsigned j_max_short = 0;
   double max_score_short = 0;
 
-  for (unsigned i = 0; i < ids_four.size(); ++i)
+  if (CO.bias_check)
   {
-    // Skip alleles with a score of 0.0
-    if (seq_scores_four[i][0] < 0.1)
-      continue;
-
-    if (CO.verbose)
+    for (unsigned i = 0; i < ids.size(); ++i)
     {
-      std::cout << std::setw(15) << ids_four[i] << ": ";
+      std::cout << std::setw(23) << ids[i] << " " << seq_scores[i][i] << std::endl;
     }
-    
-    for (unsigned j = 0; j < ids_four.size(); ++j)
+  }
+  else
+  {
+    for (unsigned i = 0; i < ids_four.size(); ++i)
     {
-      if (seq_scores_four[i][j] < 0.1)
+      // Skip alleles with a score of 0.0
+      if (seq_scores_four[i][0] < 0.1)
         continue;
 
-      if (i >= j && CO.verbose)
-        printf("%6.1f ", seq_scores_four[i][j]);
-
-      if (seq_scores_four[i][j] > max_score_short)
-      {
-        i_max_short = i;
-        j_max_short = j;
-        max_score_short = seq_scores_four[i][j];
-      }
-    }
-
-    if (CO.verbose)
-    {
-      std::cout << std::endl;
-    }
-  }
-  
-  // Get the original alleles
-  std::pair<unsigned, unsigned> best_alleles(i_max_short, j_max_short);
-  std::pair<unsigned, unsigned> allele_ids = index_map[best_alleles];
-
-  if (CO.verbose)
-  {
-    std::cout << "Total matches are: " << total_matches << std::endl;
-  }
-
-  if (total_matches != 0)
-  {
-    if (CO.verbose)
-    {
-      std::cout << "Oracle: Out of all the alleles, I'd say this person has   " << ids[i_max] << " and " << ids[j_max] << " with a score " << max_score << "!" << std::endl;
-      std::cout << "Oracle: Out of available alleles, I'd say this person has " << ids[allele_ids.first] << " and " << ids[allele_ids.second] << " with a score " << max_score_short << "!" << std::endl;
-    }
-
-    std::cout << pn << " " << std::setw(19) << ids[allele_ids.first] << " " << std::setw(19) << ids[allele_ids.second] << std::endl;
-  
-    // if (i_max != j_max)
-    // {
-    //   std::cout << " (pre-adjustment: " << (max_score-(seq_scores[i_max][i_max]+seq_scores[j_max][j_max])*(1-beta)/2.0)/beta << " or ";
-    //   std::cout << 100.0*(max_score-(seq_scores[i_max][i_max]+seq_scores[j_max][j_max])*(1-beta)/2.0)/beta/total_matches << "%)";
-    // }
-    // else
-    // {
-    //   std::cout << " (" << 100.0*max_score/total_matches << "%)";
-    // }
-    // std::cout << std::endl;
-    
-    {
-      CharString outputFolder;
-      if (CO.outputFolder == "")
-      {
-        outputFolder = "output/gyper/";
-      }
-      else
-      {
-        outputFolder = CO.outputFolder;
-      }
-
-      append(outputFolder, CO.gene);
-      append(outputFolder, "/");
-      append(outputFolder, pn);
-      append(outputFolder, ".txt");
-
-      std::stringstream my_ss;
-      my_ss << ids[allele_ids.first] << "\t" << ids[allele_ids.second];
-      // my_ss << ids[i_max] << "\t" << ids[j_max];
-      // my_ss << ids[i_max] << "\t" << ids[j_max] << "\t" << CO.minSeqLen[min_seq_index];
-      // my_ss << "\t" << beta << "\t" << CO.bpQclip << "\t" << CO.bpQskip << std::endl;
       if (CO.verbose)
       {
-        std::cout << "Gyper output: " << outputFolder << std::endl;
+        std::cout << std::setw(15) << ids_four[i] << ": ";
       }
       
-      writeToFile(my_ss, outputFolder);
+      for (unsigned j = 0; j < ids_four.size(); ++j)
+      {
+        if (seq_scores_four[i][j] < 0.1)
+          continue;
+
+        if (i >= j && CO.verbose)
+          printf("%6.1f ", seq_scores_four[i][j]);
+
+        if (seq_scores_four[i][j] > max_score_short)
+        {
+          i_max_short = i;
+          j_max_short = j;
+          max_score_short = seq_scores_four[i][j];
+        }
+      }
+
+      if (CO.verbose)
+      {
+        std::cout << std::endl;
+      }
+    }
+
+    // Get the original alleles
+    std::pair<unsigned, unsigned> best_alleles(i_max_short, j_max_short);
+    std::pair<unsigned, unsigned> allele_ids = index_map[best_alleles];
+
+    if (CO.verbose)
+    {
+      std::cout << "Total matches are: " << total_matches << std::endl;
+    }
+
+    if (total_matches != 0)
+    {
+      if (CO.verbose)
+      {
+        std::cout << "Oracle: Out of all the alleles, I'd say this person has   " << ids[i_max] << " and " << ids[j_max] << " with a score " << max_score << "!" << std::endl;
+        std::cout << "Oracle: Out of available alleles, I'd say this person has " << ids[allele_ids.first] << " and " << ids[allele_ids.second] << " with a score " << max_score_short << "!" << std::endl;
+      }
+
+      std::cout << pn << " " << std::setw(19) << ids[allele_ids.first] << " " << std::setw(19) << ids[allele_ids.second] << std::endl;
+    
+      // if (i_max != j_max)
+      // {
+      //   std::cout << " (pre-adjustment: " << (max_score-(seq_scores[i_max][i_max]+seq_scores[j_max][j_max])*(1-beta)/2.0)/beta << " or ";
+      //   std::cout << 100.0*(max_score-(seq_scores[i_max][i_max]+seq_scores[j_max][j_max])*(1-beta)/2.0)/beta/total_matches << "%)";
+      // }
+      // else
+      // {
+      //   std::cout << " (" << 100.0*max_score/total_matches << "%)";
+      // }
+      // std::cout << std::endl;
+      
+      {
+        CharString outputFolder;
+        if (CO.outputFolder == "")
+        {
+          outputFolder = "output/gyper/";
+        }
+        else
+        {
+          outputFolder = CO.outputFolder;
+        }
+
+        append(outputFolder, CO.gene);
+        append(outputFolder, "/");
+        append(outputFolder, pn);
+        append(outputFolder, ".txt");
+
+        std::stringstream my_ss;
+        my_ss << ids[allele_ids.first] << "\t" << ids[allele_ids.second];
+        // my_ss << ids[i_max] << "\t" << ids[j_max];
+        // my_ss << ids[i_max] << "\t" << ids[j_max] << "\t" << CO.minSeqLen[min_seq_index];
+        // my_ss << "\t" << beta << "\t" << CO.bpQclip << "\t" << CO.bpQskip << std::endl;
+        if (CO.verbose)
+        {
+          std::cout << "Gyper output: " << outputFolder << std::endl;
+        }
+        
+        writeToFile(my_ss, outputFolder);
+      }
     }
   }
-
   /*
   // Print VCF
   {
@@ -943,7 +957,15 @@ int main (int argc, char const ** argv)
   TGraph graph;
   std::string gene(toCString(CO.gene));
 
-  createGenericGraph(CO, graph, vertex_vector, ids, edge_ids, free_nodes, order);
+  if (CO.exon_2_and_3)
+  {
+    create_exon_2_and_3_graph(CO, graph, vertex_vector, ids, edge_ids, free_nodes, order);
+  }
+  else
+  {
+    createGenericGraph(CO, graph, vertex_vector, ids, edge_ids, free_nodes, order);
+  }
+  
   printf("[%6.2f] Graph created.\n", double(clock()-begin) / CLOCKS_PER_SEC);
 
   TKmerMap kmer_map;
@@ -1065,14 +1087,14 @@ int main (int argc, char const ** argv)
         //   continue;
         // }
         // std::cout << sequence1 << " " << sequence2 << std::endl;
-
         boost::dynamic_bitset<> ids_found1 = 
              align_sequence_kmer(sequence1,
                                  it->second.qual,
                                  ids.size(),
                                  kmer_map,
                                  vertex_vector,
-                                 CO.kmer
+                                 CO.kmer,
+                                 CO.min_kmers
                                 );
 
         if (ids_found1.none())
@@ -1084,7 +1106,8 @@ int main (int argc, char const ** argv)
                                  ids.size(),
                                  kmer_map,
                                  vertex_vector,
-                                 CO.kmer
+                                 CO.kmer,
+                                 CO.min_kmers
                                 );
 
         if (ids_found2.none())
@@ -1097,10 +1120,10 @@ int main (int argc, char const ** argv)
 
         total_matches += 1.0;
 
-        if (!ids_found1[2936])
-        {
-          std::cout << sequence1 << "\n" << sequence2 << std::endl;
-        }
+        // if (!ids_found1[2936])
+        // {
+        //   std::cout << sequence1 << "\n" << sequence2 << std::endl;
+        // }
         
         // Full reference alleles
         for (unsigned i = 0 ; i < ids.size() ; ++i)
@@ -1113,6 +1136,18 @@ int main (int argc, char const ** argv)
             }
           }
         }
+
+        // bias correction
+        // for (unsigned i = 0 ; i < ids.size() ; ++i)
+        // {
+        //   for (unsigned j = 0 ; j <= i ; ++j)
+        //   {
+        //     if (i == 2171 || j == 2171)
+        //     {
+        //       seq_scores[i][j] -= bars1.size()/100.0;
+        //     }
+        //   }
+        // }
       }
     }
     else
