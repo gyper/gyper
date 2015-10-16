@@ -133,11 +133,12 @@ struct callOptions
   
   bool verbose;
   bool exon_2_and_3;
+  bool vcf;
   bool bias_check;
   bool thousand_genomes;
   int read_gap;
 
-  void output(){
+  void print_options(){
     std::cout << "CO.bamFile " << bamFile << std::endl;
     std::cout << "CO.bam2 " << bam2 << std::endl;
     std::cout << "CO.bam3 " << bam3 << std::endl;
@@ -157,6 +158,7 @@ struct callOptions
     std::cout << "CO.vcfOutputFolder" << vcfOutputFolder << std::endl;
     std::cout << "CO.verbose " << verbose << std::endl;
     std::cout << "CO.exon_2_and_3 " << exon_2_and_3 << std::endl;
+    std::cout << "CO.vcf " << vcf << std::endl;
     std::cout << "CO.bias_check " << bias_check << std::endl;
     std::cout << "CO.thousand_genomes " << thousand_genomes << std::endl;
     std::cout << "CO.read_gap " << read_gap << std::endl;
@@ -164,7 +166,7 @@ struct callOptions
 
 callOptions():
   beta_list("0.6"), bpQclip(30), bpQskip(25), number_of_exons(4), kmer(15), min_kmers(1), gene("DQA1"), minSeqLen_list("60"), outputFolder(),
-  vcfOutputFolder(), verbose(false), exon_2_and_3(false), bias_check(false), thousand_genomes(false), read_gap(1000) {}
+  vcfOutputFolder(), verbose(false), exon_2_and_3(false), vcf(false), bias_check(false), thousand_genomes(false), read_gap(1000) {}
 };
 
 

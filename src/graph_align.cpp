@@ -167,8 +167,7 @@ alignToGraphExact (DnaString const & sequence,
 bool
 find_forward_matches(std::vector< KmerLabels > & matches,
                      String<Dna> const & kmer,
-                     TKmerMap & kmer_map,
-                      std::vector<VertexLabels> & vertex_vector
+                     TKmerMap & kmer_map
                     )
 {
   std::vector< KmerLabels > original_matches(matches);
@@ -216,7 +215,6 @@ find_forward_matches(std::vector< KmerLabels > & matches,
   if (matches.size() == 0)
   {
     matches = original_matches;
-    // std::cout << kmer << "  forward@" << vertex_vector[matches[0].start_vertex].level << std::endl;
     return false;
   }
 
@@ -227,8 +225,7 @@ find_forward_matches(std::vector< KmerLabels > & matches,
 bool
 find_backward_matches(std::vector< KmerLabels > & matches,
                       String<Dna> const & kmer,
-                      TKmerMap & kmer_map,
-                      std::vector<VertexLabels> & vertex_vector
+                      TKmerMap & kmer_map
                      )
 {
   std::vector< KmerLabels > original_matches(matches);
@@ -277,7 +274,6 @@ find_backward_matches(std::vector< KmerLabels > & matches,
   if (matches.size() == 0)
   {
     matches = original_matches;
-    // std::cout << kmer << " backward@" << vertex_vector[matches[0].start_vertex].level << std::endl;
     return false;
   }
 
@@ -342,7 +338,7 @@ align_kmer_to_graph (String<Dna> const & sequence,
 
     // std::cout << kmer << std::endl;
 
-    if (kmer_map.count(kmer) == 0 || !find_forward_matches(matches, kmer, kmer_map, vertex_vector))
+    if (kmer_map.count(kmer) == 0 || !find_forward_matches(matches, kmer, kmer_map))
     {
       // std::cout << "Mismatch forward." << std::endl;
       check_forward_potential = false;
@@ -387,7 +383,7 @@ align_kmer_to_graph (String<Dna> const & sequence,
 
     // std::cout << kmer << std::endl;
 
-    if (kmer_map.count(kmer) == 0 || !find_backward_matches(matches, kmer, kmer_map, vertex_vector))
+    if (kmer_map.count(kmer) == 0 || !find_backward_matches(matches, kmer, kmer_map))
     {
       // std::cout << "Mismatch backward." << std::endl;
       check_backward_potential = false;

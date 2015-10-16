@@ -50,7 +50,7 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
   // Main options
   addSection(parser, "Main options");
   addOption(parser, ArgParseOption("o", "output", "Outfile folder location ", ArgParseArgument::STRING, "output"));
-  addOption(parser, ArgParseOption("vcf", "vcf_output", "Outfile folder location ", ArgParseArgument::STRING, "vcf_output"));
+  addOption(parser, ArgParseOption("f", "vcf_output", "Outfile folder location ", ArgParseArgument::STRING, "vcf_output"));
   addOption(parser, ArgParseOption("ms", "minSeqLen", "Minimum sequence length ", ArgParseArgument::STRING, "STRING"));
   addOption(parser, ArgParseOption("qc", "bpQclip", "Quality Clip Threshold for clipping. ", ArgParseArgument::INTEGER, "INT"));
   addOption(parser, ArgParseOption("qs", "bpQskip", "Quality Clip Threshold for skipping. ", ArgParseArgument::INTEGER, "INT"));
@@ -58,6 +58,7 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
   addOption(parser, ArgParseOption("mk", "min_kmers", "The minimum amount of k-mers.", ArgParseArgument::INTEGER, "INT"));
   addOption(parser, ArgParseOption("v", "verbose", "Verbosity flag"));
   addOption(parser, ArgParseOption("23", "exon_2_and_3", "Only use graph with exons 2 and 3."));
+  addOption(parser, ArgParseOption("c", "vcf", "Print VCF outut."));
   addOption(parser, ArgParseOption("bc", "bias_check", "If used Gyper will use every read pair in the BAM file provided. Should only be used for very small BAMs, unless you have huge amount of RAM and patience."));
   addOption(parser, ArgParseOption("1k", "thousand_genomes", "Use reference from the 1000 Genomes project."));
   addOption(parser, ArgParseOption("b",
@@ -115,6 +116,7 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
   getArgumentValue( CO.bamFile, parser, 1);
   CO.verbose = isSet(parser, "verbose");
   CO.exon_2_and_3 = isSet(parser, "exon_2_and_3");
+  CO.vcf = isSet(parser, "vcf");
 
   // Remove the HLA- part from genes if it is there
   if (CO.gene == "HLA-A")
@@ -144,7 +146,7 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
 
   if (CO.verbose)
   {
-    CO.output();
+    CO.print_options();
   }
 
   // Set the number of exons
@@ -821,61 +823,40 @@ handleOutput (callOptions & CO,
       }
 
       std::cout << pn << " " << std::setw(19) << ids[allele_ids.first] << " " << std::setw(19) << ids[allele_ids.second] << std::endl;
-    
-      // if (i_max != j_max)
-      // {
-      //   std::cout << " (pre-adjustment: " << (max_score-(seq_scores[i_max][i_max]+seq_scores[j_max][j_max])*(1-beta)/2.0)/beta << " or ";
-      //   std::cout << 100.0*(max_score-(seq_scores[i_max][i_max]+seq_scores[j_max][j_max])*(1-beta)/2.0)/beta/total_matches << "%)";
-      // }
-      // else
-      // {
-      //   std::cout << " (" << 100.0*max_score/total_matches << "%)";
-      // }
-      // std::cout << std::endl;
-      
+      CharString outputFolder;
+
+      if (CO.outputFolder == "")
       {
-        CharString outputFolder;
-        if (CO.outputFolder == "")
-        {
-          outputFolder = "output/gyper/";
-        }
-        else
-        {
-          outputFolder = CO.outputFolder;
-        }
-
-        append(outputFolder, CO.gene);
-        append(outputFolder, "/");
-        append(outputFolder, pn);
-        append(outputFolder, ".txt");
-
-        std::stringstream my_ss;
-        my_ss << ids[allele_ids.first] << "\t" << ids[allele_ids.second];
-        // my_ss << ids[i_max] << "\t" << ids[j_max];
-        // my_ss << ids[i_max] << "\t" << ids[j_max] << "\t" << CO.minSeqLen[min_seq_index];
-        // my_ss << "\t" << beta << "\t" << CO.bpQclip << "\t" << CO.bpQskip << std::endl;
-        if (CO.verbose)
-        {
-          std::cout << "Gyper output: " << outputFolder << std::endl;
-        }
-        
-        writeToFile(my_ss, outputFolder);
+        outputFolder = "output/gyper/";
       }
+      else
+      {
+        outputFolder = CO.outputFolder;
+      }
+
+      append(outputFolder, CO.gene);
+      append(outputFolder, "/");
+      append(outputFolder, pn);
+      append(outputFolder, ".txt");
+
+      std::stringstream my_ss;
+      my_ss << ids[allele_ids.first] << "\t" << ids[allele_ids.second];
+
+      if (CO.verbose)
+      {
+        std::cout << "Gyper output: " << outputFolder << std::endl;
+      }
+      
+      writeToFile(my_ss, outputFolder);
     }
   }
-  /*
+
   // Print VCF
+  if (CO.vcf)
   {
     if (CO.verbose)
     {
-      // if (CO.gene == "HLAB" || CO.gene == "HLAC")
-      // {
-      //   std::cout << "Number of 2 digit ids are: " << ids_four.size() << std::endl;
-      // }
-      // else
-      // {
-        std::cout << "Number of 4 digit ids are: " << ids_four.size() << std::endl;
-      // }
+      std::cout << "Number of 4 digit ids are: " << ids_four.size() << std::endl;
     }
 
     CharString vcfOutputFolder;
@@ -887,31 +868,17 @@ handleOutput (callOptions & CO,
     {
       vcfOutputFolder = CO.vcfOutputFolder;
     }
-  
+
     append(vcfOutputFolder, CO.gene);
     append(vcfOutputFolder, "/");
-    // append(vcfOutputFolder, boost::lexical_cast<std::string>(CO.minSeqLen[min_seq_index]));
-    // append(vcfOutputFolder, "/");
-    // std::ostringstream ss;
-    // ss << std::fixed << std::setprecision(2) << beta;
-    // append(vcfOutputFolder, ss.str());
-    // append(vcfOutputFolder, "/");
-    // append(vcfOutputFolder, boost::lexical_cast<std::string>(CO.bpQclip));
-    // append(vcfOutputFolder, "/");
-    // append(vcfOutputFolder, boost::lexical_cast<std::string>(CO.bpQskip));
-    // append(vcfOutputFolder, "/");
     append(vcfOutputFolder, pn);
     append(vcfOutputFolder, ".vcf");
-    std::cout << "VCF output: " << vcfOutputFolder << std::endl;
-    // writeVcfFile(vcfOutputFolder,
-    //              pn, ids,
-    //              seq_scores,
-    //              max_score,
-    //              CO.minSeqLen[min_seq_index],
-    //              beta,
-    //              CO.bpQclip,
-    //              CO.bpQskip
-    //             );
+
+    if (CO.verbose)
+    {
+      std::cout << "VCF output: " << vcfOutputFolder << std::endl;
+    }
+
     writeVcfFile(vcfOutputFolder,
                  pn,
                  ids_four,
@@ -919,7 +886,6 @@ handleOutput (callOptions & CO,
                  max_score_short
                 );
   }
-  */
 }
 
 
@@ -1015,6 +981,8 @@ int main (int argc, char const ** argv)
     }
   }
 
+  double total_alignment_time = 0.0;
+
   for (std::vector<std::string>::iterator bam_it = bamlist.begin() ; bam_it != bamlist.end() ; ++bam_it)
   {
     bars1.clear();
@@ -1048,13 +1016,8 @@ int main (int argc, char const ** argv)
 
     if (CO.verbose)
     {
-      std::cout << "Bam alignment records:" << std::endl;
-      std::cout << "Before: bars1.size() = " << bars1.size();
+      std::cout << "bars1.size() = " << bars1.size();
       std::cout << ", bars2.size() = " << bars2.size() << std::endl;
-    }
-
-    if (CO.verbose)
-    {
       printf("[%6.2f] Read pairs filtered for %s.\n", double(clock()-begin) / CLOCKS_PER_SEC, pn.c_str());
     }
     
@@ -1067,151 +1030,77 @@ int main (int argc, char const ** argv)
     }
 
     double total_matches = 0.0;
+    clock_t alignment_cpu_time = clock();
 
-    if (!simple_alignment)
+    for (TBarMap::iterator it = bars1.begin() ; it != bars1.end() ; ++it)
     {
-      for (TBarMap::iterator it = bars1.begin() ; it != bars1.end() ; ++it)
+      if (bars2.count(it->first) == 0)
       {
-        if (bars2.count(it->first) == 0)
-        {
-          continue;
-        }
-
-        String<Dna> sequence1 = it->second.seq;
-        String<Dna> sequence2 = bars2[it->first].seq;
-
-        // trimReadEnds(sequence1, it->second.qual, CO.bpQclip);
-        // trimReadEnds(sequence2, bars2[it->first].qual, CO.bpQclip);
-        // if (length(sequence1) < CO.minSeqLen[0] || length(sequence2) < CO.minSeqLen[0])
-        // {
-        //   continue;
-        // }
-        // std::cout << sequence1 << " " << sequence2 << std::endl;
-        boost::dynamic_bitset<> ids_found1 = 
-             align_sequence_kmer(sequence1,
-                                 it->second.qual,
-                                 ids.size(),
-                                 kmer_map,
-                                 vertex_vector,
-                                 CO.kmer,
-                                 CO.min_kmers
-                                );
-
-        if (ids_found1.none())
-          continue;
-
-        boost::dynamic_bitset<> ids_found2 = 
-             align_sequence_kmer(sequence2,
-                                 bars2[it->first].qual,
-                                 ids.size(),
-                                 kmer_map,
-                                 vertex_vector,
-                                 CO.kmer,
-                                 CO.min_kmers
-                                );
-
-        if (ids_found2.none())
-          continue;
-
-        ids_found1 &= ids_found2;
-
-        if (ids_found1.none())
-          continue;
-
-        total_matches += 1.0;
-
-        // if (!ids_found1[2936])
-        // {
-        //   std::cout << sequence1 << "\n" << sequence2 << std::endl;
-        // }
-        
-        // Full reference alleles
-        for (unsigned i = 0 ; i < ids.size() ; ++i)
-        {
-          for (unsigned j = 0 ; j <= i ; ++j)
-          {
-            if (ids_found1[i] || ids_found1[j])
-            {
-              seq_scores[i][j] += 1.0;
-            }
-          }
-        }
-
-        // bias correction
-        // for (unsigned i = 0 ; i < ids.size() ; ++i)
-        // {
-        //   for (unsigned j = 0 ; j <= i ; ++j)
-        //   {
-        //     if (i == 2171 || j == 2171)
-        //     {
-        //       seq_scores[i][j] -= bars1.size()/100.0;
-        //     }
-        //   }
-        // }
+        continue;
       }
-    }
-    else
-    {
-      for (TBarMap::iterator it = bars1.begin() ; it != bars1.end() ; ++it)
+
+      String<Dna> sequence1 = it->second.seq;
+      String<Dna> sequence2 = bars2[it->first].seq;
+
+      // trimReadEnds(sequence1, it->second.qual, CO.bpQclip);
+      // trimReadEnds(sequence2, bars2[it->first].qual, CO.bpQclip);
+      // if (length(sequence1) < CO.minSeqLen[0] || length(sequence2) < CO.minSeqLen[0])
+      // {
+      //   continue;
+      // }
+      // std::cout << sequence1 << " " << sequence2 << std::endl;
+      boost::dynamic_bitset<> ids_found1 = 
+           align_sequence_kmer(sequence1,
+                               it->second.qual,
+                               ids.size(),
+                               kmer_map,
+                               vertex_vector,
+                               CO.kmer,
+                               CO.min_kmers
+                              );
+
+      if (ids_found1.none())
+        continue;
+
+      boost::dynamic_bitset<> ids_found2 = 
+           align_sequence_kmer(sequence2,
+                               bars2[it->first].qual,
+                               ids.size(),
+                               kmer_map,
+                               vertex_vector,
+                               CO.kmer,
+                               CO.min_kmers
+                              );
+
+      if (ids_found2.none())
+        continue;
+
+      ids_found1 &= ids_found2;
+
+      if (ids_found1.none())
+        continue;
+
+      total_matches += 1.0;
+
+      // if (!ids_found1[2936])
+      // {
+      //   std::cout << sequence1 << "\n" << sequence2 << std::endl;
+      // }
+      
+      // Full reference alleles
+      for (unsigned i = 0 ; i < ids.size() ; ++i)
       {
-        if (bars2.count(it->first) == 0)
+        for (unsigned j = 0 ; j <= i ; ++j)
         {
-          continue;
-        }
-
-        String<Dna> sequence1 = it->second.seq;
-        String<Dna> sequence2 = bars2[it->first].seq;
-
-        boost::dynamic_bitset<> minimal_bitset1(ids.size());
-        minimal_bitset1.flip();
-
-        unsigned pos = find_best_kmer(it->second.qual, CO.kmer);
-        String<Dna> cropped_seq1(sequence1);
-        erase(cropped_seq1, 0, pos);
-        resize(cropped_seq1, CO.kmer);
-
-        if (kmer_map_simple.count(cropped_seq1) == 1)
-        {
-          boost::dynamic_bitset<> bitset = kmer_map_simple[cropped_seq1];
-
-          for (unsigned i = 0 ; i < ids.size() ; ++i)
+          if (ids_found1[i] || ids_found1[j])
           {
-            for (unsigned j = 0 ; j <= i ; ++j)
-            {
-              if (bitset[i] || bitset[j])
-              {
-                seq_scores[i][j] += 1.0;
-              }
-            }
+            seq_scores[i][j] += 1.0;
           }
-
-          total_matches += 1.0;
-        }
-
-        pos = find_best_kmer(bars2[it->first].qual, CO.kmer);
-        String<Dna> cropped_seq2(sequence2);
-        erase(cropped_seq2, 0, pos);
-        resize(cropped_seq2, CO.kmer);
-
-        if (kmer_map_simple.count(cropped_seq2) == 1)
-        {
-          boost::dynamic_bitset<> bitset = kmer_map_simple[cropped_seq2];
-
-          for (unsigned i = 0 ; i < ids.size() ; ++i)
-          {
-            for (unsigned j = 0 ; j <= i ; ++j)
-            {
-              if (bitset[i] || bitset[j])
-              {
-                seq_scores[i][j] += 1.0;
-              }
-            }
-          }
-
-          total_matches += 1.0;
         }
       }
     }
+
+    total_alignment_time += double(clock()-alignment_cpu_time) / CLOCKS_PER_SEC;
 
     if (CO.verbose)
     {
@@ -1232,6 +1121,7 @@ int main (int argc, char const ** argv)
     }
   }
 
+  printf("Total alignment cpu time was %6.2f.\n", total_alignment_time);
   printf("[%6.2f] Done.\n", double(clock()-begin) / CLOCKS_PER_SEC);
   return 0;
 }
