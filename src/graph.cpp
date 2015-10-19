@@ -335,6 +335,7 @@ create_exon_2_and_3_graph(callOptions & CO,
 
       const char* alignment_file = tmp_string.c_str();
       free_nodes.insert(begin_vertex);
+      
       if (number_of_exons == 2 || number_of_exons == 3 || number_of_exons == 4)
       {
         if (CO.verbose)
