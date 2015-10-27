@@ -947,10 +947,7 @@ int main (int argc, char const ** argv)
     kmer_map = kmerifyGraph(order, graph, vertex_vector, free_nodes, edge_ids, CO.kmer);
   }
 
-   
-  
   printf("[%6.2f] Graph kmerification done.\n", double(clock()-begin) / CLOCKS_PER_SEC);
-
   std::string pn;
   std::string region = getRegion(CO, toCString(CO.gene));
 
@@ -975,7 +972,7 @@ int main (int argc, char const ** argv)
     // std::cout << "It is a bamlist!" << std::endl;
     std::ifstream bamlist_input(toCString(CO.bamFile));
 
-    for (std::string line; getline( bamlist_input, line);)
+    for (std::string line ; getline( bamlist_input, line) ; )
     {
       bamlist.push_back(line);
     }

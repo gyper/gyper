@@ -7,7 +7,7 @@ message("Compiling testing suite")
 file(GLOB gyper_TEST_FILES *.cpp)
 
 add_executable(test_gyper ${gyper_TEST_FILES})
-target_link_libraries(test_gyper gyper_core pthread ${ZLIB_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(test_gyper gyper_core gyper_oo_core pthread ${ZLIB_LIBRARIES} ${Boost_LIBRARIES})
 
 add_test(NAME RunTests COMMAND test_gyper)
 
