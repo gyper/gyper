@@ -554,3 +554,152 @@ TEST_CASE("find_best_kmer should find the kmer with the best quality")
     REQUIRE(4 == find_best_kmer(qual, k));
   }
 }
+
+// Forces no optimization for this test case
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+TEST_CASE("Dna strings should be able to have unique hash_values")
+{
+  SECTION ("Simple case")
+  {
+    String<Dna> simple_dna_string = "ACCCTTAGGA"; // It has length 10
+    REQUIRE(hash_value(simple_dna_string) != 0);
+  }
+
+  SECTION ("Different k-mers should have different hashes")
+  {
+    String<Dna> dna_string_1 = "ACCCTTAGGA";
+    String<Dna> dna_string_2 = "ACCCTTAGGT";
+    REQUIRE(hash_value(dna_string_1) != hash_value(dna_string_2));
+  }
+
+  SECTION ("Long k-mers should be supported to up to 32 bases")
+  {
+    String<Dna> dna_string_of_length_32_1 = "AAAAACCCCCTTTTTGGGGGAAAAACCCCCTT"; // It has length 32
+    String<Dna> dna_string_of_length_32_2 = "AAAAACCCCCTTTTTGGGGGAAAAACCCCCTA"; // This one too
+    REQUIRE(hash_value(dna_string_of_length_32_1) != hash_value(dna_string_of_length_32_2));
+  }
+
+  SECTION ("After 32 bases, hash values still work")
+  {
+    String<Dna> dna_string_of_length_40_1 = "AAAAACCCCCTTTTTGGGGGAAAAACCCCCTTTTTGGGGG"; // It has length 40
+    String<Dna> dna_string_of_length_40_2 = "AAAAACCCCCTTTTTGGGGGAAAAACCCCCTTTTTGGGGA"; // This one too
+    REQUIRE(hash_value(dna_string_of_length_40_1) != 0);
+    REQUIRE(hash_value(dna_string_of_length_40_2) != 0);
+  }
+
+  SECTION ("Speed testing with a string of 32")
+  {
+    String<Dna> dna_string_of_length_32 = "AAAAACCCCCTTTTTGGGGGAAAAACCCCCTT";
+    unsigned number_of_times = 500000000;
+
+    for (unsigned i = 0 ; i < number_of_times / 100 ; ++i)
+    {
+      hash_value(dna_string_of_length_32);
+    }
+
+    SECTION ("Default")
+    {
+      clock_t begin = clock();
+
+      for (unsigned i = 0 ; i < number_of_times ; ++i)
+      {
+        hash_value(dna_string_of_length_32);
+      }
+
+      printf("[%6.2f] Default.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+    }
+
+    SECTION ("Optional 1")
+    {
+      clock_t begin = clock();
+
+      for (unsigned i = 0 ; i < number_of_times ; ++i)
+      {
+        hash_value_optional1(dna_string_of_length_32);
+      }
+
+      printf("[%6.2f] Optional 1.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+    }
+
+    SECTION ("Optional 2")
+    {
+      clock_t begin = clock();
+
+      for (unsigned i = 0 ; i < number_of_times ; ++i)
+      {
+        hash_value_optional2(dna_string_of_length_32);
+      }
+
+      printf("[%6.2f] Optional 2.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+    }
+
+    SECTION ("Optional 3")
+    {
+      clock_t begin = clock();
+
+      for (unsigned i = 0 ; i < number_of_times ; ++i)
+      {
+        hash_value_optional3(dna_string_of_length_32);
+      }
+
+      printf("[%6.2f] Optional 3.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+    }
+  }
+
+  SECTION ("Speed testing with a string of 80")
+  {
+    String<Dna> dna_string_of_length_80 = "AAAAACCCCCTTTTTGGGGGAAAAACCCCCTTTTTGGGGGAAAAACCCCCTTTTTGGGGGAAAAACCCCCTTTTTGGGGG";
+    unsigned number_of_times = 500000000;
+
+    SECTION ("Default")
+    {
+      clock_t begin = clock();
+
+      for (unsigned i = 0 ; i < number_of_times ; ++i)
+      {
+        hash_value(dna_string_of_length_80);
+      }
+
+      printf("[%6.2f] Default.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+    }
+
+    SECTION ("Optional 1")
+    {
+      clock_t begin = clock();
+
+      for (unsigned i = 0 ; i < number_of_times ; ++i)
+      {
+        hash_value_optional1(dna_string_of_length_80);
+      }
+
+      printf("[%6.2f] Optional 1.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+    }
+
+    SECTION ("Optional 2")
+    {
+      clock_t begin = clock();
+
+      for (unsigned i = 0 ; i < number_of_times ; ++i)
+      {
+        hash_value_optional2(dna_string_of_length_80);
+      }
+
+      printf("[%6.2f] Optional 2.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+    }
+
+    SECTION ("Optional 3")
+    {
+      clock_t begin = clock();
+
+      for (unsigned i = 0 ; i < number_of_times ; ++i)
+      {
+        hash_value_optional3(dna_string_of_length_80);
+      }
+
+      printf("[%6.2f] Optional 3.\n", double(clock()-begin) / CLOCKS_PER_SEC);
+    }
+  }
+}
+#pragma GCC pop_options
+

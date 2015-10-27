@@ -28,27 +28,76 @@ using namespace seqan;
 
 namespace seqan
 {
-
-inline
-std::size_t hash_value(String<Dna> const& s)
-{
-  std::size_t hash_val = 0;
-
-  for (Iterator<String<Dna> const>::Type it = begin(s) ; it != end(s) ; ++it)
+  inline
+  std::size_t hash_value(String<Dna> const& s)
   {
-    hash_val = hash_val * 4 + ordValue(*it);
+    std::size_t hash_val = 0;
 
+    for (unsigned i = 0 ; i < length(s) ; ++i)
+    {
+      hash_val *= 4;
+      hash_val += ordValue(s[i]);
+
+      if (i == 32)
+        return hash_val;
+    }
+
+    return hash_val;
   }
 
-  return hash_val;
-}
+  inline
+  std::size_t hash_value_optional1(String<Dna> const& s)
+  {
+    std::size_t hash_val = 0;
 
-inline
-std::size_t hash_value(String<char> const & s)
-{
-  return boost::hash_range(begin(s), end(s));
-}
+    for (unsigned i = 0 ; i < length(s) ; ++i)
+    {
+      hash_val = hash_val * 4 + ordValue(s[i]);
 
+      if (i == 32)
+        return hash_val;
+    }
+
+    return hash_val;
+  }
+
+  inline
+  std::size_t hash_value_optional2(String<Dna> const& s)
+  {
+    std::size_t hash_val = 0;
+
+    for (Iterator<String<Dna> const>::Type it = begin(s) ; it != end(s) ; ++it)
+    {
+      hash_val = hash_val * 4 + ordValue(*it);
+    }
+
+    return hash_val;
+  }
+
+  inline
+  std::size_t hash_value_optional3(String<Dna> const& s)
+  {
+    std::size_t hash_val = 0;
+    unsigned i = 0;
+
+    for (Iterator<String<Dna> const>::Type it = begin(s) ; it != end(s) ; ++it, ++i)
+    {
+      hash_val = hash_val * 4 + ordValue(*it);
+
+      if (i == 32)
+      {
+        break;
+      }
+    }
+
+    return hash_val;
+  }
+
+  inline
+  std::size_t hash_value(String<char> const & s)
+  {
+    return boost::hash_range(begin(s), end(s));
+  }
 }
 
 
