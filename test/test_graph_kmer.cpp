@@ -591,7 +591,7 @@ TEST_CASE("Dna strings should be able to have unique hash_values")
   SECTION ("Speed testing with a string of 32")
   {
     String<Dna> dna_string_of_length_32 = "AAAAACCCCCTTTTTGGGGGAAAAACCCCCTT";
-    unsigned number_of_times = 500000000;
+    unsigned number_of_times = 100000000;
 
     for (unsigned i = 0 ; i < number_of_times / 100 ; ++i)
     {
@@ -650,7 +650,7 @@ TEST_CASE("Dna strings should be able to have unique hash_values")
   SECTION ("Speed testing with a string of 80")
   {
     String<Dna> dna_string_of_length_80 = "AAAAACCCCCTTTTTGGGGGAAAAACCCCCTTTTTGGGGGAAAAACCCCCTTTTTGGGGGAAAAACCCCCTTTTTGGGGG";
-    unsigned number_of_times = 500000000;
+    unsigned number_of_times = 100000000;
 
     SECTION ("Default")
     {
