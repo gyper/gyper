@@ -8,6 +8,7 @@
 #include "graph_io.hpp"
 #include "graph_kmerify.hpp"
 #include "graph.hpp"
+// #include "partial_order_graph.hpp"
 #include "constants.hpp"
 
 #include <seqan/arg_parse.h>
@@ -922,6 +923,7 @@ int main (int argc, char const ** argv)
   free_nodes.insert(0);
   TGraph graph;
   std::string gene(toCString(CO.gene));
+  // POGraph graph_oo;
 
   if (CO.exon_2_and_3)
   {

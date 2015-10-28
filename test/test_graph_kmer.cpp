@@ -708,10 +708,3 @@ TEST_CASE("Dna strings should be able to have unique hash_values")
   }
 }
 #pragma GCC pop_options
-
-TEST_CASE("Object Graph test")
-{
-  POGraph graph;
-  graph.set_values (3,4);
-  std::cout << "area: " << graph.area() << std::endl;
-}
