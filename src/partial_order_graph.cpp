@@ -8,14 +8,15 @@
 Gyper::Gyper ()
 {
 	TGraph graph;
-  Gyper::create_HLA_graph(CO);
+  Gyper::create_HLA_graph();
 }
 
 Gyper::Gyper (callOptions & CO)
 {
   // Constructor with specific callOptions
+  TGraph graph;
   Gyper::Gyper::CO = CO;
-  Gyper();
+  Gyper::create_HLA_graph();
 }
 
 void

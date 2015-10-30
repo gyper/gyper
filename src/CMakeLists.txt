@@ -31,7 +31,3 @@ target_link_libraries(gyper ${LIBS})
 
 # Installs gyper to /usr/local/bin using [sudo] make install
 install (TARGETS gyper DESTINATION bin)
-
-
-
-
