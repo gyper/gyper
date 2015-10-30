@@ -1,22 +1,14 @@
 #include "partial_order_graph.hpp"
 
-/*
- Constructors
-*/
-
-// Post conditions: Empty partial order graph
 Gyper::Gyper ()
 {
-	TGraph graph;
-  Gyper::create_HLA_graph();
+	TGraph graph();
 }
 
 Gyper::Gyper (callOptions & CO)
 {
-  // Constructor with specific callOptions
-  TGraph graph;
+  TGraph graph();
   Gyper::Gyper::CO = CO;
-  Gyper::create_HLA_graph();
 }
 
 void
@@ -42,7 +34,6 @@ Gyper::create_HLA_graph()
   }
   
   TVertexDescriptor new_begin_vertex;
-
   std::string tmp_string;
   std::string extension = ".fa";
 
@@ -153,15 +144,3 @@ Gyper::create_HLA_graph()
 
   topologicalSort(order, graph);
 }
-
-void Gyper::set_values (int x, int y)
-{
-  width = x;
-  height = y;
-}
-
-int Gyper::area ()
-{
-  return Gyper::width*Gyper::height;
-}
-
