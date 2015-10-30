@@ -20,6 +20,7 @@ target_link_libraries(gyper gyper_core pthread ${ZLIB_LIBRARIES} ${Boost_LIBRARI
 # Objectify Gyper
 set(gyper_oo_SOURCE_FILES
    partial_order_graph.cpp
+   gyper_options.cpp
 )
 
 add_library(gyper_oo_core ${gyper_oo_SOURCE_FILES} )

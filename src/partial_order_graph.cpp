@@ -5,21 +5,21 @@
 */
 
 // Post conditions: Empty partial order graph
-POGraph::POGraph ()
+Gyper::Gyper ()
 {
 	TGraph graph;
-  POGraph::create_HLA_exon_2_and_3_graph(CO);
+  Gyper::create_HLA_graph(CO);
 }
 
-POGraph::POGraph (callOptions & CO)
+Gyper::Gyper (callOptions & CO)
 {
   // Constructor with specific callOptions
-  POGraph::POGraph::CO = CO;
-  POGraph();
+  Gyper::Gyper::CO = CO;
+  Gyper();
 }
 
 void
-POGraph::create_HLA_exon_2_and_3_graph(callOptions & CO)
+Gyper::create_HLA_graph()
 {
   int number_of_exons = CO.number_of_exons;
 
@@ -110,7 +110,7 @@ POGraph::create_HLA_exon_2_and_3_graph(callOptions & CO)
       const char* alignment_file = tmp_string.c_str();
       free_nodes.insert(begin_vertex);
       
-      if (number_of_exons == 2 || number_of_exons == 3 || number_of_exons == 4)
+      if (CO.exon_2_and_3 && (number_of_exons == 2 || number_of_exons == 3 || number_of_exons == 4))
       {
         if (CO.verbose)
         {
@@ -153,14 +153,14 @@ POGraph::create_HLA_exon_2_and_3_graph(callOptions & CO)
   topologicalSort(order, graph);
 }
 
-void POGraph::set_values (int x, int y)
+void Gyper::set_values (int x, int y)
 {
   width = x;
   height = y;
 }
 
-int POGraph::area ()
+int Gyper::area ()
 {
-  return POGraph::width*POGraph::height;
+  return Gyper::width*Gyper::height;
 }
 

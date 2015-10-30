@@ -6,11 +6,21 @@
 #include "catch.hpp"
 #include "constants.hpp"
 
-TEST_CASE("POGraph object should have a constructor")
+TEST_CASE("Gyper object should have a working constructor")
 {
-  callOptions CO = callOptions(); // Default call options
+  SECTION("Gyper object should have a default constructor ")
+  {
+    Gyper gyper = Gyper();
+    REQUIRE(numEdges(gyper.graph) > 0);
+    REQUIRE(gyper.CO.gene == "DQA1");
+  }
 
-
-  POGraph test_pog = POGraph();
-  REQUIRE(numEdges(test_pog.graph) > 0);
+  SECTION("Gyper object should have constructor which takes argument options as input")
+  {
+    callOptions CO = callOptions(); // Default call options
+    CO.gene = "DQB1";
+    Gyper gyper = Gyper(CO);
+    REQUIRE(numEdges(gyper.graph) > 0);
+    REQUIRE(gyper.CO.gene == "DQB1");
+  }
 }
