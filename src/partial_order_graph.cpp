@@ -17,132 +17,37 @@ Gyper::create_HLA_graph()
 {
   unsigned number_of_exons = get_number_of_exons();
 
-  std::stringstream base_path;
-  base_path << gyper_SOURCE_DIRECTORY << "/data/haplotypes/hla/references/" << CO.gene << "/";
-  TVertexDescriptor begin_vertex;
-
-  {
-    std::string p3_string = base_path.str();
-    p3_string.append("p3.fa");
-
-    if (CO.verbose)
-    {
-      std::cout << "Adding utr    " << p3_string << std::endl;
-    }
-
-    const char* alignment_file_p3 = p3_string.c_str();
-    graph = createGraph(alignment_file_p3, vertex_vector, ids, begin_vertex);
-  }
-  
-  TVertexDescriptor new_begin_vertex;
-  std::string tmp_string;
-  std::string extension = ".fa";
+  // Add p3 region
+  add_FASTA_region(false, 0, false, true, false);
 
   // First exon
   {
-    tmp_string = base_path.str();
-    std::string exon = "e";
-    std::string feature_number = std::to_string(number_of_exons);
-    exon.append(feature_number);
-    exon.append(extension);
-    tmp_string.append(exon);
-
-    // if (CO.verbose)
-    // {
-    //   std::cout << "Adding exon   " << tmp_string << std::endl;
-    // }
-
-    const char* alignment_file = tmp_string.c_str();
-    free_nodes.insert(begin_vertex);
-
-    if (CO.verbose)
-    {
-      std::cout << "Adding exon   " << tmp_string << " as intron" << std::endl;
-    }
-
-    extendGraph(graph, alignment_file, vertex_vector, new_begin_vertex, begin_vertex);
-
+    add_FASTA_region(true, number_of_exons, false, false, false);
     --number_of_exons;
   }
 
   while (number_of_exons >= 1)
   {
     // Intron
-    {
-      tmp_string = base_path.str();
-      std::string intron = "i";
-      std::string feature_number = std::to_string(number_of_exons);
-      intron.append(feature_number);
-      intron.append(extension);
-      tmp_string.append(intron);
-
-      if (CO.verbose)
-      {
-        std::cout << "Adding intron " << tmp_string << std::endl;
-      }
-
-      const char* alignment_file = tmp_string.c_str();
-      free_nodes.insert(begin_vertex);
-      extendGraph(graph, alignment_file, vertex_vector, new_begin_vertex, begin_vertex);
-    }
+    add_FASTA_region(false, number_of_exons, true, false, false);
 
     // Exon
+    if (CO.exon_2_and_3 && (number_of_exons != 2 && number_of_exons != 3 && number_of_exons != 4))
     {
-      tmp_string = base_path.str();
-      std::string exon = "e";
-      std::string feature_number = std::to_string(number_of_exons);
-      exon.append(feature_number);
-      exon.append(extension);
-      tmp_string.append(exon);
-
-      // if (CO.verbose)
-      // {
-      //   std::cout << "Adding exon   " << tmp_string << std::endl;
-      // }
-
-      const char* alignment_file = tmp_string.c_str();
-      free_nodes.insert(begin_vertex);
-      
-      if (CO.exon_2_and_3 && (number_of_exons == 2 || number_of_exons == 3 || number_of_exons == 4))
-      {
-        if (CO.verbose)
-        {
-          std::cout << "Adding exon   " << tmp_string << std::endl;
-        }
-
-        extendGraph(graph, alignment_file, vertex_vector, edge_ids, new_begin_vertex, begin_vertex);
-      }
-      else
-      {
-        if (CO.verbose)
-        {
-          std::cout << "Adding exon   " << tmp_string << " as intron" << std::endl;
-        }
-
-        extendGraph(graph, alignment_file, vertex_vector, new_begin_vertex, begin_vertex);
-      }
+      add_FASTA_region(false, number_of_exons, false, false, false);
+    }
+    else
+    {
+      add_FASTA_region(true, number_of_exons, false, false, false);
     }
 
     --number_of_exons;
   }
 
-  {
-    // Final UTR
-    tmp_string = base_path.str();
-    std::string utr = "5p";
-    utr.append(extension);
-    tmp_string.append(utr);
+  // Final UTR
+  add_FASTA_region(false, 0, false, false, true);
 
-    if (CO.verbose)
-    {
-      std::cout << "Adding utr    " << tmp_string << std::endl;
-    }
-
-    const char* alignment_file = tmp_string.c_str();
-    free_nodes.insert(begin_vertex);
-    extendGraph(graph, alignment_file, vertex_vector, new_begin_vertex, begin_vertex);
-  }
-
+  // Finally, sort the nodes in topological order
   topologicalSort(order, graph);
 }
 
@@ -188,4 +93,75 @@ Gyper::get_number_of_exons()
   }
   std::cerr << "Unsupported HLA gene: " << CO.gene << std::endl;
   return 0;
+}
+
+std::string
+Gyper::get_HLA_base_path()
+{
+  std::stringstream base_path;
+  base_path << gyper_SOURCE_DIRECTORY << "/data/haplotypes/hla/references/" << CO.gene << "/";
+  return base_path.str();
+}
+
+void
+Gyper::add_FASTA_region(bool add_bitstrings, int feature_number, bool intron_region, bool p3_region, bool p5_region)
+{
+  std::string base_path = get_HLA_base_path();
+
+  if (p3_region)
+  {
+    base_path.append("p3.fa");
+
+    if (CO.verbose)
+    {
+      std::cout << "Adding utr    " << base_path << std::endl;
+    }
+
+    graph = createGraph(base_path.c_str(), vertex_vector, ids, begin_vertex);
+    return;
+  }
+  else if (p5_region)
+  {
+    std::string utr = "5p";
+    utr.append(".fa");
+    base_path.append(utr);
+
+    if (CO.verbose)
+    {
+      std::cout << "Adding utr    " << base_path << std::endl;
+    }
+  }
+  else if (intron_region)
+  {
+    std::string intron = "i";
+    std::string feature_number_str = std::to_string(feature_number);
+    intron.append(feature_number_str);
+    intron.append(".fa");
+    base_path.append(intron);
+
+    if (CO.verbose)
+    {
+      std::cout << "Adding intron " << base_path << std::endl;
+    }
+  }
+  else
+  {
+    // Exon region
+    std::string exon = "e";
+    std::string feature_number_str = std::to_string(feature_number);
+    exon.append(feature_number_str);
+    exon.append(".fa");
+    base_path.append(exon);
+  }
+
+  free_nodes.insert(begin_vertex);
+
+  if (add_bitstrings)
+  {
+    extendGraph(graph, base_path.c_str(), vertex_vector, edge_ids, new_begin_vertex, begin_vertex);
+  }
+  else
+  {
+    extendGraph(graph, base_path.c_str(), vertex_vector, new_begin_vertex, begin_vertex);
+  }
 }

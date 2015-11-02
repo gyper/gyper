@@ -482,43 +482,6 @@ qualToInt( char c )
 
 
 void
-trimReadEnds (DnaString & seq,
-              CharString & qual,
-              int const & bpQclip
-             )
-{
-  using namespace seqan;
-
-  int beg, end;
-
-  for (beg = 0; (beg < (int) length(seq)) && (qualToInt(qual[beg]) < bpQclip); ++beg);
-  for (end = (int) length(seq) - 1; (end > 0) && (qualToInt(qual[end]) < bpQclip); --end);
-  
-  if (beg > end)
-  {
-    seq = "";
-    qual = "";
-  }
-  else
-  {
-    seq = infix(seq, beg, end+1);
-    qual = infix(qual, beg, end+1);
-  }
-
-  // boost::dynamic_bitset<> quality_bitset(length(seq));
-
-  // for (unsigned pos = 0 ; pos < length(seq) ; ++pos)
-  // {
-  //   if (qualToInt(qual[pos]) < bpQskip)
-  //   {
-  //     quality_bitset[pos] = 1;
-  //   }
-  // }
-  // return quality_bitset;
-}
-
-
-void
 appendToFile (std::stringstream& ss, CharString &fileName)
 {  
   using namespace std;
@@ -546,17 +509,7 @@ std::string
 fourDigit(std::string my_id)
 {
   size_t n = std::count(my_id.begin(), my_id.end(), ':');
-
   unsigned colons;
-  // if (CO.gene == "HLAB" || CO.gene == "HLAC")
-  // {
-  //   // Only 2 digit resolution for HLAB and HLAC
-  //   colons = 0;
-  // }
-  // else
-  // {
-  //   colons = 1;
-  // }
   colons = 1;
 
   if (n > colons)
@@ -642,24 +595,6 @@ handleOutput (callOptions & CO,
     }
   }
 
-  // if (ids_four.size() == 0)
-  // {
-  //   no_available_alleles = true;
-  //   ids_four = ids;
-    
-  //   for (unsigned i = 0; i < ids.size(); ++i)
-  //   {
-  //     std::string my_id = ids[i];
-
-  //     if (!four.count(my_id))
-  //     {
-  //       four[my_id] = j;
-  //       ids_four.push_back(my_id);
-  //       ++j;
-  //     }
-  //   }
-  // }
-
   std::vector<std::vector<double> > seq_scores_four;
   boost::unordered_map<std::pair<unsigned, unsigned>, std::pair<unsigned, unsigned> > index_map;
 
@@ -717,16 +652,8 @@ handleOutput (callOptions & CO,
       unsigned i_four;
       unsigned j_four;
 
-      // if (no_available_alleles)
-      // {
-      //   i_four = i;
-      //   j_four = j;
-      // }
-      // else
-      // {
-        i_four = four[fourDigit(ids[i])];
-        j_four = four[fourDigit(ids[j])];
-      // }
+      i_four = four[fourDigit(ids[i])];
+      j_four = four[fourDigit(ids[j])];
 
       if (seq_scores[i][j] > seq_scores_four[i_four][j_four])
       {
@@ -1041,13 +968,6 @@ int main (int argc, char const ** argv)
       String<Dna> sequence1 = it->second.seq;
       String<Dna> sequence2 = bars2[it->first].seq;
 
-      // trimReadEnds(sequence1, it->second.qual, CO.bpQclip);
-      // trimReadEnds(sequence2, bars2[it->first].qual, CO.bpQclip);
-      // if (length(sequence1) < CO.minSeqLen[0] || length(sequence2) < CO.minSeqLen[0])
-      // {
-      //   continue;
-      // }
-      // std::cout << sequence1 << " " << sequence2 << std::endl;
       boost::dynamic_bitset<> ids_found1 = 
            align_sequence_kmer(sequence1,
                                it->second.qual,

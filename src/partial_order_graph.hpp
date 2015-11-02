@@ -26,6 +26,8 @@ class Gyper
   /** @brief The topological order of all nodes (vertexes). */
   String<TVertexDescriptor> order;
 
+  TVertexDescriptor begin_vertex;
+  TVertexDescriptor new_begin_vertex;
 
  public:
   /**
@@ -72,6 +74,12 @@ class Gyper
    * @return The number of exons this HLA gene has.
    */
   unsigned get_number_of_exons();
+
+  std::string get_HLA_base_path();
+
+  void add_HLA_intron();
+
+  void add_FASTA_region(bool add_bitstrings, int feature_number = 0, bool intron_region = false, bool p3_region = false, bool p5_region = false);
 };
 
 
