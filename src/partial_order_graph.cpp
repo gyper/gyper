@@ -1,27 +1,5 @@
 #include "partial_order_graph.hpp"
 
-unsigned get_number_of_exons(seqan::String<char> gene)
-{
-  // Set the number of exons
-  if (gene == "HLAA" || gene == "HLAC")
-  {
-    return 8;
-  }
-  else if (gene == "HLAB")
-  {
-    return 7;
-  }
-  else if (gene == "DQA1")
-  {
-    return 4;
-  }
-  else if (gene == "DQB1" || gene == "DRB1")
-  {
-    return 6;
-  }
-  std::cerr << "Unsupported HLA gene: " << gene << std::endl;
-  return 0;
-}
 
 Gyper::Gyper ()
 {
@@ -37,7 +15,7 @@ Gyper::Gyper (Options & CO)
 void
 Gyper::create_HLA_graph()
 {
-  unsigned number_of_exons = get_number_of_exons(CO.gene);
+  unsigned number_of_exons = get_number_of_exons();
 
   std::stringstream base_path;
   base_path << gyper_SOURCE_DIRECTORY << "/data/haplotypes/hla/references/" << CO.gene << "/";
@@ -186,4 +164,28 @@ Gyper::index()
   // }
 
   // return kmer_map;
+}
+
+unsigned
+Gyper::get_number_of_exons()
+{
+  // Set the number of exons
+  if (CO.gene == "HLAA" || CO.gene == "HLAC")
+  {
+    return 8;
+  }
+  else if (CO.gene == "HLAB")
+  {
+    return 7;
+  }
+  else if (CO.gene == "DQA1")
+  {
+    return 4;
+  }
+  else if (CO.gene == "DQB1" || CO.gene == "DRB1")
+  {
+    return 6;
+  }
+  std::cerr << "Unsupported HLA gene: " << CO.gene << std::endl;
+  return 0;
 }

@@ -2,6 +2,7 @@
 #define __GYPER_OPTIONS_HPP__
 
 #include <seqan/basic.h>
+#include <seqan/sequence.h>
 #include <seqan/arg_parse.h>
 
 class Options

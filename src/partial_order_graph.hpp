@@ -1,3 +1,5 @@
+#ifndef __GYPER_HPP__
+#define __GYPER_HPP__
 #include "graph.hpp"
 #include "gyper_options.hpp"
 
@@ -24,12 +26,6 @@ class Gyper
   /** @brief The topological order of all nodes (vertexes). */
   String<TVertexDescriptor> order;
 
-  /**
-   * @brief Get the number of exons for the selected gene.
-   * @details [long description]
-   * @return The number of exons this HLA gene has.
-   */
-  unsigned get_number_of_exons();
 
  public:
   /**
@@ -67,4 +63,17 @@ class Gyper
 
   /** @brief The argument options */
   Options CO;
+
+
+ private:
+  /**
+   * @brief Get the number of exons for the selected gene.
+   * @details [long description]
+   * @return The number of exons this HLA gene has.
+   */
+  unsigned get_number_of_exons();
 };
+
+
+
+#endif
