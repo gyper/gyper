@@ -13,6 +13,12 @@ Gyper::Gyper (Options & CO)
 }
 
 void
+Gyper::create_reference_graph(seqan::String<char> reference_fasta_file_name)
+{
+  return;
+}
+
+void
 Gyper::create_HLA_graph()
 {
   unsigned number_of_exons = get_number_of_exons();

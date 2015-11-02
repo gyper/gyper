@@ -45,6 +45,9 @@ include_directories(${SEQAN_INCLUDE_PATH})
 set(EXECUTABLE_OUTPUT_PATH ../bin)
 add_subdirectory(src)
 
+# Add fastahack
+add_subdirectory(fastahack)
+
 # Testing
 set(EXT_PROJECTS_DIR ${PROJECT_SOURCE_DIR}/test)
 include_directories(${EXT_PROJECTS_DIR})
@@ -63,3 +66,4 @@ add_custom_target(doc
   COMMENT "Generating API documentation with Doxygen" VERBATIM
 )
 endif(DOXYGEN_FOUND)
+

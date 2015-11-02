@@ -1,0 +1,3 @@
+[submodule "fastahack"]
+	path = fastahack
+	url = https://github.com/hannespetur/fastahack

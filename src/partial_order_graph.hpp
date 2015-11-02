@@ -48,6 +48,8 @@ class Gyper
    */
   Gyper (Options & CO);
 
+  void create_reference_graph(seqan::String<char> reference_fasta_file_name);
+
   /**
    * @brief Creates a single HLA graph.
    * @details Creates an partial order graph which represents a HLA gene specified by the call option.
@@ -81,7 +83,5 @@ class Gyper
 
   void add_FASTA_region(bool add_bitstrings, int feature_number = 0, bool intron_region = false, bool p3_region = false, bool p5_region = false);
 };
-
-
 
 #endif
