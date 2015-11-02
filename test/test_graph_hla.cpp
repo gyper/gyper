@@ -21,7 +21,7 @@ TEST_CASE("Gyper object should have a working constructor")
 
   SECTION("Gyper object should have constructor which takes argument options as input")
   {
-    callOptions CO = callOptions();
+    Options CO = Options();
     CO.gene = "DQB1";
     Gyper gyper = Gyper(CO);
     REQUIRE(numEdges(gyper.graph) == 0);

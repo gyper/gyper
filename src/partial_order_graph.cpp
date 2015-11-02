@@ -1,11 +1,34 @@
 #include "partial_order_graph.hpp"
 
+unsigned get_number_of_exons(seqan::String<char> gene)
+{
+  // Set the number of exons
+  if (gene == "HLAA" || gene == "HLAC")
+  {
+    return 8;
+  }
+  else if (gene == "HLAB")
+  {
+    return 7;
+  }
+  else if (gene == "DQA1")
+  {
+    return 4;
+  }
+  else if (gene == "DQB1" || gene == "DRB1")
+  {
+    return 6;
+  }
+  std::cerr << "Unsupported HLA gene: " << gene << std::endl;
+  return 0;
+}
+
 Gyper::Gyper ()
 {
 	TGraph graph();
 }
 
-Gyper::Gyper (callOptions & CO)
+Gyper::Gyper (Options & CO)
 {
   TGraph graph();
   Gyper::Gyper::CO = CO;
@@ -14,7 +37,7 @@ Gyper::Gyper (callOptions & CO)
 void
 Gyper::create_HLA_graph()
 {
-  int number_of_exons = CO.number_of_exons;
+  unsigned number_of_exons = get_number_of_exons(CO.gene);
 
   std::stringstream base_path;
   base_path << gyper_SOURCE_DIRECTORY << "/data/haplotypes/hla/references/" << CO.gene << "/";
@@ -143,4 +166,24 @@ Gyper::create_HLA_graph()
   }
 
   topologicalSort(order, graph);
+}
+
+void
+Gyper::index()
+{
+  TKmerMap kmer_map;
+
+  // for (Iterator<String<TVertexDescriptor const> const>::Type it = begin(order) ; it != end(order) ; ++it)
+  // {
+  //   TVertexDescriptor const & source_vertex = *it;
+
+  //   if (free_nodes.count(source_vertex) == 0)
+  //   {
+  //     boost::dynamic_bitset<> id_bits(edge_ids.begin()->second.size());
+  //     id_bits.flip();
+  //     checkKmers(vertex_vector[source_vertex].dna, source_vertex, source_vertex, graph, vertex_vector, free_nodes, edge_ids, id_bits, kmer_map, static_cast<std::size_t>(CO.k));
+  //   }
+  // }
+
+  // return kmer_map;
 }

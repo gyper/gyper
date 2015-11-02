@@ -1,5 +1,5 @@
-#ifndef GYPER_OPTIONS_HPP
-#define GYPER_OPTIONS_HPP
+#ifndef __GYPER_OPTIONS_HPP__
+#define __GYPER_OPTIONS_HPP__
 
 #include <seqan/basic.h>
 #include <seqan/arg_parse.h>

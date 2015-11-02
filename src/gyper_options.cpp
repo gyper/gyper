@@ -37,8 +37,8 @@ seqan::ArgumentParser::ParseResult parse_command_line_options(Options & CO, seqa
   getOptionValue(CO.read_gap, parser, "read_gap");
 
   // First parameter is the gene to genotype, second is a bam file (or a file containing a list of bam files)
-  getArgumentValue( CO.gene, parser, 0);
-  getArgumentValue( CO.alignment_file, parser, 1);
+  getArgumentValue(CO.gene, parser, 0);
+  getArgumentValue(CO.alignment_file, parser, 1);
   CO.verbose = isSet(parser, "verbose");
   CO.exon_2_and_3 = isSet(parser, "exon_2_and_3");
   CO.vcf = isSet(parser, "vcf");
@@ -73,32 +73,6 @@ seqan::ArgumentParser::ParseResult parse_command_line_options(Options & CO, seqa
   {
     CO.print_options();
   }
-
-  // Set the number of exons
-  // if (CO.gene == "HLAA")
-  // {
-  //   CO.number_of_exons = 8;
-  // }
-  // else if (CO.gene == "HLAB")
-  // {
-  //   CO.number_of_exons = 7;
-  // }
-  // else if (CO.gene == "HLAC")
-  // {
-  //   CO.number_of_exons = 8;
-  // }
-  // else if (CO.gene == "DQA1")
-  // {
-  //   CO.number_of_exons = 4;
-  // }
-  // else if (CO.gene == "DQB1")
-  // {
-  //   CO.number_of_exons = 6;
-  // }
-  // else if (CO.gene == "DRB1")
-  // {
-  //   CO.number_of_exons = 6;
-  // }
 
   return ArgumentParser::PARSE_OK;
 }

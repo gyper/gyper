@@ -220,7 +220,8 @@ createGraph (const char* fastaFile,
             )
 {
   TGraph graph;
-  CharString id, sequence;
+  seqan::String<char> id;
+  seqan::String<char> sequence;
   std::map<VertexLabels, TVertexDescriptor> vertex_label_map;
   SeqFileIn seqFileIn(fastaFile);
   SeqFileIn countRecords(fastaFile);

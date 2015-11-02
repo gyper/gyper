@@ -48,7 +48,7 @@ class Gyper
    * @param CO Call options.
    * @return A new Gyper object.
    */
-  Gyper (callOptions & CO);
+  Gyper (Options & CO);
 
   /**
    * @brief Creates a single HLA graph.
@@ -56,9 +56,15 @@ class Gyper
    */
   void create_HLA_graph();
 
+  /**
+   * @brief Indexes the partial order graph
+   * @details [long description]
+   */
+  void index();
+
   /** @brief graph is a SeqAn graph */
   TGraph graph;
 
   /** @brief The argument options */
-  callOptions CO;
+  Options CO;
 };
