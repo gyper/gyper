@@ -101,7 +101,8 @@ namespace seqan
 }
 
 
-struct VertexLabels {
+struct VertexLabels
+{
   int level;
   Dna dna;
 };

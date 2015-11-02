@@ -6,6 +6,7 @@
 #include "catch.hpp"
 #include "constants.hpp"
 
+
 TEST_CASE("Gyper object should have a working constructor")
 {
   SECTION("Gyper object should have a default constructor ")
@@ -30,5 +31,22 @@ TEST_CASE("Gyper object should have a working constructor")
     gyper.create_HLA_graph();
     REQUIRE(numEdges(gyper.graph) > 0);
     REQUIRE(gyper.CO.gene == "DQB1");
+  }
+}
+
+TEST_CASE("Create a graph from a reference FASTA file")
+{
+  SECTION("using all sequences in the FASTA")
+  {
+    Options CO = Options();
+    seqan::String<char> reference_file_name_1 = "/odinn/data/reference/Homo_sapiens-deCODE-hg38/Sequence/BWAIndex/0.7.10/genome.fa";
+    FastaHackAPI reference_fasta = FastaHackAPI(reference_file_name_1);
+    Gyper gyper = Gyper(CO, reference_fasta);
+    std::string region = "chr6";
+    REQUIRE(numEdges(gyper.graph) == 0);
+    gyper.create_reference_graph(region);
+    std::cout << "numEdges(gyper.graph) = " << numEdges(gyper.graph) << std::endl;
+    REQUIRE(numEdges(gyper.graph) > 0);
+    // std::cout << "Graph: " << gyper.graph << std::endl;
   }
 }

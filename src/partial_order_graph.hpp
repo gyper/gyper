@@ -2,6 +2,8 @@
 #define __GYPER_HPP__
 #include "graph.hpp"
 #include "gyper_options.hpp"
+#include "graph_creation.hpp"
+#include "../fastahack/src/FastaHackAPI.hpp"
 
 /**
  * @brief Gyper's main class
@@ -11,6 +13,8 @@
 class Gyper
 {
  private:
+  std::vector<VertexLabel> vertex_labels;
+
   /** @brief Vector of all nodes (vertex) labels. */
   std::vector<VertexLabels> vertex_vector;
 
@@ -27,28 +31,31 @@ class Gyper
   String<TVertexDescriptor> order;
 
   TVertexDescriptor begin_vertex;
+
   TVertexDescriptor new_begin_vertex;
 
- public:
-  /**
-   * @brief Default constructor
-   * @details [long description]
-   * @return [description]
-   * 
-   * @post A Gyper object with a empty partial order graph
-   */
-  Gyper ();
+  std::map<VertexLabel, TVertexDescriptor> vertex_label_map;
 
-  /**
-   * @brief Constructor with specific call options.
-   * @details [long description]
+  FastaHackAPI* reference_fasta_ptr;
+
+ public:
+   /**
+   * @brief Constructor with Gyper object. 
+   * @details Optionally call options can be specified and a reference FASTA file.
    * 
    * @param CO Call options.
+   * @param reference_fasta A reference FASTA file.
    * @return A new Gyper object.
    */
+  Gyper ();
   Gyper (Options & CO);
+  Gyper (Options & CO, FastaHackAPI & reference_fasta);
 
-  void create_reference_graph(seqan::String<char> reference_fasta_file_name);
+  void add_initial_vertex();
+
+  void add_reference_sequence_to_graph(seqan::String<seqan::Dna5> & sequence);
+
+  void create_reference_graph(seqan::String<char> region);
 
   /**
    * @brief Creates a single HLA graph.

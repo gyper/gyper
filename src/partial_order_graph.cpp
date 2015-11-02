@@ -1,6 +1,5 @@
 #include "partial_order_graph.hpp"
 
-
 Gyper::Gyper ()
 {
 	TGraph graph();
@@ -12,9 +11,71 @@ Gyper::Gyper (Options & CO)
   Gyper::Gyper::CO = CO;
 }
 
-void
-Gyper::create_reference_graph(seqan::String<char> reference_fasta_file_name)
+Gyper::Gyper (Options & CO, FastaHackAPI & reference_fasta)
 {
+  TGraph graph();
+  Gyper::Gyper::CO = CO;
+  Gyper::Gyper::reference_fasta_ptr = &reference_fasta;
+  // reference_fasta_ptr->index();
+}
+
+void
+Gyper::add_reference_sequence_to_graph(seqan::String<seqan::Dna5> & sequence)
+{
+  TVertexDescriptor prev_vertex = seqan::addVertex(graph);
+
+  seqan::String<seqan::Dna> initial_dna = "";
+  VertexLabel initial_vertex(0, initial_dna);
+
+  vertex_label_map[initial_vertex] = prev_vertex;
+  vertex_labels.push_back(initial_vertex);
+  
+  bool sequence_started = false;
+  seqan::String<seqan::Dna> current_dna = "";
+  unsigned starting_pos = 0;
+
+  for (unsigned pos = 0; pos < length(sequence); ++pos)
+  {
+    if (sequence[pos] == 'N')
+    {
+      if (sequence_started)
+      {
+        TVertexDescriptor target_vertex = seqan::addVertex(graph);
+        VertexLabel new_vertex_label(starting_pos, current_dna);
+        seqan::addEdge(graph, prev_vertex, target_vertex);
+        vertex_label_map[new_vertex_label] = target_vertex;
+        vertex_labels.push_back(new_vertex_label);
+        std::cout << length(current_dna) << std::endl;
+        current_dna = "";
+        prev_vertex = target_vertex;
+        sequence_started = false;
+      }
+
+      continue;
+    }
+
+    if (!sequence_started)
+    {
+      TVertexDescriptor target_vertex = seqan::addVertex(graph);
+      VertexLabel new_vertex_label(pos, "");
+      seqan::addEdge(graph, prev_vertex, target_vertex);
+      vertex_label_map[new_vertex_label] = target_vertex;
+      vertex_labels.push_back(new_vertex_label);
+      prev_vertex = target_vertex;
+      starting_pos = pos;
+      sequence_started = true;
+    }
+    
+    appendValue(current_dna, sequence[pos]);
+  }
+}
+
+void
+Gyper::create_reference_graph(seqan::String<char> region)
+{
+  // Extract sequence from a region in a FASTA file
+  seqan::String<seqan::Dna5> sequence = reference_fasta_ptr->extract_region(region);
+  add_reference_sequence_to_graph(sequence);
   return;
 }
 
