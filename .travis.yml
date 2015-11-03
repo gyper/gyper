@@ -2,6 +2,9 @@ language: cpp
 
 compiler: gcc
 
+before_install:
+  - git submodule update --init --recursive
+
 install:
   - export CXX=g++-4.8
   - wget https://github.com/Viq111/travis-container-packets/releases/download/boost-1.57.0/boost.tar.bz2 # Get boost
@@ -23,7 +26,6 @@ addons:
       - g++-4.8
       - zlib1g-dev
       - libbz2-dev
-      - libboost-dev
       - libhts-dev
 
 script:
