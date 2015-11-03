@@ -1,9 +1,30 @@
 #ifndef __GYPER_HPP__
 #define __GYPER_HPP__
-#include "graph.hpp"
+// #include "graph.hpp"
 #include "gyper_options.hpp"
+#include "constants.hpp"
 #include "graph_creation.hpp"
 #include "../fastahack/src/FastaHackAPI.hpp"
+
+#include <seqan/graph_types.h>
+#include <seqan/graph_algorithms.h>
+#include <unordered_map>
+#include <boost/unordered/unordered_map.hpp>
+#include <unordered_set>
+#include <boost/dynamic_bitset.hpp>
+
+typedef seqan::Graph<seqan::Directed<void, seqan::WithoutEdgeId> > TGraph;
+typedef seqan::VertexDescriptor<TGraph>::Type TVertexDescriptor;
+typedef seqan::EdgeDescriptor<TGraph>::Type TEdgeDescriptor;
+
+struct KmerLabels
+{
+  TVertexDescriptor start_vertex;
+  TVertexDescriptor end_vertex;
+  boost::dynamic_bitset<> id_bits;
+};
+
+typedef boost::unordered_map<seqan::String<seqan::Dna>, std::vector<KmerLabels> > TKmerMap;
 
 /**
  * @brief Gyper's main class
@@ -16,7 +37,7 @@ class Gyper
   std::vector<VertexLabel> vertex_labels;
 
   /** @brief Vector of all nodes (vertex) labels. */
-  std::vector<VertexLabels> vertex_vector;
+  // std::vector<VertexLabels> vertex_vector;
 
   /** @brief Holds a list of labels on each vertex. */
   std::vector<std::string> ids;
@@ -25,10 +46,10 @@ class Gyper
   boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > edge_ids;
 
   /** @brief A set of all nodes with no DNA base. */
-  boost::unordered_set<TVertexDescriptor> free_nodes;
+  std::unordered_set<TVertexDescriptor> free_nodes;
 
   /** @brief The topological order of all nodes (vertexes). */
-  String<TVertexDescriptor> order;
+  seqan::String<TVertexDescriptor> order;
 
   TVertexDescriptor begin_vertex;
 

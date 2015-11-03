@@ -45,7 +45,7 @@ Gyper::add_reference_sequence_to_graph(seqan::String<seqan::Dna5> & sequence)
         seqan::addEdge(graph, prev_vertex, target_vertex);
         vertex_label_map[new_vertex_label] = target_vertex;
         vertex_labels.push_back(new_vertex_label);
-        std::cout << length(current_dna) << std::endl;
+        // std::cout << length(current_dna) << std::endl;
         current_dna = "";
         prev_vertex = target_vertex;
         sequence_started = false;
@@ -115,7 +115,7 @@ Gyper::create_HLA_graph()
   add_FASTA_region(false, 0, false, false, true);
 
   // Finally, sort the nodes in topological order
-  topologicalSort(order, graph);
+  seqan::topologicalSort(order, graph);
 }
 
 void
@@ -184,7 +184,7 @@ Gyper::add_FASTA_region(bool add_bitstrings, int feature_number, bool intron_reg
       std::cout << "Adding utr    " << base_path << std::endl;
     }
 
-    graph = createGraph(base_path.c_str(), vertex_vector, ids, begin_vertex);
+    // graph = createGraph(base_path.c_str(), vertex_labels, ids, begin_vertex);
     return;
   }
   else if (p5_region)
@@ -225,10 +225,10 @@ Gyper::add_FASTA_region(bool add_bitstrings, int feature_number, bool intron_reg
 
   if (add_bitstrings)
   {
-    extendGraph(graph, base_path.c_str(), vertex_vector, edge_ids, new_begin_vertex, begin_vertex);
+    // extendGraph(graph, base_path.c_str(), vertex_labels, edge_ids, new_begin_vertex, begin_vertex);
   }
   else
   {
-    extendGraph(graph, base_path.c_str(), vertex_vector, new_begin_vertex, begin_vertex);
+    // extendGraph(graph, base_path.c_str(), vertex_labels, new_begin_vertex, begin_vertex);
   }
 }

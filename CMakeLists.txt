@@ -9,7 +9,7 @@ set (gyper_VERSION_MINOR 1)
 set (CMAKE_CXX_FLAGS "-W -Wall -Wfatal-errors -pedantic -Wno-variadic-macros -lrt -O3 -std=c++11 -DSEQAN_HAS_ZLIB=1 -DNDEBUG -DSEQAN_ENABLE_TESTING=0 -DSEQAN_ENABLE_DEBUG=0")
 
 # Set module path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/utilities/cmake_modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/utilities/cmake_modules/")
 
 # configure a header file to pass some of the CMake settings
 # to the source code
@@ -45,8 +45,8 @@ include_directories(${SEQAN_INCLUDE_PATH})
 set(EXECUTABLE_OUTPUT_PATH ../bin)
 add_subdirectory(src)
 
-# Add fastahack
-add_subdirectory(fastahack)
+# Add vcflib
+add_subdirectory(vcflib)
 
 # Testing
 set(EXT_PROJECTS_DIR ${PROJECT_SOURCE_DIR}/test)

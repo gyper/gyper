@@ -108,7 +108,7 @@ struct VertexLabels
 };
 
 // For graph
-typedef Graph<Directed<void, WithSourceId> > TGraph;
+typedef Graph<Directed<void, WithoutEdgeId> > TGraph;
 typedef VertexDescriptor<TGraph>::Type TVertexDescriptor;
 typedef EdgeDescriptor<TGraph>::Type TEdgeDescriptor;
 typedef Size<TGraph>::Type TSize;
