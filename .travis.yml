@@ -11,6 +11,12 @@ install:
   - tar -xjf boost.tar.bz2
   - rm boost.tar.bz2
   - export BOOST_ROOT=$(pwd)/boost
+  - wget https://github.com/samtools/htslib/releases/download/1.2.1/htslib-1.2.1.tar.bz2 # Get htslib
+  - tar -xjf htslib-1.2.1.tar.bz2
+  - rm htslib-1.2.1.tar.bz2
+  - cd htslib-1.2.1
+  - make
+  - export HTSLIB_ROOT=$(pwd)
   - mkdir build; cd build
   - cmake ..
   - make
