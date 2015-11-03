@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-message("Fetching Seqan from Github")
+message("Fetching SeqAn from Github")
 project(seqan_builder CXX)
 include(ExternalProject)
 find_package(Git REQUIRED)

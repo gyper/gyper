@@ -4,7 +4,7 @@
 #include "gyper_options.hpp"
 #include "constants.hpp"
 #include "graph_creation.hpp"
-#include "../fastahack/src/FastaHackAPI.hpp"
+#include "../vcflib/fastahack/src/FastaHackAPI.hpp"
 
 #include <seqan/graph_types.h>
 #include <seqan/graph_algorithms.h>
