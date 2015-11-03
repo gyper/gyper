@@ -26,9 +26,7 @@ addons:
       - g++-4.8
       - zlib1g-dev
       - libbz2-dev
-      - libhts-dev
 
 script:
   - cd build
   - ctest -V
-

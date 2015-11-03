@@ -48,6 +48,9 @@ add_subdirectory(src)
 # Add vcflib
 add_subdirectory(vcflib)
 
+message("Including HTSlib: " ${htslib_INCLUDE_DIRS})
+include_directories(${htslib_INCLUDE_DIRS})
+
 # Testing
 set(EXT_PROJECTS_DIR ${PROJECT_SOURCE_DIR}/test)
 include_directories(${EXT_PROJECTS_DIR})
