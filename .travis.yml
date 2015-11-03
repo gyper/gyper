@@ -24,6 +24,7 @@ addons:
       - zlib1g-dev
       - libbz2-dev
       - libboost-dev
+      - libhts0
 
 script:
   - cd build
