@@ -16,6 +16,7 @@ install:
   - rm htslib-1.2.1.tar.bz2
   - cd htslib-1.2.1
   - make
+  - cd ..
   - export HTSLIB_ROOT=$(pwd)
   - mkdir build; cd build
   - cmake ..
