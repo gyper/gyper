@@ -19,7 +19,7 @@ void writeDotFile(TGraph graph);
 void printGraph(TGraph graph);
 
 void
-writeVcfFile(CharString & file_name,
+writeVcfFile(seqan::CharString & file_name,
              std::string const & pn,
              std::vector<std::string> ids,
              std::vector<std::vector<double> > & seq_scores,
@@ -27,7 +27,7 @@ writeVcfFile(CharString & file_name,
             );
 
 void
-writeVcfFile(CharString & file_name,
+writeVcfFile(seqan::CharString & file_name,
              std::string const & pn,
              std::vector<std::string> ids,
              std::vector<std::vector<double> > & seq_scores,
@@ -39,7 +39,7 @@ writeVcfFile(CharString & file_name,
             );
 
 void
-testVcfFile(CharString file_name,
+testVcfFile(seqan::CharString file_name,
             std::string pn,
             std::vector<std::string> ids,
             std::vector<std::vector<double> > seq_scores,

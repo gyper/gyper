@@ -11,14 +11,6 @@ Gyper::Gyper (Options & CO)
   Gyper::Gyper::CO = CO;
 }
 
-Gyper::Gyper (Options & CO, FastaHackAPI & reference_fasta)
-{
-  TGraph graph();
-  Gyper::Gyper::CO = CO;
-  Gyper::Gyper::reference_fasta_ptr = &reference_fasta;
-  // reference_fasta_ptr->index();
-}
-
 void
 Gyper::add_reference_sequence_to_graph(seqan::String<seqan::Dna5> & sequence)
 {
@@ -70,14 +62,14 @@ Gyper::add_reference_sequence_to_graph(seqan::String<seqan::Dna5> & sequence)
   }
 }
 
-void
-Gyper::create_reference_graph(seqan::String<char> region)
-{
-  // Extract sequence from a region in a FASTA file
-  seqan::String<seqan::Dna5> sequence = reference_fasta_ptr->extract_region(region);
-  add_reference_sequence_to_graph(sequence);
-  return;
-}
+// void
+// Gyper::create_reference_graph(seqan::String<char> region)
+// {
+//   // Extract sequence from a region in a FASTA file
+//   seqan::String<seqan::Dna5> sequence = reference_fasta_ptr->extract_region(region);
+//   add_reference_sequence_to_graph(sequence);
+//   return;
+// }
 
 void
 Gyper::create_HLA_graph()
@@ -231,4 +223,78 @@ Gyper::add_FASTA_region(bool add_bitstrings, int feature_number, bool intron_reg
   {
     // extendGraph(graph, base_path.c_str(), vertex_labels, new_begin_vertex, begin_vertex);
   }
+}
+
+int
+Gyper::open_fasta(const char * fasta_filename)
+{
+  if (!seqan::open(fasta_index, fasta_filename))
+  {
+    if (!seqan::build(fasta_index, fasta_filename))
+    {
+      std::cerr << "ERROR: Index could not be loaded or built." << std::endl;
+      return 1;
+    }
+
+    if (!seqan::save(fasta_index))
+    {
+      std::cerr << "ERROR: Index could not be written do disk." << std::endl;
+      return 2;
+    }
+  }
+
+  return 0;
+}
+
+unsigned
+Gyper::get_fasta_index_id(const char * id)
+{
+  SEQAN_CHECK(numSeqs(fasta_index) > 0, "No sequences found in FASTA index.");
+  unsigned fasta_index_id = 0;
+  int ret = seqan::getIdByName(fasta_index_id, fasta_index, id);
+  SEQAN_CHECK(ret, "Could not find the FASTA id = %s", id);
+  return fasta_index_id;
+}
+
+void
+Gyper::open_vcf(const char * vcf_filename)
+{
+  seqan::open(vcf_file, vcf_filename);
+  seqan::VcfHeader header;
+  seqan::readHeader(header, vcf_file);
+  // seqan::readRecord(vcf_record, vcf_file);
+}
+
+int
+Gyper::read_vcf_record()
+{
+  if (!seqan::atEnd(vcf_file))
+  {
+    seqan::readRecord(vcf_record, vcf_file);
+    return 0;
+  }
+
+  return 1;
+}
+
+void
+Gyper::open_tabix(const char * tabix_filename)
+{
+  seqan::open(tabix_file, tabix_filename);
+  seqan::String<char> header;
+  seqan::getHeader(header, tabix_file);
+  // std::cout << "header = " << header << std::endl;
+}
+
+int
+Gyper::read_tabix_record()
+{
+  // seqan::String<char> line;
+  if (!seqan::atEnd(tabix_file))
+  {
+    seqan::getNextLine(tabix_line, tabix_file);
+    return 0;
+  }
+
+  return 1;
 }

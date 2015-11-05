@@ -23,95 +23,95 @@
 #include <boost/dynamic_bitset.hpp>
 
 
-using namespace seqan;
-
-
 namespace seqan
 {
-  inline
-  std::size_t hash_value(String<Dna> const& s)
+
+
+inline
+std::size_t hash_value(String<Dna> const& s)
+{
+  std::size_t hash_val = 0;
+
+  for (unsigned i = 0 ; i < length(s) ; ++i)
   {
-    std::size_t hash_val = 0;
+    hash_val *= 4;
+    hash_val += ordValue(s[i]);
 
-    for (unsigned i = 0 ; i < length(s) ; ++i)
-    {
-      hash_val *= 4;
-      hash_val += ordValue(s[i]);
-
-      if (i == 32)
-        return hash_val;
-    }
-
-    return hash_val;
+    if (i == 32)
+      return hash_val;
   }
 
-  inline
-  std::size_t hash_value_optional1(String<Dna> const& s)
-  {
-    std::size_t hash_val = 0;
-
-    for (unsigned i = 0 ; i < length(s) ; ++i)
-    {
-      hash_val = hash_val * 4 + ordValue(s[i]);
-
-      if (i == 32)
-        return hash_val;
-    }
-
-    return hash_val;
-  }
-
-  inline
-  std::size_t hash_value_optional2(String<Dna> const& s)
-  {
-    std::size_t hash_val = 0;
-
-    for (Iterator<String<Dna> const>::Type it = begin(s) ; it != end(s) ; ++it)
-    {
-      hash_val = hash_val * 4 + ordValue(*it);
-    }
-
-    return hash_val;
-  }
-
-  inline
-  std::size_t hash_value_optional3(String<Dna> const& s)
-  {
-    std::size_t hash_val = 0;
-    unsigned i = 0;
-
-    for (Iterator<String<Dna> const>::Type it = begin(s) ; it != end(s) ; ++it, ++i)
-    {
-      hash_val = hash_val * 4 + ordValue(*it);
-
-      if (i == 32)
-      {
-        break;
-      }
-    }
-
-    return hash_val;
-  }
-
-  inline
-  std::size_t hash_value(String<char> const & s)
-  {
-    return boost::hash_range(begin(s), end(s));
-  }
+  return hash_val;
 }
+
+inline
+std::size_t hash_value_optional1(String<Dna> const& s)
+{
+  std::size_t hash_val = 0;
+
+  for (unsigned i = 0 ; i < length(s) ; ++i)
+  {
+    hash_val = hash_val * 4 + ordValue(s[i]);
+
+    if (i == 32)
+      return hash_val;
+  }
+
+  return hash_val;
+}
+
+inline
+std::size_t hash_value_optional2(String<Dna> const& s)
+{
+  std::size_t hash_val = 0;
+
+  for (Iterator<String<Dna> const>::Type it = begin(s) ; it != end(s) ; ++it)
+  {
+    hash_val = hash_val * 4 + ordValue(*it);
+  }
+
+  return hash_val;
+}
+
+inline
+std::size_t hash_value_optional3(String<Dna> const& s)
+{
+  std::size_t hash_val = 0;
+  unsigned i = 0;
+
+  for (Iterator<String<Dna> const>::Type it = begin(s) ; it != end(s) ; ++it, ++i)
+  {
+    hash_val = hash_val * 4 + ordValue(*it);
+
+    if (i == 32)
+    {
+      break;
+    }
+  }
+
+  return hash_val;
+}
+
+inline
+std::size_t hash_value(String<char> const & s)
+{
+  return boost::hash_range(begin(s), end(s));
+}
+
+} // namespace seqan
 
 
 struct VertexLabels
 {
   int level;
-  Dna dna;
+  seqan::Dna dna;
 };
 
 // For graph
-typedef Graph<Directed<void, WithoutEdgeId> > TGraph;
-typedef VertexDescriptor<TGraph>::Type TVertexDescriptor;
-typedef EdgeDescriptor<TGraph>::Type TEdgeDescriptor;
-typedef Size<TGraph>::Type TSize;
+typedef seqan::Graph<seqan::Directed<void, seqan::WithoutEdgeId> > TGraph;
+typedef seqan::VertexDescriptor<TGraph>::Type TVertexDescriptor;
+typedef seqan::EdgeDescriptor<TGraph>::Type TEdgeDescriptor;
+typedef seqan::Size<TGraph>::Type TSize;
 
 
 struct KmerLabels
@@ -157,29 +157,29 @@ hash_value(const VertexLabels &a)
 }
 
 
-typedef boost::unordered_map<DnaString, std::vector<KmerLabels> > TKmerMap;
-typedef boost::unordered_map<DnaString, boost::dynamic_bitset<> > TKmerMapSimple;
+typedef boost::unordered_map<seqan::String<seqan::Dna>, std::vector<KmerLabels> > TKmerMap;
+typedef boost::unordered_map<seqan::String<seqan::Dna>, boost::dynamic_bitset<> > TKmerMapSimple;
 
 struct callOptions
 {
  public:
-  CharString beta_list;
+  seqan::CharString beta_list;
   std::vector<double> beta;
   int bpQclip;
   int bpQskip;
   int number_of_exons;
   int kmer;
   int min_kmers;
-  CharString gene;
-  CharString minSeqLen_list;
-  CharString outputFolder;
-  CharString vcfOutputFolder;
-  CharString bamFile;
-  CharString bam2;
-  CharString bam3;
-  CharString bam4;
+  seqan::CharString gene;
+  seqan::CharString minSeqLen_list;
+  seqan::CharString outputFolder;
+  seqan::CharString vcfOutputFolder;
+  seqan::CharString bamFile;
+  seqan::CharString bam2;
+  seqan::CharString bam3;
+  seqan::CharString bam4;
   std::vector<unsigned> minSeqLen;
-  CharString vcfFile;
+  seqan::CharString vcfFile;
   
   bool verbose;
   bool exon_2_and_3;
@@ -221,11 +221,11 @@ callOptions():
 
 
 void
-align_sequence (DnaString & my_sequence,
+align_sequence (seqan::DnaString & my_sequence,
                 boost::dynamic_bitset<> & qual,
                 TGraph const & graph,
                 std::vector<VertexLabels> & vertex_vector,
-                String<TVertexDescriptor> & order,
+                seqan::String<TVertexDescriptor> & order,
                 std::vector<ExactBacktracker> & backtracker,
                 std::vector<ExactBacktracker> & reverse_backtracker,
                 boost::unordered_set<TVertexDescriptor> const & free_nodes,
@@ -234,8 +234,8 @@ align_sequence (DnaString & my_sequence,
                );
 
 boost::dynamic_bitset<>
-align_sequence_kmer (String<Dna> & my_sequence,
-                     String<char> & qual,
+align_sequence_kmer (seqan::String<seqan::Dna> & my_sequence,
+                     seqan::String<char> & qual,
                      unsigned const & id_numbers,
                      TKmerMap & kmer_map,
                      std::vector<VertexLabels> & vertex_vector,
@@ -243,7 +243,7 @@ align_sequence_kmer (String<Dna> & my_sequence,
                      int const & min_kmers
                     );
 
-CharString myExtractTagValue(String<char> &tags);
+seqan::CharString myExtractTagValue(seqan::String<char> &tags);
 
 void
 createGenericGraph(callOptions & CO,
@@ -252,7 +252,7 @@ createGenericGraph(callOptions & CO,
                    std::vector<std::string> & ids,
                    boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
                    boost::unordered_set<TVertexDescriptor> & free_nodes,
-                   String<TVertexDescriptor> & order
+                   seqan::String<TVertexDescriptor> & order
                   );
 
 void
@@ -262,7 +262,7 @@ create_exon_2_and_3_graph(callOptions & CO,
                           std::vector<std::string> & ids,
                           boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
                           boost::unordered_set<TVertexDescriptor> & free_nodes,
-                          String<TVertexDescriptor> & order
+                          seqan::String<TVertexDescriptor> & order
                          );
 
 void
@@ -271,7 +271,7 @@ createDqa1Graph(TGraph & graph,
                 std::vector<std::string> & ids,
                 boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
                 boost::unordered_set<TVertexDescriptor> & free_nodes,
-                String<TVertexDescriptor> & order);
+                seqan::String<TVertexDescriptor> & order);
 
 void
 createDqb1Graph(TGraph & graph,
@@ -279,7 +279,7 @@ createDqb1Graph(TGraph & graph,
                 std::vector<std::string> & ids,
                 boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
                 boost::unordered_set<TVertexDescriptor> & free_nodes,
-                String<TVertexDescriptor> & order);
+                seqan::String<TVertexDescriptor> & order);
 
 void
 createDrb1Graph(TGraph & graph,
@@ -287,7 +287,7 @@ createDrb1Graph(TGraph & graph,
                 std::vector<std::string> & ids,
                 boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
                 boost::unordered_set<TVertexDescriptor> & free_nodes,
-                String<TVertexDescriptor> & order);
+                seqan::String<TVertexDescriptor> & order);
 
 void
 createHlaaGraph(TGraph & graph,
@@ -295,7 +295,7 @@ createHlaaGraph(TGraph & graph,
                 std::vector<std::string> & ids,
                 boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
                 boost::unordered_set<TVertexDescriptor> & free_nodes,
-                String<TVertexDescriptor> & order);
+                seqan::String<TVertexDescriptor> & order);
 
 void
 createHlabGraph(TGraph & graph,
@@ -303,7 +303,7 @@ createHlabGraph(TGraph & graph,
                 std::vector<std::string> & ids,
                 boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
                 boost::unordered_set<TVertexDescriptor> & free_nodes,
-                String<TVertexDescriptor> & order);
+                seqan::String<TVertexDescriptor> & order);
 
 void
 createHlacGraph(TGraph & graph,
@@ -311,7 +311,7 @@ createHlacGraph(TGraph & graph,
                 std::vector<std::string> & ids,
                 boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids,
                 boost::unordered_set<TVertexDescriptor> & free_nodes,
-                String<TVertexDescriptor> & order);
+                seqan::String<TVertexDescriptor> & order);
 
 
 #include "graph_builder.hpp"

@@ -1,5 +1,6 @@
 #include "graph.hpp"
 
+using namespace seqan;
 
 void
 align_sequence (DnaString & my_sequence,

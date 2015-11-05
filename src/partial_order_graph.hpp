@@ -4,10 +4,17 @@
 #include "gyper_options.hpp"
 #include "constants.hpp"
 #include "graph_creation.hpp"
-#include "../vcflib/fastahack/src/FastaHackAPI.hpp"
+#include "fasta_region.hpp"
 
+#include <seqan/basic.h>
+#include <seqan/sequence.h>
 #include <seqan/graph_types.h>
 #include <seqan/graph_algorithms.h>
+#include <seqan/seq_io.h>
+#include <seqan/vcf_io.h>
+#include <seqan/stream.h>
+
+#include <iostream>
 #include <unordered_map>
 #include <boost/unordered/unordered_map.hpp>
 #include <unordered_set>
@@ -57,7 +64,6 @@ class Gyper
 
   std::map<VertexLabel, TVertexDescriptor> vertex_label_map;
 
-  FastaHackAPI* reference_fasta_ptr;
 
  public:
    /**
@@ -70,13 +76,12 @@ class Gyper
    */
   Gyper ();
   Gyper (Options & CO);
-  Gyper (Options & CO, FastaHackAPI & reference_fasta);
 
   void add_initial_vertex();
 
   void add_reference_sequence_to_graph(seqan::String<seqan::Dna5> & sequence);
 
-  void create_reference_graph(seqan::String<char> region);
+  // void create_reference_graph(seqan::String<char> region);
 
   /**
    * @brief Creates a single HLA graph.
@@ -90,11 +95,33 @@ class Gyper
    */
   void index();
 
+  int open_fasta(const char * fasta_filename);
+
+  unsigned get_fasta_index_id(const char * id);
+
+  void open_vcf(const char * fasta_filename);
+
+  int read_vcf_record();
+
+  void open_tabix(const char * fasta_filename);
+
+  int read_tabix_record();
+
   /** @brief graph is a SeqAn graph */
   TGraph graph;
 
   /** @brief The argument options */
   Options CO;
+
+  seqan::FaiIndex fasta_index;
+
+  seqan::VcfFileIn vcf_file;
+
+  seqan::VcfRecord vcf_record;
+
+  seqan::Tabix tabix_file;
+
+  seqan::String<char> tabix_line;
 
 
  private:
@@ -103,11 +130,11 @@ class Gyper
    * @details [long description]
    * @return The number of exons this HLA gene has.
    */
-  unsigned get_number_of_exons();
+  unsigned get_number_of_exons(void);
 
-  std::string get_HLA_base_path();
+  std::string get_HLA_base_path(void);
 
-  void add_HLA_intron();
+  void add_HLA_intron(void);
 
   void add_FASTA_region(bool add_bitstrings, int feature_number = 0, bool intron_region = false, bool p3_region = false, bool p5_region = false);
 };

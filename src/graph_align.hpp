@@ -19,23 +19,23 @@ initializeExactScoreMatrixAndBacktracker(std::size_t const & seq_length,
 bool
 getScoreVector(ExactBacktracker const & previous_backtracker,
                ExactBacktracker & current_backtracker,
-               DnaString const & sequence,
+               seqan::DnaString const & sequence,
                boost::dynamic_bitset<> const & qual,
-               Dna const & reference,
+               seqan::Dna const & reference,
                TVertexDescriptor const & source_vertex
               );
 
 bool
 getScoreVector(ExactBacktracker const & previous_backtracker,
                ExactBacktracker & current_backtracker,
-               DnaString const & sequence,
-               Dna const & reference,
+               seqan::DnaString const & sequence,
+               seqan::Dna const & reference,
                TVertexDescriptor const & source_vertex
               );
 
 void
-alignToGraphExact (DnaString const & sequence,
-                   String<TVertexDescriptor const> const & order,
+alignToGraphExact (seqan::DnaString const & sequence,
+                   seqan::String<TVertexDescriptor const> const & order,
                    TGraph const & graph,
                    std::vector<TVertexDescriptor> & matching_vertices,
                    std::vector<VertexLabels> & vertex_vector,
@@ -45,7 +45,7 @@ alignToGraphExact (DnaString const & sequence,
                   );
 
 boost::dynamic_bitset<>
-align_kmer_to_graph (String<Dna> const & sequence,
+align_kmer_to_graph (seqan::String<seqan::Dna> const & sequence,
                      unsigned const & id_numbers,
                      TKmerMap & kmer_map,
                      std::vector<VertexLabels> & vertex_vector,
@@ -55,8 +55,8 @@ align_kmer_to_graph (String<Dna> const & sequence,
                     );
 
 void
-alignToGraphExact (DnaString const & sequence,
-                   String<TVertexDescriptor const> const & order,
+alignToGraphExact (seqan::DnaString const & sequence,
+                   seqan::String<TVertexDescriptor const> const & order,
                    TGraph const & graph,
                    std::vector<TVertexDescriptor> & matching_vertices,
                    std::vector<VertexLabels> & vertex_vector,

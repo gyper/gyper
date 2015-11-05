@@ -10,7 +10,6 @@
 
 using namespace seqan;
 
-
 /*
  * initializeScoreMatrixAndBacktracker
  **/

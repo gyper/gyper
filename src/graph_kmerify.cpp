@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+using namespace seqan;
 
 void
 check_kmers_simple(DnaString const & kmer,

@@ -16,6 +16,7 @@
 
 #include <boost/algorithm/string/find.hpp>
 
+using namespace seqan;
 
 template<typename T>
 void parseArgList (CharString &args_in, std::vector<T> &vector_out)

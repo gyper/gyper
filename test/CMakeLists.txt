@@ -3,11 +3,15 @@ cmake_minimum_required(VERSION 2.8)
 project(test_gyper CXX)
 
 message("Compiling testing suite")
+message("Flags are: ${CMAKE_CXX_FLAGS}")
 
-file(GLOB gyper_TEST_FILES *.cpp)
+#file(GLOB gyper_TEST_FILES *.cpp)
+
+set(gyper_TEST_FILES test.cpp test_graph_hla.cpp)
 
 add_executable(test_gyper ${gyper_TEST_FILES})
-target_link_libraries(test_gyper gyper_core gyper_oo_core fastahack_core pthread ${ZLIB_LIBRARIES} ${Boost_LIBRARIES})
+# gyper_core
+target_link_libraries(test_gyper gyper_oo_core hts pthread ${ZLIB_LIBRARIES} ${Boost_LIBRARIES})
 
 add_test(NAME RunTests COMMAND test_gyper)
 

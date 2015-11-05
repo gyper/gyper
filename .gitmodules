@@ -1,3 +1,12 @@
 [submodule "vcflib"]
 	path = vcflib
 	url = https://lsource2.decode.is/hannese/vcflib.git
+[submodule "seqan"]
+	path = seqan
+	url = https://github.com/seqan/seqan.git
+[submodule "htslib"]
+	path = htslib
+	url = https://github.com/samtools/htslib.git
+[submodule "catch"]
+	path = catch
+	url = https://github.com/philsquared/Catch.git

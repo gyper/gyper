@@ -11,7 +11,7 @@
 
 
 TKmerMapSimple
-kmerify_graph_simple(String<TVertexDescriptor const> const & order,
+kmerify_graph_simple(seqan::String<TVertexDescriptor const> const & order,
                      TGraph const & graph,
                      std::vector<VertexLabels> & vertex_vector,
                      boost::unordered_set<TVertexDescriptor> const & free_nodes,
@@ -21,7 +21,7 @@ kmerify_graph_simple(String<TVertexDescriptor const> const & order,
 
 
 TKmerMap
-kmerifyGraph(String<TVertexDescriptor const> const & order,
+kmerifyGraph(seqan::String<TVertexDescriptor const> const & order,
              TGraph const & graph,
              std::vector<VertexLabels> & vertex_vector,
              boost::unordered_set<TVertexDescriptor> const & free_nodes,
@@ -31,7 +31,7 @@ kmerifyGraph(String<TVertexDescriptor const> const & order,
 
 
 unsigned
-find_best_kmer(String<char> qual,
+find_best_kmer(seqan::String<char> qual,
                unsigned const & k
               );
 

@@ -13,9 +13,11 @@ set(gyper_SOURCE_FILES
 add_library(gyper_core ${gyper_SOURCE_FILES} )
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+message("Flags are: ${CMAKE_CXX_FLAGS}")
+
 add_executable(gyper main.cpp)
 find_package( Threads REQUIRED )
-target_link_libraries(gyper gyper_core fastahack_core pthread ${ZLIB_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(gyper gyper_core hts pthread ${ZLIB_LIBRARIES} ${Boost_LIBRARIES})
 
 # Objectify Gyper
 set(gyper_oo_SOURCE_FILES
@@ -25,7 +27,7 @@ set(gyper_oo_SOURCE_FILES
 )
 
 add_library(gyper_oo_core ${gyper_oo_SOURCE_FILES} )
-target_link_libraries(gyper gyper_core gyper_oo_core fastahack_core pthread ${ZLIB_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(gyper gyper_core gyper_oo_core hts pthread ${ZLIB_LIBRARIES} ${Boost_LIBRARIES})
 
 # Add the executable
 target_link_libraries(gyper ${LIBS})

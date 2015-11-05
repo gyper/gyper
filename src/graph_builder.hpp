@@ -7,14 +7,14 @@
 
 
 inline bool
-hasEdge (String<bool> adjacency_matrix, unsigned id_from, unsigned id_to, unsigned n)
+hasEdge (seqan::String<bool> adjacency_matrix, unsigned id_from, unsigned id_to, unsigned n)
 {
   return adjacency_matrix[id_to + n * id_from];
 }
 
 
 inline bool
-hasEdge (String<bool> adjacency_matrix, unsigned id_from, unsigned id_to)
+hasEdge (seqan::String<bool> adjacency_matrix, unsigned id_from, unsigned id_to)
 {
   return hasEdge(adjacency_matrix, id_from, id_to, std::sqrt(length(adjacency_matrix)) );
 }
@@ -36,7 +36,7 @@ void
 addExonToGraph (TGraph & g,
                 unsigned short const & bit_id,
                 unsigned short const & bit_n,
-                CharString const & sequence,
+                seqan::CharString const & sequence,
                 std::map<VertexLabels, TVertexDescriptor> & vertex_label_map,
                 std::vector<VertexLabels> & vertex_vector,
                 boost::unordered_map<std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > & edge_ids
@@ -44,7 +44,7 @@ addExonToGraph (TGraph & g,
 
 void
 addSequenceToGraph (TGraph & g,
-                    CharString const & sequence,
+                    seqan::CharString const & sequence,
                     std::map<VertexLabels, TVertexDescriptor> & vertex_label_map,
                     std::vector<VertexLabels> & vertex_vector
                    );
