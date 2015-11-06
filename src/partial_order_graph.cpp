@@ -286,15 +286,8 @@ Gyper::open_tabix(const char * tabix_filename)
   // std::cout << "header = " << header << std::endl;
 }
 
-int
+bool
 Gyper::read_tabix_record()
 {
-  // seqan::String<char> line;
-  if (!seqan::atEnd(tabix_file))
-  {
-    seqan::getNextLine(tabix_line, tabix_file);
-    return 0;
-  }
-
-  return 1;
+  return seqan::readRecord(vcf_record, tabix_file);
 }

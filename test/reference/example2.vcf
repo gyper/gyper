@@ -55,7 +55,7 @@
 ##INFO=<ID=COMMON,Number=1,Type=Integer,Description="RS is a common SNP.  A common SNP is one that has at least one 1000Genomes population with a minor allele of frequency >= 1% and for which 2 or more founders contribute to that minor allele frequency.">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 chr1	2	rs6054257	G	A	0	.	.
-chr1	4	ins504320	G	GT	0	.	.
-chr1	6	del504320	TC	T	0	.	.
-chr1	11	msat14123	GGT	G,GGTGTGT	0	.	.
-chr2	3	rs0000001	A	T	0	.	.
+chr1	4	ins504320	T	GT	0	.	.
+chr2	6	del504320	T	TA	0	.	.
+chr2	13	del0000001	AG	A	0	.	.
+chr2	14	mix14123	G	GTT,T	0	.	.

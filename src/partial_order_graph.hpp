@@ -12,6 +12,7 @@
 #include <seqan/graph_algorithms.h>
 #include <seqan/seq_io.h>
 #include <seqan/vcf_io.h>
+#include <seqan/bam_io.h>
 #include <seqan/stream.h>
 
 #include <iostream>
@@ -105,23 +106,25 @@ class Gyper
 
   void open_tabix(const char * fasta_filename);
 
-  int read_tabix_record();
+  bool read_tabix_record();
 
-  /** @brief graph is a SeqAn graph */
+  /** @brief Graph is a SeqAn partial order graph */
   TGraph graph;
 
   /** @brief The argument options */
   Options CO;
 
+  /** @brief The fasta index of the reference genome */
   seqan::FaiIndex fasta_index;
 
+  /** @brief A VCF file with all genetic variants */
   seqan::VcfFileIn vcf_file;
 
-  seqan::VcfRecord vcf_record;
-
+  /** @brief An index for BCF files, in case variants are stored in BCF instead of VCF */
   seqan::Tabix tabix_file;
 
-  seqan::String<char> tabix_line;
+  /** @brief The current VCF record. This variable is used with either VCF or BCF files. */
+  seqan::VcfRecord vcf_record;
 
 
  private:
