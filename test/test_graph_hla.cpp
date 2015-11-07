@@ -480,15 +480,23 @@ TEST_CASE("VCF I/O")
 
 TEST_CASE("CRAM support")
 {
-	std::stringstream base_path;
-	base_path << gyper_SOURCE_DIRECTORY << "/test/reference/test.cram";
-	std::string base_path_str = base_path.str();
+	SECTION("Sample file test")
+	{
+		std::stringstream base_path;
+		base_path << gyper_SOURCE_DIRECTORY << "/test/reference/test.cram";
+		std::string base_path_str = base_path.str();
 
-	seqan::CramSequenceRecord record;
-	seqan::CramFile cram_file;
-	seqan::open(cram_file, base_path_str.c_str());
-	seqan::readRecord(record, cram_file);
-	std::cout << record.qName << " " << record.seq << std::endl;
-	seqan::readRecord(record, cram_file);
-	std::cout << record.qName << " " << record.seq << std::endl;
+		seqan::HtsSequenceRecord hts_record;
+		seqan::HtsFile hts_file(base_path_str.c_str());
+		seqan::open(hts_file);
+
+		for (unsigned i = 0; i < 500; ++i)
+		{
+			seqan::readRecord(hts_record, hts_file);
+			std::cout << hts_record.qName << " " << hts_record.seq << std::endl;
+		}
+		
+		seqan::readRecord(hts_record, hts_file);
+		std::cout << hts_record.qName << " " << hts_record.seq << std::endl;
+	}
 }
