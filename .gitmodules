@@ -10,3 +10,6 @@
 [submodule "catch"]
 	path = catch
 	url = https://github.com/philsquared/Catch.git
+[submodule "rocksdb"]
+	path = rocksdb
+	url = https://github.com/facebook/rocksdb.git

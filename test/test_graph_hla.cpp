@@ -7,6 +7,9 @@
 #include <catch.hpp>
 #include "constants.hpp"
 
+// #include "rocksdb/db.h"
+// #include "rocksdb/slice.h"
+// #include "rocksdb/options.h"
 
 TEST_CASE("FASTA I/O")
 {
@@ -48,7 +51,7 @@ TEST_CASE("VCF I/O")
 		std::string base_path_str = base_path.str();
 
 		Options CO = Options();
-		Gyper* gyper = new Gyper(CO);
+		Gyper* gyper = new gyper::Gyper(CO);
 		gyper->open_vcf(base_path_str.c_str());
 
 		REQUIRE(gyper->read_vcf_record() == 0);
@@ -105,7 +108,7 @@ TEST_CASE("VCF I/O")
 			std::string base_path_str = base_path.str();
 
 			Options CO = Options();
-			Gyper* gyper = new Gyper(CO);
+			Gyper* gyper = new gyper::Gyper(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")
@@ -258,7 +261,7 @@ TEST_CASE("VCF I/O")
 			std::string base_path_str = base_path.str();
 
 			Options CO = Options();
-			Gyper* gyper = new Gyper(CO);
+			Gyper* gyper = new gyper::Gyper(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")
@@ -330,7 +333,7 @@ TEST_CASE("VCF I/O")
 			std::string base_path_str = base_path.str();
 
 			Options CO = Options();
-			Gyper* gyper = new Gyper(CO);
+			Gyper* gyper = new gyper::Gyper(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")
@@ -379,7 +382,7 @@ TEST_CASE("VCF I/O")
 			std::string base_path_str = base_path.str();
 
 			Options CO = Options();
-			Gyper* gyper = new Gyper(CO);
+			Gyper* gyper = new gyper::Gyper(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")
@@ -427,7 +430,7 @@ TEST_CASE("VCF I/O")
 			std::string base_path_str = base_path.str();
 
 			Options CO = Options();
-			Gyper* gyper = new Gyper(CO);
+			Gyper* gyper = new gyper::Gyper(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")
@@ -483,20 +486,73 @@ TEST_CASE("CRAM support")
 	SECTION("Sample file test")
 	{
 		std::stringstream base_path;
-		base_path << gyper_SOURCE_DIRECTORY << "/test/reference/test.cram";
-		std::string base_path_str = base_path.str();
 
+		SECTION("SAM")
+		{
+			base_path << gyper_SOURCE_DIRECTORY << "/test/reference/test.sam";
+		}
+
+		SECTION("BAM")
+		{
+			base_path << gyper_SOURCE_DIRECTORY << "/test/reference/test.bam";
+		}
+
+		SECTION("CRAM")
+		{
+			base_path << gyper_SOURCE_DIRECTORY << "/test/reference/test.cram";
+		}
+		
+		std::string base_path_str = base_path.str();
 		seqan::HtsSequenceRecord hts_record;
 		seqan::HtsFile hts_file(base_path_str.c_str());
 		seqan::open(hts_file);
 
-		for (unsigned i = 0; i < 500; ++i)
+		while (seqan::readRecord(hts_record, hts_file))
 		{
-			seqan::readRecord(hts_record, hts_file);
-			std::cout << hts_record.qName << " " << hts_record.seq << std::endl;
+			// std::cout << hts_record.qName << " " << hts_record.seq << std::endl;
 		}
-		
-		seqan::readRecord(hts_record, hts_file);
-		std::cout << hts_record.qName << " " << hts_record.seq << std::endl;
 	}
+
+	SECTION("HTS indexing")
+	{
+		std::stringstream base_path;
+
+		SECTION("BAM")
+		{
+			base_path << gyper_SOURCE_DIRECTORY << "/test/reference/test.bam";
+		}
+
+		SECTION("CRAM")
+		{
+			base_path << gyper_SOURCE_DIRECTORY << "/test/reference/test.cram";
+		}
+
+		std::string base_path_str = base_path.str();
+		seqan::HtsSequenceRecord hts_record;
+		seqan::HtsFile hts_file(base_path_str.c_str());
+		seqan::open(hts_file);
+		seqan::loadIndex(hts_file, true);
+		seqan::setRegion(hts_file, "chr1:238-239");
+
+		while (seqan::readRegion(hts_record, hts_file))
+		{
+			// std::cout << hts_record.qName << " " << hts_record.seq << std::endl;
+		}
+  }
 }
+
+// TEST_CASE("rocksdb test")
+// {
+// 	std::string kDBPath = "/tmp/rocksdb_simple_example";
+
+// 	rocksdb::DB* db;
+//   rocksdb::Options options;
+//   // Optimize RocksDB. This is the easiest way to get RocksDB to perform well
+//   options.IncreaseParallelism();
+//   options.OptimizeLevelStyleCompaction();
+//   // create the DB if it's not already present
+//   options.create_if_missing = true;
+
+//   // open DB
+//   rocksdb::Status s = DB::Open(options, kDBPath, &db);
+// }

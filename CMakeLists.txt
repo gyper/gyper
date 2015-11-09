@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 2.8)
 project (gyper)
 
+include(ExternalProject)
+
 # The version number.
 set (gyper_VERSION_MAJOR 0)
 set (gyper_VERSION_MINOR 1)
@@ -47,8 +49,20 @@ include_directories( ${Boost_INCLUDE_DIRS} )
 # 	find_package(SeqAn REQUIRED)
 # endif(NOT SEQAN_FOUND)
 
+## Make rocksdb
+#ExternalProject_Add(
+#  rocksdb
+#  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/rocksdb
+#  BUILD_IN_SOURCE 1
+#  PREFIX ${CMAKE_BINARY_DIR}/rocksdb
+#  CONFIGURE_COMMAND ""
+#  BUILD_COMMAND PORTABLE=1 $(MAKE) -C ${CMAKE_CURRENT_SOURCE_DIR}/rocksdb shared_lib
+#  INSTALL_COMMAND ""
+#)
+
+# include_directories(rocksdb/include)
+
 # Make htslib
-include(ExternalProject)
 ExternalProject_Add(
   htslib
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/htslib

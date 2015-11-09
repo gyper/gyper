@@ -1,5 +1,8 @@
 #include "partial_order_graph.hpp"
 
+// namespace gyper
+// {
+
 Gyper::Gyper ()
 {
 	TGraph graph();
@@ -291,3 +294,6 @@ Gyper::read_tabix_record()
 {
   return seqan::readRecord(vcf_record, tabix_file);
 }
+
+
+// } // namespace gyper

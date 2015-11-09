@@ -21,6 +21,9 @@
 #include <unordered_set>
 #include <boost/dynamic_bitset.hpp>
 
+// namespace gyper
+// {
+
 typedef seqan::Graph<seqan::Directed<void, seqan::WithoutEdgeId> > TGraph;
 typedef seqan::VertexDescriptor<TGraph>::Type TVertexDescriptor;
 typedef seqan::EdgeDescriptor<TGraph>::Type TEdgeDescriptor;
@@ -141,5 +144,7 @@ class Gyper
 
   void add_FASTA_region(bool add_bitstrings, int feature_number = 0, bool intron_region = false, bool p3_region = false, bool p5_region = false);
 };
+
+// } // namespace gyper
 
 #endif
