@@ -6,10 +6,12 @@
 // #include "../src/graph.hpp"
 #include <catch.hpp>
 #include "constants.hpp"
+#include <cstdio>
+#include <string>
 
-// #include "rocksdb/db.h"
-// #include "rocksdb/slice.h"
-// #include "rocksdb/options.h"
+#include "rocksdb/db.h"
+#include "rocksdb/slice.h"
+#include "rocksdb/options.h"
 
 TEST_CASE("FASTA I/O")
 {
@@ -51,7 +53,7 @@ TEST_CASE("VCF I/O")
 		std::string base_path_str = base_path.str();
 
 		Options CO = Options();
-		Gyper* gyper = new gyper::Gyper(CO);
+		Gyper* gyper = new Gyper(CO);
 		gyper->open_vcf(base_path_str.c_str());
 
 		REQUIRE(gyper->read_vcf_record() == 0);
@@ -108,7 +110,7 @@ TEST_CASE("VCF I/O")
 			std::string base_path_str = base_path.str();
 
 			Options CO = Options();
-			Gyper* gyper = new gyper::Gyper(CO);
+			Gyper* gyper = new Gyper(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")
@@ -261,7 +263,7 @@ TEST_CASE("VCF I/O")
 			std::string base_path_str = base_path.str();
 
 			Options CO = Options();
-			Gyper* gyper = new gyper::Gyper(CO);
+			Gyper* gyper = new Gyper(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")
@@ -333,7 +335,7 @@ TEST_CASE("VCF I/O")
 			std::string base_path_str = base_path.str();
 
 			Options CO = Options();
-			Gyper* gyper = new gyper::Gyper(CO);
+			Gyper* gyper = new Gyper(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")
@@ -382,7 +384,7 @@ TEST_CASE("VCF I/O")
 			std::string base_path_str = base_path.str();
 
 			Options CO = Options();
-			Gyper* gyper = new gyper::Gyper(CO);
+			Gyper* gyper = new Gyper(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")
@@ -430,7 +432,7 @@ TEST_CASE("VCF I/O")
 			std::string base_path_str = base_path.str();
 
 			Options CO = Options();
-			Gyper* gyper = new gyper::Gyper(CO);
+			Gyper* gyper = new Gyper(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")
@@ -541,18 +543,51 @@ TEST_CASE("CRAM support")
   }
 }
 
-// TEST_CASE("rocksdb test")
-// {
-// 	std::string kDBPath = "/tmp/rocksdb_simple_example";
+TEST_CASE("rocksdb test")
+{
+	std::cout << "Test1" << std::endl;
+	std::string kDBPath = "/tmp/rocksdb_simple_example";
 
-// 	rocksdb::DB* db;
-//   rocksdb::Options options;
-//   // Optimize RocksDB. This is the easiest way to get RocksDB to perform well
-//   options.IncreaseParallelism();
-//   options.OptimizeLevelStyleCompaction();
-//   // create the DB if it's not already present
-//   options.create_if_missing = true;
+	using namespace rocksdb;
 
-//   // open DB
-//   rocksdb::Status s = DB::Open(options, kDBPath, &db);
-// }
+	std::cout << "Test2" << std::endl;
+	DB* db;
+  rocksdb::Options options;
+  // Optimize RocksDB. This is the easiest way to get RocksDB to perform well
+  options.IncreaseParallelism();
+  options.OptimizeLevelStyleCompaction();
+  // create the DB if it's not already present
+  options.create_if_missing = true;
+
+  // open DB
+  Status s = DB::Open(options, kDBPath, &db);
+  assert(s.ok());
+
+  std::cout << "Test3" << std::endl;
+  // Put key-value
+  s = db->Put(WriteOptions(), "key1", "value");
+  assert(s.ok());
+  std::cout << "Test4" << std::endl;
+  std::string value;
+  // get value
+  s = db->Get(ReadOptions(), "key1", &value);
+  assert(s.ok());
+  assert(value == "value");
+
+  std::cout << "Test5" << std::endl;
+  // atomically apply a set of updates
+  {
+    WriteBatch batch;
+    batch.Delete("key1");
+    batch.Put("key2", value);
+    s = db->Write(WriteOptions(), &batch);
+  }
+
+  s = db->Get(ReadOptions(), "key1", &value);
+  assert(s.IsNotFound());
+
+  db->Get(ReadOptions(), "key2", &value);
+  assert(value == "value");
+
+  delete db;
+}

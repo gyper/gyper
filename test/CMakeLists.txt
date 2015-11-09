@@ -11,7 +11,10 @@ set(gyper_TEST_FILES test.cpp test_graph_hla.cpp)
 
 add_executable(test_gyper ${gyper_TEST_FILES})
 # gyper_core
-target_link_libraries(test_gyper gyper_oo_core hts pthread ${ZLIB_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(test_gyper gyper_oo_core hts pthread ${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES} ${Boost_LIBRARIES} ${ROCKSDB_LIBRARIES} ${snappy_LIBRARIES})
+
+add_executable(test_rocksdb test_rocksdb.cpp)
+target_link_libraries(test_rocksdb ${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES} ${ROCKSDB_LIBRARIES} ${snappy_LIBRARIES})
 
 add_test(NAME RunTests COMMAND test_gyper)
 

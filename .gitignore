@@ -3,3 +3,4 @@ build*/
 debug*/
 example_test.vcf
 *.log
+.nfs*

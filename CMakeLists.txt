@@ -33,34 +33,78 @@ configure_file (
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Find external libraries
+# zlib
 message (STATUS "Checking for zlib")
 find_package(ZLIB 1.2.0 REQUIRED)
 include_directories( ${ZLIB_INCLUDE_DIRS} )
 
+# bzip2
+message (STATUS "Checking for bzip2")
+find_package (BZip2 REQUIRED)
+include_directories( ${BZIP_INCLUDE_DIRS} )
+
+# boost
 message (STATUS "Checking for Boost")
 find_package(Boost 1.57.0 REQUIRED)
 include_directories( ${Boost_INCLUDE_DIRS} )
 
-# Find SeqAn
-# find_package(SeqAn REQUIRED)
-# 
-# if (NOT SEQAN_FOUND)
-# 	add_subdirectory(utilities/seqan)
-# 	find_package(SeqAn REQUIRED)
-# endif(NOT SEQAN_FOUND)
+# Make snappy
+ExternalProject_Add(
+  snappy
+  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/snappy
+  BUILD_IN_SOURCE 1
+  PREFIX ${CMAKE_BINARY_DIR}/snappy
+  CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/snappy/autogen.sh COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/snappy/configure
+  BUILD_COMMAND $(MAKE)
+  INSTALL_COMMAND ""
+)
 
-## Make rocksdb
-#ExternalProject_Add(
-#  rocksdb
-#  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/rocksdb
-#  BUILD_IN_SOURCE 1
-#  PREFIX ${CMAKE_BINARY_DIR}/rocksdb
-#  CONFIGURE_COMMAND ""
-#  BUILD_COMMAND PORTABLE=1 $(MAKE) -C ${CMAKE_CURRENT_SOURCE_DIR}/rocksdb shared_lib
-#  INSTALL_COMMAND ""
-#)
+message (STATUS "Checking for snappy")
+set(snappy_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/snappy)
+find_package(snappy REQUIRED)
+message("snappy_INCLUDE_DIRS = ${snappy_INCLUDE_DIRS}")
+message("snappy_LIBRARIES = ${snappy_LIBRARIES}")
+include_directories(${snappy_INCLUDE_DIRS})
+link_directories(${snappy_LIBRARIES})
 
-# include_directories(rocksdb/include)
+# Make rocksdb
+set(ENV{EXTRA_CFLAGS} "-I${snappy_INCLUDE_DIRS}")
+set(ENV{EXTRA_CXXFLAGS} "-I${snappy_INCLUDE_DIRS}")
+set(ENV{EXTRA_LDFLAGS} "-L${snappy_LIBRARIES}")
+
+ExternalProject_Add(
+  rocksdb
+  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/rocksdb
+  BUILD_IN_SOURCE 1
+  PREFIX ${CMAKE_BINARY_DIR}/rocksdb
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND PORTABLE=1 $(MAKE) -C ${CMAKE_CURRENT_SOURCE_DIR}/rocksdb static_lib
+  INSTALL_COMMAND ""
+)
+
+ExternalProject_Get_Property(rocksdb install_dir)
+include_directories(${install_dir}/rocksdb/include)
+
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/rocksdb/include)
+# add_library(ROCKSDB_LIBRARY STATIC IMPORTED)
+# set_property(TARGET ROCKSDB_LIBRARY PROPERTY IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/rocksdb/librocksdb.a)
+
+# find_package(rocksdb REQUIRED)
+# include_directories(${ROCKSDB_INCLUDE_DIR})
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/rocksdb/include)
+# link_directories(${ROCKSDB_LIBRARIES})
+
+set(ROCKSDB_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/rocksdb")
+find_library(ROCKSDB_LIBRARY NAMES rocksdb PATHS ${ROCKSDB_ROOT})
+ExternalProject_Get_Property(rocksdb source_dir)
+set(ROCKSDB_INCLUDE_DIR ${source_dir}/include CACHE INTERNAL "Path to include folder for rocksdb.")
+set(ROCKSDB_LIBRARIES ${source_dir}/librocksdb.a CACHE INTERNAL "Path to rocksdb library files.")
+include_directories(${ROCKSDB_INCLUDE_DIR})
+link_directories(${ROCKSDB_LIBRARIES})
+
+message("ROCKSDB_ROOT = ${ROCKSDB_ROOT}")
+message("ROCKSDB_INCLUDE_DIR = ${ROCKSDB_INCLUDE_DIR}")
+message("ROCKSDB_LIBRARIES = ${ROCKSDB_LIBRARIES}")
 
 # Make htslib
 ExternalProject_Add(
