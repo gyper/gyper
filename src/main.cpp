@@ -3,17 +3,14 @@
 #include <fstream>
 #include <string>
 
-#include "graph_align.hpp"
-#include "graph_builder.hpp"
-#include "graph_io.hpp"
-#include "graph_kmerify.hpp"
-#include "graph.hpp"
-// #include "partial_order_graph.hpp"
-#include "constants.hpp"
-
+#include <gyper/graph_align.hpp>
+#include <gyper/graph_builder.hpp>
+#include <gyper/graph_io.hpp>
+#include <gyper/graph_kmerify.hpp>
+#include <gyper/graph.hpp>
+#include <gyper/constants.hpp>
 #include <seqan/arg_parse.h>
 #include <seqan/bam_io.h>
-
 #include <boost/algorithm/string/find.hpp>
 
 using namespace seqan;

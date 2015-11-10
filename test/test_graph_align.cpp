@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <climits>
 
-#include "../src/graph_builder.hpp"
-#include "../src/graph_align.hpp"
-#include "../src/graph_io.hpp"
+#include <gyper/graph_builder.hpp>
+#include <gyper/graph_align.hpp>
+#include <gyper/graph_io.hpp>
 #include "constants.hpp"
 #include "catch.hpp"
 

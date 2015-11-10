@@ -5,6 +5,10 @@
 #include <seqan/sequence.h>
 #include <seqan/arg_parse.h>
 
+namespace gyper
+{
+
+
 class Options
 {
  public:
@@ -62,4 +66,7 @@ class Options
  * @return A value indicating if parsing the command line was successful or not.
  */
 seqan::ArgumentParser::ParseResult parse_command_line_options(Options & CO, seqan::ArgumentParser & parser, int argc, char const ** argv);
-#endif
+
+} // namespace gyper
+
+#endif // #define __GYPER_OPTIONS_HPP__

@@ -9,8 +9,7 @@
 #include <iostream>
 #include <time.h>
 
-#include "graph.hpp"
-
+#include <gyper/graph.hpp>
 #include <seqan/vcf_io.h>
 #include <seqan/sequence.h> 
 

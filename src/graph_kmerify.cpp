@@ -1,5 +1,4 @@
-#include "graph_kmerify.hpp"
-
+#include <gyper/graph_kmerify.hpp>
 #include <cmath>
 
 using namespace seqan;

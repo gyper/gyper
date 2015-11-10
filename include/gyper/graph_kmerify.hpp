@@ -4,8 +4,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "graph.hpp"
-
+#include <gyper/graph.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
 

@@ -1,6 +1,6 @@
-#include "gyper_options.hpp"
+#include <gyper/options.hpp>
 
-seqan::ArgumentParser::ParseResult parse_command_line_options(Options & CO, seqan::ArgumentParser & parser, int argc, char const ** argv)
+seqan::ArgumentParser::ParseResult parse_command_line_options(gyper::Options & CO, seqan::ArgumentParser & parser, int argc, char const ** argv)
 {
   using namespace seqan;
 

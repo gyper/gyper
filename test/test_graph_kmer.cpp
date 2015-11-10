@@ -3,7 +3,7 @@
 
 #define TEST_GYPER
 
-#include "../src/graph_kmerify.hpp"
+#include <gyper/graph_kmerify.hpp>
 // #include "../src/partial_order_graph.hpp"
 #include "constants.hpp"
 #include "catch.hpp"

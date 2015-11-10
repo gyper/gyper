@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "graph_align.hpp"
+#include <gyper/graph_align.hpp>
 #include <cmath>
 #include <set>
 #include <climits>

@@ -1,4 +1,4 @@
-#include "graph.hpp"
+#include <gyper/graph.hpp>
 
 using namespace seqan;
 

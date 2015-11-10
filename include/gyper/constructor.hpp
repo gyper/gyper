@@ -1,10 +1,17 @@
 #ifndef __GYPER_HPP__
 #define __GYPER_HPP__
 // #include "graph.hpp"
-#include "gyper_options.hpp"
-#include "constants.hpp"
-#include "graph_creation.hpp"
-#include "fasta_region.hpp"
+#include <iostream>
+#include <unordered_map>
+#include <unordered_set>
+
+#include <boost/unordered/unordered_map.hpp>
+#include <boost/dynamic_bitset.hpp>
+
+#include <gyper/options.hpp>
+#include <gyper/constants.hpp>
+#include <gyper/graph_creation.hpp>
+#include <gyper/fasta_region.hpp>
 
 #include <seqan/basic.h>
 #include <seqan/sequence.h>
@@ -15,14 +22,8 @@
 #include <seqan/bam_io.h>
 #include <seqan/stream.h>
 
-#include <iostream>
-#include <unordered_map>
-#include <boost/unordered/unordered_map.hpp>
-#include <unordered_set>
-#include <boost/dynamic_bitset.hpp>
-
-// namespace gyper
-// {
+namespace gyper
+{
 
 typedef seqan::Graph<seqan::Directed<void, seqan::WithoutEdgeId> > TGraph;
 typedef seqan::VertexDescriptor<TGraph>::Type TVertexDescriptor;
@@ -38,11 +39,11 @@ struct KmerLabels
 typedef boost::unordered_map<seqan::String<seqan::Dna>, std::vector<KmerLabels> > TKmerMap;
 
 /**
- * @brief Gyper's main class
+ * @brief Gyper's constructor class
  * @details The one class to rule them all. Each process should only have one Gyper instance.
  */
 
-class Gyper
+class Constructor
 {
  private:
   std::vector<VertexLabel> vertex_labels;
@@ -71,17 +72,19 @@ class Gyper
 
  public:
    /**
-   * @brief Constructor with Gyper object. 
+   * @brief Constructor for the Constructor (heh). 
    * @details Optionally call options can be specified and a reference FASTA file.
    * 
    * @param CO Call options.
    * @param reference_fasta A reference FASTA file.
-   * @return A new Gyper object.
+   * @return A new Constructor object.
    */
-  Gyper ();
-  Gyper (Options & CO);
+  Constructor ();
+  Constructor (Options & CO);
 
   void add_initial_vertex();
+
+  void add_reference_sequence_preceding_a_point(TVertexDescriptor prev_vertex, unsigned const & point);
 
   void add_reference_sequence_to_graph(seqan::String<seqan::Dna5> & sequence);
 
@@ -145,6 +148,6 @@ class Gyper
   void add_FASTA_region(bool add_bitstrings, int feature_number = 0, bool intron_region = false, bool p3_region = false, bool p5_region = false);
 };
 
-// } // namespace gyper
+} // namespace gyper
 
 #endif

@@ -1,4 +1,4 @@
-#include "graph_builder.hpp"
+#include <gyper/graph_builder.hpp>
 
 using namespace seqan;
 

@@ -8,9 +8,7 @@
 #include <string>
 #include <ctime>
 
-#include "constants.hpp"
-
-#include <boost/unordered/unordered_set.hpp>
+#include <gyper/constants.hpp>
 
 #include <seqan/bam_io.h>
 #include <seqan/basic.h>
@@ -18,6 +16,7 @@
 #include <seqan/graph_types.h>
 #include <seqan/seq_io.h>
 
+#include <boost/unordered/unordered_set.hpp>
 #include <boost/unordered/unordered_map.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/dynamic_bitset.hpp>

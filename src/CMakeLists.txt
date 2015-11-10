@@ -11,7 +11,8 @@ set(gyper_SOURCE_FILES
 # file(GLOB gyper_SOURCE_FILES *.cpp)
 # list(REMOVE_ITEM gyper_SOURCE_FILES main.cpp)
 add_library(gyper_core ${gyper_SOURCE_FILES} )
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 message("Flags are: ${CMAKE_CXX_FLAGS}")
 
@@ -21,8 +22,8 @@ target_link_libraries(gyper gyper_core hts pthread ${ZLIB_LIBRARIES} ${Boost_LIB
 
 # Objectify Gyper
 set(gyper_oo_SOURCE_FILES
-   partial_order_graph.cpp
-   gyper_options.cpp
+   constructor.cpp
+   options.cpp
    graph_creation.cpp
 )
 

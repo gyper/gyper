@@ -1,21 +1,66 @@
-#include "partial_order_graph.hpp"
+#include <gyper/constructor.hpp>
 
-// namespace gyper
-// {
+namespace gyper
+{
 
-Gyper::Gyper ()
+Constructor::Constructor ()
 {
 	TGraph graph();
 }
 
-Gyper::Gyper (Options & CO)
+Constructor::Constructor (Options & CO)
 {
   TGraph graph();
-  Gyper::Gyper::CO = CO;
+  Constructor::Constructor::CO = CO; // Replaces default options
 }
 
 void
-Gyper::add_reference_sequence_to_graph(seqan::String<seqan::Dna5> & sequence)
+Constructor::add_reference_sequence_preceding_a_point(TVertexDescriptor prev_vertex, unsigned const & point)
+{
+  unsigned const & prev_order = vertex_labels.at(prev_vertex).order;
+  
+  bool sequence_started = false;
+  seqan::String<seqan::Dna> current_dna = "";
+  unsigned starting_pos = 0;
+
+  // for (unsigned pos = 0; pos < length(sequence); ++pos)
+  // {
+  //   if (sequence[pos] == 'N')
+  //   {
+  //     if (sequence_started)
+  //     {
+  //       TVertexDescriptor target_vertex = seqan::addVertex(graph);
+  //       VertexLabel new_vertex_label(starting_pos, current_dna);
+  //       seqan::addEdge(graph, prev_vertex, target_vertex);
+  //       vertex_label_map[new_vertex_label] = target_vertex;
+  //       vertex_labels.push_back(new_vertex_label);
+  //       // std::cout << length(current_dna) << std::endl;
+  //       current_dna = "";
+  //       prev_vertex = target_vertex;
+  //       sequence_started = false;
+  //     }
+
+  //     continue;
+  //   }
+
+  //   if (!sequence_started)
+  //   {
+  //     TVertexDescriptor target_vertex = seqan::addVertex(graph);
+  //     VertexLabel new_vertex_label(pos, "");
+  //     seqan::addEdge(graph, prev_vertex, target_vertex);
+  //     vertex_label_map[new_vertex_label] = target_vertex;
+  //     vertex_labels.push_back(new_vertex_label);
+  //     prev_vertex = target_vertex;
+  //     starting_pos = pos;
+  //     sequence_started = true;
+  //   }
+    
+  //   appendValue(current_dna, sequence[pos]);
+  // }
+}
+
+void
+Constructor::add_reference_sequence_to_graph(seqan::String<seqan::Dna5> & sequence)
 {
   TVertexDescriptor prev_vertex = seqan::addVertex(graph);
 
@@ -75,7 +120,7 @@ Gyper::add_reference_sequence_to_graph(seqan::String<seqan::Dna5> & sequence)
 // }
 
 void
-Gyper::create_HLA_graph()
+Constructor::create_HLA_graph()
 {
   unsigned number_of_exons = get_number_of_exons();
 
@@ -114,7 +159,7 @@ Gyper::create_HLA_graph()
 }
 
 void
-Gyper::index()
+Constructor::index()
 {
   TKmerMap kmer_map;
 
@@ -134,7 +179,7 @@ Gyper::index()
 }
 
 unsigned
-Gyper::get_number_of_exons()
+Constructor::get_number_of_exons()
 {
   // Set the number of exons
   if (CO.gene == "HLAA" || CO.gene == "HLAC")
@@ -158,7 +203,7 @@ Gyper::get_number_of_exons()
 }
 
 std::string
-Gyper::get_HLA_base_path()
+Constructor::get_HLA_base_path()
 {
   std::stringstream base_path;
   base_path << gyper_SOURCE_DIRECTORY << "/data/haplotypes/hla/references/" << CO.gene << "/";
@@ -166,7 +211,7 @@ Gyper::get_HLA_base_path()
 }
 
 void
-Gyper::add_FASTA_region(bool add_bitstrings, int feature_number, bool intron_region, bool p3_region, bool p5_region)
+Constructor::add_FASTA_region(bool add_bitstrings, int feature_number, bool intron_region, bool p3_region, bool p5_region)
 {
   std::string base_path = get_HLA_base_path();
 
@@ -229,7 +274,7 @@ Gyper::add_FASTA_region(bool add_bitstrings, int feature_number, bool intron_reg
 }
 
 int
-Gyper::open_fasta(const char * fasta_filename)
+Constructor::open_fasta(const char * fasta_filename)
 {
   if (!seqan::open(fasta_index, fasta_filename))
   {
@@ -250,7 +295,7 @@ Gyper::open_fasta(const char * fasta_filename)
 }
 
 unsigned
-Gyper::get_fasta_index_id(const char * id)
+Constructor::get_fasta_index_id(const char * id)
 {
   SEQAN_CHECK(numSeqs(fasta_index) > 0, "No sequences found in FASTA index.");
   unsigned fasta_index_id = 0;
@@ -260,16 +305,15 @@ Gyper::get_fasta_index_id(const char * id)
 }
 
 void
-Gyper::open_vcf(const char * vcf_filename)
+Constructor::open_vcf(const char * vcf_filename)
 {
   seqan::open(vcf_file, vcf_filename);
   seqan::VcfHeader header;
   seqan::readHeader(header, vcf_file);
-  // seqan::readRecord(vcf_record, vcf_file);
 }
 
 int
-Gyper::read_vcf_record()
+Constructor::read_vcf_record()
 {
   if (!seqan::atEnd(vcf_file))
   {
@@ -281,7 +325,7 @@ Gyper::read_vcf_record()
 }
 
 void
-Gyper::open_tabix(const char * tabix_filename)
+Constructor::open_tabix(const char * tabix_filename)
 {
   seqan::open(tabix_file, tabix_filename);
   seqan::String<char> header;
@@ -290,10 +334,10 @@ Gyper::open_tabix(const char * tabix_filename)
 }
 
 bool
-Gyper::read_tabix_record()
+Constructor::read_tabix_record()
 {
   return seqan::readRecord(vcf_record, tabix_file);
 }
 
 
-// } // namespace gyper
+} // namespace gyper

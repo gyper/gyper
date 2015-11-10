@@ -7,24 +7,24 @@
 class VertexLabel
 {
  public:
-  unsigned level;
+  unsigned order;
   seqan::String<seqan::Dna> dna;
 
   VertexLabel();
-  VertexLabel(unsigned level, seqan::String<seqan::Dna> dna);
+  VertexLabel(unsigned order, seqan::String<seqan::Dna> dna);
 };
 
 inline bool
 operator==(const VertexLabel &lhs, const VertexLabel &rhs)
 {
-  return lhs.level == rhs.level && lhs.dna == rhs.dna;
+  return lhs.order == rhs.order && lhs.dna == rhs.dna;
 }
 
 
 inline bool
 operator<(const VertexLabel &lhs, const VertexLabel &rhs)
 {
-  return lhs.level < rhs.level || (lhs.level == rhs.level && lhs.dna < rhs.dna);
+  return lhs.order < rhs.order || (lhs.order == rhs.order && lhs.dna < rhs.dna);
 }
 
 #endif

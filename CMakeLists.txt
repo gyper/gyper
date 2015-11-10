@@ -26,8 +26,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/utilitie
 # configure a header file to pass some of the CMake settings
 # to the source code
 configure_file (
-  "${PROJECT_SOURCE_DIR}/src/constants.hpp.in"
-  "${PROJECT_BINARY_DIR}/constants.hpp"
+  "${PROJECT_SOURCE_DIR}/include/gyper/constants.hpp.in"
+  "${PROJECT_BINARY_DIR}/gyper/constants.hpp"
   )
 
 include_directories("${PROJECT_BINARY_DIR}")
@@ -131,14 +131,17 @@ include_directories(${SEQAN_INCLUDE_DIRS})
 include_directories(${SEQAN_INCLUDE_PATH})
 # set(LIBS ${LIBS} ${SEQAN_LIBRARIES})
 
+# Executables go to a "bin" folder.
 set(EXECUTABLE_OUTPUT_PATH ../bin)
+
+# Include public header files
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+# Compile gyper source files
 add_subdirectory(src)
 
-# Add vcflib
-# add_subdirectory(vcflib)
-
-message("Including HTSlib: " ${htslib_INCLUDE_DIRS})
-include_directories(${htslib_INCLUDE_DIRS})
+# message("Including HTSlib: " ${htslib_INCLUDE_DIRS})
+# include_directories(${htslib_INCLUDE_DIRS})
 
 ## Testing
 include_directories(${CURRENT_SOURCE_DIR}/test)

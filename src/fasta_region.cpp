@@ -1,7 +1,6 @@
-#include "fasta_region.hpp"
-
 #include <assert.h>
 #include <seqan/seq_io.h>
+#include <gyper/fasta_region.hpp>
 
 namespace gyper
 {

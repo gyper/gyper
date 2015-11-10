@@ -1,12 +1,12 @@
-#include "graph_creation.hpp"
+#include <gyper/graph_creation.hpp>
 
 VertexLabel::VertexLabel()
 {
-  level = 0;
+  order = 0;
 }
 
-VertexLabel::VertexLabel(unsigned level, seqan::String<seqan::Dna> dna)
+VertexLabel::VertexLabel(unsigned order, seqan::String<seqan::Dna> dna)
 {
-  VertexLabel::level = level;
+  VertexLabel::order = order;
   VertexLabel::dna = dna;
 }

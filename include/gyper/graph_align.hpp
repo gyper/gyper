@@ -3,8 +3,7 @@
 
 #define SEQAN_NO_GLOBAL_EXCEPTION_HANDLER
 
-#include "graph.hpp"
-
+#include <gyper/graph.hpp>
 #include <boost/unordered_set.hpp>
 
 
