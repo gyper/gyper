@@ -4,3 +4,8 @@ debug*/
 example_test.vcf
 *.log
 .nfs*
+
+## Ignore htslib build files
+htslib/src
+htslib/tmp
+

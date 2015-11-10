@@ -4,12 +4,15 @@
 [submodule "htslib"]
 	path = htslib
 	url = https://github.com/samtools/htslib.git
+	ignore = dirty
 [submodule "catch"]
 	path = catch
 	url = https://github.com/philsquared/Catch.git
 [submodule "rocksdb"]
 	path = rocksdb
 	url = https://github.com/facebook/rocksdb.git
+	ignore = dirty
 [submodule "snappy"]
 	path = snappy
 	url = https://github.com/google/snappy.git
+	ignore = dirty
