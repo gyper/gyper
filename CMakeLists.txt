@@ -13,10 +13,10 @@ set(CMAKE_BUILD_TYPE "Release" CACHE TYPE STRING)
 
 # C++11
 if(${GYPER_DEBUG})
-  message("Debugging is enabled.")
+  message(STATUS "Debugging is enabled.")
   set (CMAKE_CXX_FLAGS "-g -W -Wall -Wfatal-errors -pedantic -Wno-variadic-macros -lrt -O2 -std=c++11 -DSEQAN_USE_HTSLIB=1 -DSEQAN_HAS_ZLIB=1 -DSEQAN_ENABLE_TESTING=0 -DSEQAN_ENABLE_DEBUG=1")
 else()
-  message("Debugging is disabled.")
+  message(STATUS "Debugging is disabled.")
   set (CMAKE_CXX_FLAGS "-Wfatal-errors -lrt -std=c++11 -DSEQAN_USE_HTSLIB=1 -DSEQAN_HAS_ZLIB=1 -O3 -DNDEBUG -DSEQAN_ENABLE_TESTING=0 -DSEQAN_ENABLE_DEBUG=0")
 endif()
 
@@ -48,87 +48,86 @@ message (STATUS "Checking for Boost")
 find_package(Boost 1.57.0 REQUIRED)
 include_directories( ${Boost_INCLUDE_DIRS} )
 
-# Make snappy
+# snappy
 ExternalProject_Add(
-  snappy
+  project_snappy
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/snappy
   BUILD_IN_SOURCE 1
-  PREFIX ${CMAKE_BINARY_DIR}/snappy
+  PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/snappy
   CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/snappy/autogen.sh COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/snappy/configure
   BUILD_COMMAND $(MAKE)
   INSTALL_COMMAND ""
 )
 
-message (STATUS "Checking for snappy")
-set(snappy_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/snappy)
-find_package(snappy REQUIRED)
-message("snappy_INCLUDE_DIRS = ${snappy_INCLUDE_DIRS}")
-message("snappy_LIBRARIES = ${snappy_LIBRARIES}")
-include_directories(${snappy_INCLUDE_DIRS})
-link_directories(${snappy_LIBRARIES})
+ExternalProject_Get_Property(project_snappy install_dir)
+add_library(snappy STATIC IMPORTED)
+include_directories(${install_dir})
 
-# Make rocksdb
-set(ENV{EXTRA_CFLAGS} "-I${snappy_INCLUDE_DIRS}")
-set(ENV{EXTRA_CXXFLAGS} "-I${snappy_INCLUDE_DIRS}")
-set(ENV{EXTRA_LDFLAGS} "-L${snappy_LIBRARIES}")
+set(snappy_location ${install_dir}/.libs/libsnappy.a)
+message("snappy target location is ${snappy_location}")
+set_property(TARGET snappy PROPERTY IMPORTED_LOCATION ${snappy_location})
+add_dependencies(snappy project_snappy)
+
+## rocksdb
+# Needed so rocksdb finds snappy
+set(EXTRA_LDFLAGS "-L${CMAKE_CURRENT_SOURCE_DIR}/snappy/.libs/")
+set(EXTRA_CFLAGS "-I${CMAKE_CURRENT_SOURCE_DIR}/snappy/")
+set(ENV{EXTRA_LDFLAGS} ${EXTRA_LDFLAGS})
+set(ENV{EXTRA_CFLAGS} ${EXTRA_CFLAGS})
+set(ENV{CFLAGS} ${EXTRA_CFLAGS})
+
+#message("Extra cflags = ${EXTRA_CFLAGS}")
+#message("Extra ldflags = ${EXTRA_LDFLAGS}")
 
 ExternalProject_Add(
-  rocksdb
+  project_rocksdb
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/rocksdb
   BUILD_IN_SOURCE 1
-  PREFIX ${CMAKE_BINARY_DIR}/rocksdb
+  PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/rocksdb
   CONFIGURE_COMMAND ""
-  BUILD_COMMAND PORTABLE=1 $(MAKE) -C ${CMAKE_CURRENT_SOURCE_DIR}/rocksdb static_lib
+  BUILD_COMMAND PORTABLE=1;CFLAGS=${EXTRA_CFLAGS} $(MAKE) -C ${CMAKE_CURRENT_SOURCE_DIR}/rocksdb static_lib
   INSTALL_COMMAND ""
 )
 
-ExternalProject_Get_Property(rocksdb install_dir)
-include_directories(${install_dir}/rocksdb/include)
+ExternalProject_Get_Property(project_rocksdb install_dir)
+add_library(rocksdb STATIC IMPORTED)
+include_directories(${install_dir}/include)
+set_property(TARGET rocksdb PROPERTY IMPORTED_LOCATION ${install_dir}/librocksdb.a)
+add_dependencies(project_rocksdb project_snappy)
+add_dependencies(rocksdb project_rocksdb project_snappy snappy)
 
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/rocksdb/include)
-# add_library(ROCKSDB_LIBRARY STATIC IMPORTED)
-# set_property(TARGET ROCKSDB_LIBRARY PROPERTY IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/rocksdb/librocksdb.a)
-
-# find_package(rocksdb REQUIRED)
-# include_directories(${ROCKSDB_INCLUDE_DIR})
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/rocksdb/include)
-# link_directories(${ROCKSDB_LIBRARIES})
-
-set(ROCKSDB_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/rocksdb")
-find_library(ROCKSDB_LIBRARY NAMES rocksdb PATHS ${ROCKSDB_ROOT})
-ExternalProject_Get_Property(rocksdb source_dir)
-set(ROCKSDB_INCLUDE_DIR ${source_dir}/include CACHE INTERNAL "Path to include folder for rocksdb.")
-set(ROCKSDB_LIBRARIES ${source_dir}/librocksdb.a CACHE INTERNAL "Path to rocksdb library files.")
-include_directories(${ROCKSDB_INCLUDE_DIR})
-link_directories(${ROCKSDB_LIBRARIES})
-
-message("ROCKSDB_ROOT = ${ROCKSDB_ROOT}")
-message("ROCKSDB_INCLUDE_DIR = ${ROCKSDB_INCLUDE_DIR}")
-message("ROCKSDB_LIBRARIES = ${ROCKSDB_LIBRARIES}")
-
-# Make htslib
+# htslib
 ExternalProject_Add(
-  htslib
+  project_htslib
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/htslib
   BUILD_IN_SOURCE 1
-  PREFIX ${CMAKE_BINARY_DIR}/htslib
+  PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/htslib
   CONFIGURE_COMMAND ""
   BUILD_COMMAND $(MAKE) -C ${CMAKE_CURRENT_SOURCE_DIR}/htslib
   INSTALL_COMMAND ""
 )
 
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/htslib)
-ExternalProject_Get_Property(htslib source_dir)
-set(htslib_INCLUDE_DIRS ${source_dir} CACHE INTERNAL "Path to include folder for htslib.")
-set(HTSlib_LIBRARY ${source_dir}/libhts.so CACHE INTERNAL "Path to htslib library files.")
+ExternalProject_Get_Property(project_htslib install_dir)
+add_library(htslib STATIC IMPORTED)
+include_directories(${install_dir})
+include_directories(${install_dir}/htslib)
+
+set(htslib_location ${install_dir}/libhts.a)
+message("htslib target location is ${htslib_location}")
+set_property(TARGET htslib PROPERTY IMPORTED_LOCATION ${htslib_location})
+add_dependencies(htslib project_htslib)
+
+# ExternalProject_Get_Property(htslib source_dir)
+# set(htslib_INCLUDE_DIRS ${source_dir} CACHE INTERNAL "Path to include folder for htslib.")
+# set(HTSlib_LIBRARY ${source_dir}/libhts.a CACHE INTERNAL "Path to htslib library files.")
 
 # CMake SeqAn
-add_subdirectory(seqan)
-include_directories(seqan/include)
+# add_subdirectory(seqan)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/seqan/include)
 
-message("SeqAn include path is: ${SEQAN_INCLUDE_PATH}")
-include_directories(${SEQAN_INCLUDE_DIRS})
-include_directories(${SEQAN_INCLUDE_PATH})
+# message("SeqAn include path is: ${SEQAN_INCLUDE_PATH}")
+# include_directories(${SEQAN_INCLUDE_DIRS})
+# include_directories(${SEQAN_INCLUDE_PATH})
 # set(LIBS ${LIBS} ${SEQAN_LIBRARIES})
 
 # Executables go to a "bin" folder.
@@ -137,7 +136,8 @@ set(EXECUTABLE_OUTPUT_PATH ../bin)
 # Include public header files
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# Compile gyper source files
+## Compile gyper source files
+message(STATUS "Compiling gyper's source files")
 add_subdirectory(src)
 
 # message("Including HTSlib: " ${htslib_INCLUDE_DIRS})
@@ -145,6 +145,7 @@ add_subdirectory(src)
 
 ## Testing
 include_directories(${CURRENT_SOURCE_DIR}/test)
+
 # Include catch
 include_directories(catch/include)
 enable_testing(true)

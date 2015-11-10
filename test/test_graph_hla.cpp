@@ -1,19 +1,17 @@
 #include <stdio.h>
 #include <climits>
+#include <catch.hpp>
+#include <cstdio>
+#include <string>
 
 #include <gyper/constructor.hpp>
 #include <gyper/options.hpp>
 #include <gyper/constants.hpp>
 
-#include <catch.hpp>
-#include <cstdio>
-#include <string>
+#include <rocksdb/db.h>
+#include <rocksdb/slice.h>
+#include <rocksdb/options.h>
 
-#include "rocksdb/db.h"
-#include "rocksdb/slice.h"
-#include "rocksdb/options.h"
-
-using namespace gyper;
 
 TEST_CASE("FASTA I/O")
 {
@@ -24,10 +22,10 @@ TEST_CASE("FASTA I/O")
 
 	SECTION("Extract subsequences from a FASTA file.")
 	{
-		Options* CO = new Options();
-		Constructor* gyper = new Constructor(*CO);
+		gyper::Options* CO = new gyper::Options();
+		gyper::Constructor* gyper = new gyper::Constructor(*CO);
 		delete CO;
-		gyper->open_fasta(base_path_str.c_str());
+		gyper->read_reference_genome(base_path_str.c_str());
 		unsigned fasta_index_id = gyper->get_fasta_index_id("chr1");
 		REQUIRE(fasta_index_id == 0);
 		fasta_index_id = gyper->get_fasta_index_id("chr2");
@@ -54,8 +52,8 @@ TEST_CASE("VCF I/O")
 		base_path << gyper_SOURCE_DIRECTORY << "/test/reference/example.vcf";
 		std::string base_path_str = base_path.str();
 
-		Options CO = Options();
-		Constructor* gyper = new Constructor(CO);
+		gyper::Options CO = gyper::Options();
+		gyper::Constructor* gyper = new gyper::Constructor(CO);
 		gyper->open_vcf(base_path_str.c_str());
 
 		REQUIRE(gyper->read_vcf_record() == 0);
@@ -111,8 +109,8 @@ TEST_CASE("VCF I/O")
 			base_path << gyper_SOURCE_DIRECTORY << "/test/reference/example_bgz.vcf.gz";
 			std::string base_path_str = base_path.str();
 
-			Options CO = Options();
-			Constructor* gyper = new Constructor(CO);
+			gyper::Options CO = gyper::Options();
+			gyper::Constructor* gyper = new gyper::Constructor(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")
@@ -264,8 +262,8 @@ TEST_CASE("VCF I/O")
 			base_path << gyper_SOURCE_DIRECTORY << "/test/reference/example2_bgz.vcf.gz";
 			std::string base_path_str = base_path.str();
 
-			Options CO = Options();
-			Constructor* gyper = new Constructor(CO);
+			gyper::Options CO = gyper::Options();
+			gyper::Constructor* gyper = new gyper::Constructor(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")
@@ -336,8 +334,8 @@ TEST_CASE("VCF I/O")
 			base_path << gyper_SOURCE_DIRECTORY << "/test/reference/example3.vcf.gz";
 			std::string base_path_str = base_path.str();
 
-			Options CO = Options();
-			Constructor* gyper = new Constructor(CO);
+			gyper::Options CO = gyper::Options();
+			gyper::Constructor* gyper = new gyper::Constructor(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")
@@ -385,8 +383,8 @@ TEST_CASE("VCF I/O")
 			base_path << gyper_SOURCE_DIRECTORY << "/test/reference/example4.vcf.gz";
 			std::string base_path_str = base_path.str();
 
-			Options CO = Options();
-			Constructor* gyper = new Constructor(CO);
+			gyper::Options CO = gyper::Options();
+			gyper::Constructor* gyper = new gyper::Constructor(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")
@@ -433,8 +431,8 @@ TEST_CASE("VCF I/O")
 			base_path << gyper_SOURCE_DIRECTORY << "/test/reference/example5.vcf.gz";
 			std::string base_path_str = base_path.str();
 
-			Options CO = Options();
-			Constructor* gyper = new Constructor(CO);
+			gyper::Options CO = gyper::Options();
+			gyper::Constructor* gyper = new gyper::Constructor(CO);
 			gyper->open_tabix(base_path_str.c_str());
 
 			SECTION("The getNextFunction")

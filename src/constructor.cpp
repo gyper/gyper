@@ -15,48 +15,51 @@ Constructor::Constructor (Options & CO)
 }
 
 void
-Constructor::add_reference_sequence_preceding_a_point(TVertexDescriptor prev_vertex, unsigned const & point)
+Constructor::add_reference_sequence_preceding_a_point(TVertexDescriptor prev_vertex, unsigned point)
 {
-  unsigned const & prev_order = vertex_labels.at(prev_vertex).order;
-  
   bool sequence_started = false;
+  unsigned starting_pos = vertex_labels[prev_vertex].order;
   seqan::String<seqan::Dna> current_dna = "";
-  unsigned starting_pos = 0;
 
-  // for (unsigned pos = 0; pos < length(sequence); ++pos)
-  // {
-  //   if (sequence[pos] == 'N')
-  //   {
-  //     if (sequence_started)
-  //     {
-  //       TVertexDescriptor target_vertex = seqan::addVertex(graph);
-  //       VertexLabel new_vertex_label(starting_pos, current_dna);
-  //       seqan::addEdge(graph, prev_vertex, target_vertex);
-  //       vertex_label_map[new_vertex_label] = target_vertex;
-  //       vertex_labels.push_back(new_vertex_label);
-  //       // std::cout << length(current_dna) << std::endl;
-  //       current_dna = "";
-  //       prev_vertex = target_vertex;
-  //       sequence_started = false;
-  //     }
+  if (point > length(reference_sequence))
+  {
+    point = length(reference_sequence);
+  }
 
-  //     continue;
-  //   }
+  for (unsigned pos = starting_pos; pos < point; ++pos)
+  {
+    if (reference_sequence[pos] == 'N')
+    {
+      if (sequence_started)
+      {
+        TVertexDescriptor target_vertex = seqan::addVertex(graph);
+        VertexLabel new_vertex_label(starting_pos, current_dna);
+        seqan::addEdge(graph, prev_vertex, target_vertex);
+        vertex_label_map[new_vertex_label] = target_vertex;
+        vertex_labels.push_back(new_vertex_label);
+        // std::cout << length(current_dna) << std::endl;
+        current_dna = "";
+        prev_vertex = target_vertex;
+        sequence_started = false;
+      }
 
-  //   if (!sequence_started)
-  //   {
-  //     TVertexDescriptor target_vertex = seqan::addVertex(graph);
-  //     VertexLabel new_vertex_label(pos, "");
-  //     seqan::addEdge(graph, prev_vertex, target_vertex);
-  //     vertex_label_map[new_vertex_label] = target_vertex;
-  //     vertex_labels.push_back(new_vertex_label);
-  //     prev_vertex = target_vertex;
-  //     starting_pos = pos;
-  //     sequence_started = true;
-  //   }
+      continue;
+    }
+
+    if (!sequence_started)
+    {
+      TVertexDescriptor target_vertex = seqan::addVertex(graph);
+      VertexLabel new_vertex_label(pos, "");
+      seqan::addEdge(graph, prev_vertex, target_vertex);
+      vertex_label_map[new_vertex_label] = target_vertex;
+      vertex_labels.push_back(new_vertex_label);
+      prev_vertex = target_vertex;
+      starting_pos = pos;
+      sequence_started = true;
+    }
     
-  //   appendValue(current_dna, sequence[pos]);
-  // }
+    appendValue(current_dna, reference_sequence[pos]);
+  }
 }
 
 void
@@ -273,25 +276,31 @@ Constructor::add_FASTA_region(bool add_bitstrings, int feature_number, bool intr
   }
 }
 
-int
-Constructor::open_fasta(const char * fasta_filename)
+bool
+Constructor::read_reference_genome(const char * fasta_filename)
 {
   if (!seqan::open(fasta_index, fasta_filename))
   {
     if (!seqan::build(fasta_index, fasta_filename))
     {
       std::cerr << "ERROR: Index could not be loaded or built." << std::endl;
-      return 1;
+      return false;
     }
 
     if (!seqan::save(fasta_index))
     {
       std::cerr << "ERROR: Index could not be written do disk." << std::endl;
-      return 2;
+      return false;
     }
   }
 
-  return 0;
+  return true;
+}
+
+bool
+Constructor::extract_reference_sequence(const char * region)
+{
+  return true;
 }
 
 unsigned

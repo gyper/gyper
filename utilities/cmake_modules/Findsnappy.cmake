@@ -13,9 +13,11 @@
 #                 set, the default paths are searched.
 
 if(NOT snappy_ROOT)
+    message("snappy_ROOT was not set.")
     find_path(snappy_INCLUDE_DIRS snappy.h)
     find_library(snappy_LIBRARIES NAMES snappy)
 else()
+    message("snappy_ROOT = ${snappy_ROOT}")
     find_path(snappy_INCLUDE_DIRS snappy.h NO_DEFAULT_PATH PATHS ${snappy_ROOT})
     find_library(snappy_LIBRARIES NAMES snappy NO_DEFAULT_PATH PATHS ${snappy_ROOT}/.libs)
 endif()

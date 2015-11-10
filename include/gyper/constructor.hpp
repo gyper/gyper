@@ -69,6 +69,8 @@ class Constructor
 
   std::map<VertexLabel, TVertexDescriptor> vertex_label_map;
 
+  seqan::String<seqan::Dna5> reference_sequence;
+
 
  public:
    /**
@@ -84,7 +86,7 @@ class Constructor
 
   void add_initial_vertex();
 
-  void add_reference_sequence_preceding_a_point(TVertexDescriptor prev_vertex, unsigned const & point);
+  void add_reference_sequence_preceding_a_point(TVertexDescriptor prev_vertex, unsigned point);
 
   void add_reference_sequence_to_graph(seqan::String<seqan::Dna5> & sequence);
 
@@ -102,7 +104,9 @@ class Constructor
    */
   void index();
 
-  int open_fasta(const char * fasta_filename);
+  bool read_reference_genome(const char * fasta_filename);
+
+  bool extract_reference_sequence(const char * region);
 
   unsigned get_fasta_index_id(const char * id);
 
