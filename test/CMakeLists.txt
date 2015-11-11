@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 project(test_gyper CXX)
 
 
-set(gyper_TEST_FILES test.cpp test_graph_hla.cpp)
+set(gyper_TEST_FILES test.cpp test_gyper_constructor.cpp test_seqanhts.cpp)
 
 add_executable(test_gyper ${gyper_TEST_FILES})
 add_dependencies(test_gyper project_rocksdb project_snappy project_htslib seqan)

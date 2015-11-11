@@ -26,130 +26,112 @@ namespace gyper
 {
 
 typedef seqan::Graph<seqan::Directed<void, seqan::WithoutEdgeId> > TGraph;
-typedef seqan::VertexDescriptor<TGraph>::Type TVertexDescriptor;
-typedef seqan::EdgeDescriptor<TGraph>::Type TEdgeDescriptor;
+typedef seqan::VertexDescriptor<TGraph>::Type TVertex;
+typedef seqan::EdgeDescriptor<TGraph>::Type TEdge;
 
 struct KmerLabels
 {
-  TVertexDescriptor start_vertex;
-  TVertexDescriptor end_vertex;
+  TVertex start_vertex;
+  TVertex end_vertex;
   boost::dynamic_bitset<> id_bits;
 };
 
 typedef boost::unordered_map<seqan::String<seqan::Dna>, std::vector<KmerLabels> > TKmerMap;
 
 /**
- * @brief Gyper's constructor class
- * @details The one class to rule them all. Each process should only have one Gyper instance.
+ * \brief Gyper's constructor class
+ * \details The one class to rule them all. Each process should only have one Gyper instance.
  */
 
 class Constructor
 {
  private:
-  std::vector<VertexLabel> vertex_labels;
-
-  /** @brief Vector of all nodes (vertex) labels. */
-  // std::vector<VertexLabels> vertex_vector;
-
-  /** @brief Holds a list of labels on each vertex. */
+  /** \brief Holds a list of labels on each vertex. */
   std::vector<std::string> ids;
 
-  /** @brief Holds a list of labels on each vertex. */
-  boost::unordered_map< std::pair<TVertexDescriptor, TVertexDescriptor>, boost::dynamic_bitset<> > edge_ids;
+  /** \brief Holds a list of labels on each vertex. */
+  boost::unordered_map< std::pair<TVertex, TVertex>, boost::dynamic_bitset<> > edge_ids;
 
-  /** @brief A set of all nodes with no DNA base. */
-  std::unordered_set<TVertexDescriptor> free_nodes;
+  /** \brief A set of all nodes with no DNA base. */
+  std::unordered_set<TVertex> free_nodes;
 
-  /** @brief The topological order of all nodes (vertexes). */
-  seqan::String<TVertexDescriptor> order;
+  /** \brief The topological order of all nodes (vertexes). */
+  seqan::String<TVertex> order;
 
-  TVertexDescriptor begin_vertex;
+  TVertex begin_vertex;
 
-  TVertexDescriptor new_begin_vertex;
+  TVertex new_begin_vertex;
 
-  std::map<VertexLabel, TVertexDescriptor> vertex_label_map;
-
-  seqan::String<seqan::Dna5> reference_sequence;
+  std::map<VertexLabel, TVertex> vertex_label_map;
 
 
  public:
-   /**
-   * @brief Constructor for the Constructor (heh). 
-   * @details Optionally call options can be specified and a reference FASTA file.
+  /*********
+   * BASIC *
+   *********/
+  TGraph graph;                         /** \brief Graph is a SeqAn partial order graph. */
+  Options CO;                           /** \brief The Gyper call options. */
+  seqan::GenomicRegion genomic_region;  /** \brief The graph's genomic region. */
+  TVertex vertex_head;                  /** \breif The newest vertex (i.e. the vertex with the highest order) */
+
+  /**
+   * \brief   Constructor for the constructor (heh). 
+   * \details Optionally call options can be specified.
+   * \param   CO Call options.
+   * \return  A new Constructor object with default options.
    * 
-   * @param CO Call options.
-   * @param reference_fasta A reference FASTA file.
-   * @return A new Constructor object.
+   * \pre     Valid options object, if specified.
+   * \post    Non-null constructor object.
    */
   Constructor ();
   Constructor (Options & CO);
+  void set_genomic_region(const char * region);
 
-  void add_initial_vertex();
-
-  void add_reference_sequence_preceding_a_point(TVertexDescriptor prev_vertex, unsigned point);
-
-  void add_reference_sequence_to_graph(seqan::String<seqan::Dna5> & sequence);
-
-  // void create_reference_graph(seqan::String<char> region);
-
-  /**
-   * @brief Creates a single HLA graph.
-   * @details Creates an partial order graph which represents a HLA gene specified by the call option.
-   */
-  void create_HLA_graph();
-
-  /**
-   * @brief Indexes the partial order graph
-   * @details [long description]
-   */
-  void index();
-
+  /*************
+   * FASTA I/O *
+   *************/
+  bool fasta_set = false; 
+  seqan::FaiIndex fasta_index;  /** \brief The fasta index of the reference genome */
   bool read_reference_genome(const char * fasta_filename);
+  void extract_reference_sequence(void);
+  void extract_reference_sequence(const char * region);
 
-  bool extract_reference_sequence(const char * region);
 
-  unsigned get_fasta_index_id(const char * id);
-
-  void open_vcf(const char * fasta_filename);
-
-  int read_vcf_record();
-
+  /***********
+   * VCF I/O *
+   ***********/
+  bool vcf_set = false; 
+  seqan::VcfRecord vcf_record = seqan::VcfRecord();  /** \brief The current VCF record. This variable is used with BCF files. */
+  seqan::Tabix tabix_file;                           /** \brief An index for BCF files, in case variants are stored in BCF format. */
   void open_tabix(const char * fasta_filename);
-
+  void open_tabix(const char * tabix_filename, const char * region);
   bool read_tabix_record();
-
-  /** @brief Graph is a SeqAn partial order graph */
-  TGraph graph;
-
-  /** @brief The argument options */
-  Options CO;
-
-  /** @brief The fasta index of the reference genome */
-  seqan::FaiIndex fasta_index;
-
-  /** @brief A VCF file with all genetic variants */
-  seqan::VcfFileIn vcf_file;
-
-  /** @brief An index for BCF files, in case variants are stored in BCF instead of VCF */
-  seqan::Tabix tabix_file;
-
-  /** @brief The current VCF record. This variable is used with either VCF or BCF files. */
-  seqan::VcfRecord vcf_record;
+  bool read_tabix_region();
+  bool read_first_tabix_region();
 
 
- private:
+  /**********************
+   * GRAPH CONSTRUCTION *
+   **********************/
+  std::vector<VertexLabel> vertex_labels;         /** \brief Vector of all nodes (vertex) labels. */
+  seqan::String<seqan::Dna5> reference_sequence;  /** \brief The reference genome region we extracted from the entire thing. */
+  TVertex insert_reference_vertex(unsigned const & order, seqan::String<seqan::Dna> const & value, TVertex const & previous_vertex);
+  TVertex insert_reference_vertex(unsigned const & order, seqan::String<seqan::Dna> const & value);
+  
+  void add_first_reference_sequence();
+  void add_last_reference_sequence();
+  void add_reference_sequence_preceding_a_point(unsigned const & point);
+  void add_sequence_preceding_a_vcf_record(void);
+  void add_vcf_record_to_graph(void);
+  // TVertex add_sequence_preceding_a_vcf_record(TVertex const & current_vertex);
+
   /**
-   * @brief Get the number of exons for the selected gene.
-   * @details [long description]
-   * @return The number of exons this HLA gene has.
+   * \brief Given a reference and variants, construct a partial order graph.
+   * 
+   * \pre   Opened Tabix file and extracted reference sequence.
+   * \post  A partial order graph which represent all 
    */
-  unsigned get_number_of_exons(void);
-
-  std::string get_HLA_base_path(void);
-
-  void add_HLA_intron(void);
-
-  void add_FASTA_region(bool add_bitstrings, int feature_number = 0, bool intron_region = false, bool p3_region = false, bool p5_region = false);
+  void construct_graph();
 };
 
 } // namespace gyper

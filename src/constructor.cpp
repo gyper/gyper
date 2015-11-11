@@ -3,10 +3,15 @@
 namespace gyper
 {
 
+/*********
+ * BASIC *
+ *********/
+
 Constructor::Constructor ()
 {
 	TGraph graph();
 }
+
 
 Constructor::Constructor (Options & CO)
 {
@@ -15,270 +20,43 @@ Constructor::Constructor (Options & CO)
 }
 
 void
-Constructor::add_reference_sequence_preceding_a_point(TVertexDescriptor prev_vertex, unsigned point)
+Constructor::set_genomic_region(const char * region)
 {
-  bool sequence_started = false;
-  unsigned starting_pos = vertex_labels[prev_vertex].order;
-  seqan::String<seqan::Dna> current_dna = "";
+  seqan::parse(genomic_region, region);
+  SEQAN_ASSERT_MSG(fasta_set, "You need to read reference genome before setting region in it.");
+  bool ret = seqan::getIdByName(genomic_region.rID, fasta_index, genomic_region.seqName);
+  SEQAN_ASSERT_MSG(ret, "No sequence in FASTA index with id = %s", genomic_region.seqName);
 
-  if (point > length(reference_sequence))
+  // Fix invalid positions after parsing, this should probably be a part of seqan::readRegion(..) to do this though.
+  if (static_cast<unsigned>(genomic_region.endPos) > seqan::sequenceLength(fasta_index, genomic_region.rID) ||
+      genomic_region.endPos == seqan::GenomicRegion::INVALID_POS
+     )
   {
-    point = length(reference_sequence);
+    genomic_region.endPos = seqan::sequenceLength(fasta_index, genomic_region.rID);
   }
 
-  for (unsigned pos = starting_pos; pos < point; ++pos)
+  if (genomic_region.beginPos == seqan::GenomicRegion::INVALID_POS ||
+      genomic_region.beginPos < 0
+     )
   {
-    if (reference_sequence[pos] == 'N')
-    {
-      if (sequence_started)
-      {
-        TVertexDescriptor target_vertex = seqan::addVertex(graph);
-        VertexLabel new_vertex_label(starting_pos, current_dna);
-        seqan::addEdge(graph, prev_vertex, target_vertex);
-        vertex_label_map[new_vertex_label] = target_vertex;
-        vertex_labels.push_back(new_vertex_label);
-        // std::cout << length(current_dna) << std::endl;
-        current_dna = "";
-        prev_vertex = target_vertex;
-        sequence_started = false;
-      }
-
-      continue;
-    }
-
-    if (!sequence_started)
-    {
-      TVertexDescriptor target_vertex = seqan::addVertex(graph);
-      VertexLabel new_vertex_label(pos, "");
-      seqan::addEdge(graph, prev_vertex, target_vertex);
-      vertex_label_map[new_vertex_label] = target_vertex;
-      vertex_labels.push_back(new_vertex_label);
-      prev_vertex = target_vertex;
-      starting_pos = pos;
-      sequence_started = true;
-    }
-    
-    appendValue(current_dna, reference_sequence[pos]);
+    genomic_region.beginPos = 0;
   }
 }
 
-void
-Constructor::add_reference_sequence_to_graph(seqan::String<seqan::Dna5> & sequence)
-{
-  TVertexDescriptor prev_vertex = seqan::addVertex(graph);
 
-  seqan::String<seqan::Dna> initial_dna = "";
-  VertexLabel initial_vertex(0, initial_dna);
-
-  vertex_label_map[initial_vertex] = prev_vertex;
-  vertex_labels.push_back(initial_vertex);
-  
-  bool sequence_started = false;
-  seqan::String<seqan::Dna> current_dna = "";
-  unsigned starting_pos = 0;
-
-  for (unsigned pos = 0; pos < length(sequence); ++pos)
-  {
-    if (sequence[pos] == 'N')
-    {
-      if (sequence_started)
-      {
-        TVertexDescriptor target_vertex = seqan::addVertex(graph);
-        VertexLabel new_vertex_label(starting_pos, current_dna);
-        seqan::addEdge(graph, prev_vertex, target_vertex);
-        vertex_label_map[new_vertex_label] = target_vertex;
-        vertex_labels.push_back(new_vertex_label);
-        // std::cout << length(current_dna) << std::endl;
-        current_dna = "";
-        prev_vertex = target_vertex;
-        sequence_started = false;
-      }
-
-      continue;
-    }
-
-    if (!sequence_started)
-    {
-      TVertexDescriptor target_vertex = seqan::addVertex(graph);
-      VertexLabel new_vertex_label(pos, "");
-      seqan::addEdge(graph, prev_vertex, target_vertex);
-      vertex_label_map[new_vertex_label] = target_vertex;
-      vertex_labels.push_back(new_vertex_label);
-      prev_vertex = target_vertex;
-      starting_pos = pos;
-      sequence_started = true;
-    }
-    
-    appendValue(current_dna, sequence[pos]);
-  }
-}
-
-// void
-// Gyper::create_reference_graph(seqan::String<char> region)
-// {
-//   // Extract sequence from a region in a FASTA file
-//   seqan::String<seqan::Dna5> sequence = reference_fasta_ptr->extract_region(region);
-//   add_reference_sequence_to_graph(sequence);
-//   return;
-// }
-
-void
-Constructor::create_HLA_graph()
-{
-  unsigned number_of_exons = get_number_of_exons();
-
-  // Add p3 region
-  add_FASTA_region(false, 0, false, true, false);
-
-  // First exon
-  {
-    add_FASTA_region(true, number_of_exons, false, false, false);
-    --number_of_exons;
-  }
-
-  while (number_of_exons >= 1)
-  {
-    // Intron
-    add_FASTA_region(false, number_of_exons, true, false, false);
-
-    // Exon
-    if (CO.exon_2_and_3 && (number_of_exons != 2 && number_of_exons != 3 && number_of_exons != 4))
-    {
-      add_FASTA_region(false, number_of_exons, false, false, false);
-    }
-    else
-    {
-      add_FASTA_region(true, number_of_exons, false, false, false);
-    }
-
-    --number_of_exons;
-  }
-
-  // Final UTR
-  add_FASTA_region(false, 0, false, false, true);
-
-  // Finally, sort the nodes in topological order
-  seqan::topologicalSort(order, graph);
-}
-
-void
-Constructor::index()
-{
-  TKmerMap kmer_map;
-
-  // for (Iterator<String<TVertexDescriptor const> const>::Type it = begin(order) ; it != end(order) ; ++it)
-  // {
-  //   TVertexDescriptor const & source_vertex = *it;
-
-  //   if (free_nodes.count(source_vertex) == 0)
-  //   {
-  //     boost::dynamic_bitset<> id_bits(edge_ids.begin()->second.size());
-  //     id_bits.flip();
-  //     checkKmers(vertex_vector[source_vertex].dna, source_vertex, source_vertex, graph, vertex_vector, free_nodes, edge_ids, id_bits, kmer_map, static_cast<std::size_t>(CO.k));
-  //   }
-  // }
-
-  // return kmer_map;
-}
-
-unsigned
-Constructor::get_number_of_exons()
-{
-  // Set the number of exons
-  if (CO.gene == "HLAA" || CO.gene == "HLAC")
-  {
-    return 8;
-  }
-  else if (CO.gene == "HLAB")
-  {
-    return 7;
-  }
-  else if (CO.gene == "DQA1")
-  {
-    return 4;
-  }
-  else if (CO.gene == "DQB1" || CO.gene == "DRB1")
-  {
-    return 6;
-  }
-  std::cerr << "Unsupported HLA gene: " << CO.gene << std::endl;
-  return 0;
-}
-
-std::string
-Constructor::get_HLA_base_path()
-{
-  std::stringstream base_path;
-  base_path << gyper_SOURCE_DIRECTORY << "/data/haplotypes/hla/references/" << CO.gene << "/";
-  return base_path.str();
-}
-
-void
-Constructor::add_FASTA_region(bool add_bitstrings, int feature_number, bool intron_region, bool p3_region, bool p5_region)
-{
-  std::string base_path = get_HLA_base_path();
-
-  if (p3_region)
-  {
-    base_path.append("p3.fa");
-
-    if (CO.verbose)
-    {
-      std::cout << "Adding utr    " << base_path << std::endl;
-    }
-
-    // graph = createGraph(base_path.c_str(), vertex_labels, ids, begin_vertex);
-    return;
-  }
-  else if (p5_region)
-  {
-    std::string utr = "5p";
-    utr.append(".fa");
-    base_path.append(utr);
-
-    if (CO.verbose)
-    {
-      std::cout << "Adding utr    " << base_path << std::endl;
-    }
-  }
-  else if (intron_region)
-  {
-    std::string intron = "i";
-    std::string feature_number_str = std::to_string(feature_number);
-    intron.append(feature_number_str);
-    intron.append(".fa");
-    base_path.append(intron);
-
-    if (CO.verbose)
-    {
-      std::cout << "Adding intron " << base_path << std::endl;
-    }
-  }
-  else
-  {
-    // Exon region
-    std::string exon = "e";
-    std::string feature_number_str = std::to_string(feature_number);
-    exon.append(feature_number_str);
-    exon.append(".fa");
-    base_path.append(exon);
-  }
-
-  free_nodes.insert(begin_vertex);
-
-  if (add_bitstrings)
-  {
-    // extendGraph(graph, base_path.c_str(), vertex_labels, edge_ids, new_begin_vertex, begin_vertex);
-  }
-  else
-  {
-    // extendGraph(graph, base_path.c_str(), vertex_labels, new_begin_vertex, begin_vertex);
-  }
-}
-
+/*************
+ * FASTA I/O *
+ *************/
 bool
 Constructor::read_reference_genome(const char * fasta_filename)
 {
+  if (fasta_set)
+  {
+    std::cerr << "Warning: A previously read FASTA will be discarded" << std::endl;
+    seqan::clear(fasta_index);
+    fasta_set = false;
+  }
+
   if (!seqan::open(fasta_index, fasta_filename))
   {
     if (!seqan::build(fasta_index, fasta_filename))
@@ -294,52 +72,62 @@ Constructor::read_reference_genome(const char * fasta_filename)
     }
   }
 
+  fasta_set = true;
   return true;
-}
-
-bool
-Constructor::extract_reference_sequence(const char * region)
-{
-  return true;
-}
-
-unsigned
-Constructor::get_fasta_index_id(const char * id)
-{
-  SEQAN_CHECK(numSeqs(fasta_index) > 0, "No sequences found in FASTA index.");
-  unsigned fasta_index_id = 0;
-  int ret = seqan::getIdByName(fasta_index_id, fasta_index, id);
-  SEQAN_CHECK(ret, "Could not find the FASTA id = %s", id);
-  return fasta_index_id;
 }
 
 void
-Constructor::open_vcf(const char * vcf_filename)
+Constructor::extract_reference_sequence(const char * region)
 {
-  seqan::open(vcf_file, vcf_filename);
-  seqan::VcfHeader header;
-  seqan::readHeader(header, vcf_file);
+  SEQAN_ASSERT_MSG(seqan::numSeqs(fasta_index) != 0, "Please read the reference genome before extr like the FASTA index has not been read.");
+
+  set_genomic_region(region);
+  extract_reference_sequence();
 }
 
-int
-Constructor::read_vcf_record()
+void
+Constructor::extract_reference_sequence(void)
 {
-  if (!seqan::atEnd(vcf_file))
-  {
-    seqan::readRecord(vcf_record, vcf_file);
-    return 0;
-  }
+  SEQAN_ASSERT_MSG(seqan::numSeqs(fasta_index) != 0, "Please read the reference genome before extr like the FASTA index has not been read.");
+  SEQAN_ASSERT_MSG(genomic_region.endPos != seqan::GenomicRegion::INVALID_POS, "Please set region before extracting reference sequence.");
 
-  return 1;
+  seqan::readRegion(
+    reference_sequence,
+    fasta_index,
+    genomic_region.rID,
+    genomic_region.beginPos,
+    genomic_region.endPos
+  );
 }
 
+
+/***********
+ * VCF I/O *
+ ***********/
 void
 Constructor::open_tabix(const char * tabix_filename)
 {
   seqan::open(tabix_file, tabix_filename);
   seqan::String<char> header;
   seqan::getHeader(header, tabix_file);
-  // std::cout << "header = " << header << std::endl;
+  vcf_set = true;
+
+  if (genomic_region.endPos != seqan::VcfRecord::INVALID_POS)
+  {
+    // This means the genomic region has been set
+    seqan::String<char> region_str;
+    genomic_region.toString(region_str);
+    // std::cout << "region_str = " << region_str << std::endl;
+    seqan::setRegion(tabix_file, seqan::toCString(region_str));
+  }
+}
+
+void
+Constructor::open_tabix(const char * tabix_filename, const char * region)
+{
+  SEQAN_ASSERT_MSG(genomic_region.endPos == seqan::VcfRecord::INVALID_POS, "Genomic region was already set.");
+  open_tabix(tabix_filename);
+  seqan::setRegion(tabix_file, region);
 }
 
 bool
@@ -348,5 +136,152 @@ Constructor::read_tabix_record()
   return seqan::readRecord(vcf_record, tabix_file);
 }
 
+bool
+Constructor::read_first_tabix_region()
+{
+  bool success = seqan::readRegion(vcf_record, tabix_file);
+
+  while(vcf_record.beginPos < genomic_region.beginPos)
+  {
+    success = seqan::readRegion(vcf_record, tabix_file);
+  }
+
+  return success;
+}
+
+bool
+Constructor::read_tabix_region()
+{
+  return seqan::readRegion(vcf_record, tabix_file);
+}
+
+
+/**********************
+ * GRAPH CONSTRUCTION *
+ **********************/
+TVertex
+Constructor::insert_reference_vertex(unsigned const & order, seqan::String<seqan::Dna> const & value)
+{
+  // std::cout << "Adding order, value = " << order << ", " << value << std::endl;
+  TVertex new_vertex = seqan::addVertex(graph);
+  VertexLabel new_vertex_label(order, value);
+  vertex_label_map[new_vertex_label] = new_vertex;
+  vertex_labels.push_back(new_vertex_label);
+  return new_vertex;
+}
+
+TVertex
+Constructor::insert_reference_vertex(unsigned const & order, seqan::String<seqan::Dna> const & value, TVertex const & previous_vertex)
+{
+  TVertex new_vertex = insert_reference_vertex(order, value);
+  seqan::addEdge(graph, previous_vertex, new_vertex);
+  return new_vertex;
+}
+
+void
+Constructor::add_first_reference_sequence()
+{
+  if (reference_sequence[0] != 'N')
+  {
+    vertex_head = insert_reference_vertex(0, "");
+    return;
+  }
+
+  unsigned starting_pos = 0;
+
+  while (reference_sequence[starting_pos] == 'N' && starting_pos < static_cast<unsigned>(genomic_region.endPos))
+  {
+    ++starting_pos;
+  }
+
+  vertex_head = insert_reference_vertex(starting_pos, "");
+}
+
+void
+Constructor::add_last_reference_sequence()
+{
+  add_reference_sequence_preceding_a_point(vertex_labels[vertex_head].order);
+}
+
+void
+Constructor::add_reference_sequence_preceding_a_point(unsigned const & point)
+{
+  SEQAN_ASSERT_MSG(point <= seqan::length(reference_sequence) + genomic_region.beginPos,
+                   "Point = %d, ref_seq ends at %d",
+                   point,
+                   seqan::length(reference_sequence) + genomic_region.beginPos
+                  );
+
+  // add_first_reference_sequence_preceding_a_point(point);
+  bool sequence_started = true;
+  unsigned starting_pos = vertex_labels[vertex_head].order + seqan::length(vertex_labels[vertex_head].dna);
+  seqan::String<seqan::Dna> current_dna = "";
+
+  for (unsigned pos = starting_pos; pos < point - genomic_region.beginPos; ++pos)
+  {
+    if (reference_sequence[pos] == 'N')
+    {
+      if (sequence_started)
+      {
+        vertex_head = insert_reference_vertex(starting_pos, current_dna, vertex_head);
+        starting_pos = pos;
+        current_dna = "";
+        sequence_started = false;
+      }
+
+      continue;
+    }
+
+    if (!sequence_started)
+    {
+      vertex_head = insert_reference_vertex(pos, "", vertex_head);
+      starting_pos = pos;
+      sequence_started = true;
+    }
+    
+    appendValue(current_dna, reference_sequence[pos]);
+  }
+
+  if (sequence_started)
+  {
+    vertex_head = insert_reference_vertex(starting_pos, current_dna, vertex_head);
+  }
+  else
+  {
+    // The sequence ends with a 'N'
+    // std::cout << "point = " << point << std::endl;
+    vertex_head = insert_reference_vertex(point - genomic_region.beginPos, current_dna, vertex_head);
+  }
+  
+}
+
+void
+Constructor::add_sequence_preceding_a_vcf_record(void)
+{
+  SEQAN_ASSERT_MSG(vcf_record.beginPos != seqan::VcfRecord::INVALID_POS, "No VCF record.");
+  add_reference_sequence_preceding_a_point(vcf_record.beginPos);
+}
+
+void
+Constructor::add_vcf_record_to_graph(void)
+{
+  unsigned const & order = vcf_record.beginPos;
+  insert_reference_vertex(order, static_cast<seqan::String<seqan::Dna> >(vcf_record.ref), vertex_head);
+
+  seqan::StringSet<seqan::String<char> > alternatives;
+  seqan::strSplit(alternatives, vcf_record.alt, seqan::EqualsChar<','>());
+
+  for (auto alt_it = seqan::begin(alternatives); !seqan::atEnd(alt_it); ++alt_it)
+  {
+    std::cout << *alt_it << std::endl;
+  }
+  
+}
+
+void
+Constructor::construct_graph()
+{
+  
+}
 
 } // namespace gyper

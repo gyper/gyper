@@ -93,7 +93,7 @@ ExternalProject_Get_Property(project_rocksdb install_dir)
 add_library(rocksdb STATIC IMPORTED)
 include_directories(${install_dir}/include)
 set_property(TARGET rocksdb PROPERTY IMPORTED_LOCATION ${install_dir}/librocksdb.a)
-add_dependencies(project_rocksdb project_snappy)
+add_dependencies(project_rocksdb project_snappy snappy)
 add_dependencies(rocksdb project_rocksdb project_snappy snappy)
 
 # htslib

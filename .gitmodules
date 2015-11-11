@@ -1,6 +1,7 @@
 [submodule "seqan"]
 	path = seqan
 	url = https://github.com/hannespetur/SeqAnHTS.git
+	branch = htslib
 [submodule "htslib"]
 	path = htslib
 	url = https://github.com/samtools/htslib.git
