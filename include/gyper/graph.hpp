@@ -25,7 +25,6 @@
 namespace seqan
 {
 
-
 inline
 std::size_t hash_value(String<Dna> const& s)
 {
@@ -121,12 +120,14 @@ struct KmerLabels
 };
 
 
-struct GraphWithLabels {
+struct GraphWithLabels
+{
   TGraph graph;
   std::vector<VertexLabels> vertex_labels;
 };
 
-struct ExactBacktracker {
+struct ExactBacktracker
+{
   std::vector<TVertexDescriptor> nodes;
   std::vector<bool> match; // True if diagonal match, false otherwise
 };

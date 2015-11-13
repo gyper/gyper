@@ -50,8 +50,8 @@ target_link_libraries(gyper gyper_core htslib rocksdb snappy pthread ${ZLIB_LIBR
 # Objectify Gyper
 set(gyper_oo_SOURCE_FILES
    constructor.cpp
+   indexer.cpp
    options.cpp
-   graph_creation.cpp
 )
 
 add_library(gyper_oo_core ${gyper_oo_SOURCE_FILES} )

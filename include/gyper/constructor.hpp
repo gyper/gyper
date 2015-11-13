@@ -2,7 +2,8 @@
 #define __GYPER_HPP__
 // #include "graph.hpp"
 #include <iostream>
-#include <unordered_map>
+#include <utility>
+// #include <unordered_map>
 #include <unordered_set>
 
 #include <boost/unordered/unordered_map.hpp>
@@ -10,13 +11,11 @@
 
 #include <gyper/options.hpp>
 #include <gyper/constants.hpp>
-#include <gyper/graph_creation.hpp>
-#include <gyper/fasta_region.hpp>
+#include <gyper/vertex_label.hpp>
 
 #include <seqan/basic.h>
 #include <seqan/sequence.h>
 #include <seqan/graph_types.h>
-#include <seqan/graph_algorithms.h>
 #include <seqan/seq_io.h>
 #include <seqan/vcf_io.h>
 #include <seqan/bam_io.h>
@@ -25,18 +24,17 @@
 namespace gyper
 {
 
+// Let's typesteal some things
 typedef seqan::Graph<seqan::Directed<void, seqan::WithoutEdgeId> > TGraph;
 typedef seqan::VertexDescriptor<TGraph>::Type TVertex;
 typedef seqan::EdgeDescriptor<TGraph>::Type TEdge;
 
-struct KmerLabels
-{
-  TVertex start_vertex;
-  TVertex end_vertex;
-  boost::dynamic_bitset<> id_bits;
-};
-
-typedef boost::unordered_map<seqan::String<seqan::Dna>, std::vector<KmerLabels> > TKmerMap;
+// struct KmerLabels
+// {
+//   TVertex start_vertex;
+//   TVertex end_vertex;
+//   boost::dynamic_bitset<> id_bits;
+// };
 
 /**
  * \brief Gyper's constructor class
@@ -45,34 +43,14 @@ typedef boost::unordered_map<seqan::String<seqan::Dna>, std::vector<KmerLabels> 
 
 class Constructor
 {
- private:
-  /** \brief Holds a list of labels on each vertex. */
-  std::vector<std::string> ids;
-
-  /** \brief Holds a list of labels on each vertex. */
-  boost::unordered_map< std::pair<TVertex, TVertex>, boost::dynamic_bitset<> > edge_ids;
-
-  /** \brief A set of all nodes with no DNA base. */
-  std::unordered_set<TVertex> free_nodes;
-
-  /** \brief The topological order of all nodes (vertexes). */
-  seqan::String<TVertex> order;
-
-  TVertex begin_vertex;
-
-  TVertex new_begin_vertex;
-
-  std::map<VertexLabel, TVertex> vertex_label_map;
-
-
  public:
   /*********
    * BASIC *
    *********/
-  TGraph graph;                         /** \brief Graph is a SeqAn partial order graph. */
-  Options CO;                           /** \brief The Gyper call options. */
-  seqan::GenomicRegion genomic_region;  /** \brief The graph's genomic region. */
-  TVertex vertex_head;                  /** \breif The newest vertex (i.e. the vertex with the highest order) */
+  TGraph graph;                        /** \brief Graph is a SeqAn partial order graph. */
+  Options CO;                          /** \brief The Gyper call options. */
+  seqan::GenomicRegion genomic_region; /** \brief The graph's genomic region. */
+  TVertex head;                        /** \brief The newest reference vertex, i.e. the one with the highest order. */
 
   /**
    * \brief   Constructor for the constructor (heh). 
@@ -118,22 +96,30 @@ class Constructor
   TVertex insert_reference_vertex(unsigned const & order, seqan::String<seqan::Dna> const & value, TVertex const & previous_vertex);
   TVertex insert_reference_vertex(unsigned const & order, seqan::String<seqan::Dna> const & value);
   
-  void add_first_reference_sequence();
+  bool add_first_reference_sequence();
   void add_last_reference_sequence();
+  void insert_multiple_vertexes(unsigned const & starting_pos, seqan::String<seqan::Dna> const & current_dna);
   void add_reference_sequence_preceding_a_point(unsigned const & point);
   void add_sequence_preceding_a_vcf_record(void);
   void add_vcf_record_to_graph(void);
   // TVertex add_sequence_preceding_a_vcf_record(TVertex const & current_vertex);
 
+
+  /***************************
+   * THE ONLY THING YOU NEED *
+   ***************************/
   /**
-   * \brief Given a reference and variants, construct a partial order graph.
+   * \brief Given a reference, variants, and a genomic region, construct a partial order graph for that region that represents all possible haplotypes.
    * 
-   * \pre   Opened Tabix file and extracted reference sequence.
-   * \post  A partial order graph which represent all 
+   * \pre   Valid location of a tabix-indexed BCF file and a fai-indexed FASTA file.
+   * \post  A partial order graph which represent all possible haplotypes.
    */
-  void construct_graph();
+  void construct_graph(const char * reference_filename, const char * vcf_filename, const char * region);
 };
+
+// Allow writing some information about the class to a stream
+std::ostream &operator<<(std::ostream &os, Constructor const &c);
 
 } // namespace gyper
 
-#endif
+#endif // __GYPER_HPP__

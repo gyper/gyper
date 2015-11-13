@@ -4,14 +4,24 @@
 #include <seqan/basic.h>
 #include <seqan/sequence.h>
 
+namespace gyper
+{
+
 class VertexLabel
 {
  public:
-  unsigned order;
+  uint32_t order;
   seqan::String<seqan::Dna> dna;
+  unsigned variant_id;
 
-  VertexLabel();
-  VertexLabel(unsigned order, seqan::String<seqan::Dna> dna);
+  VertexLabel()
+    : order(0), dna(""), variant_id(0) {}
+
+  VertexLabel(uint32_t const & order, seqan::String<seqan::Dna> const & dna)
+    : order(order), dna(dna), variant_id(0) {}
+
+  VertexLabel(uint32_t const & order, seqan::String<seqan::Dna> const & dna, unsigned const & variant_id)
+    : order(order), dna(dna), variant_id(variant_id) {}
 };
 
 inline bool
@@ -26,5 +36,7 @@ operator<(const VertexLabel &lhs, const VertexLabel &rhs)
 {
   return lhs.order < rhs.order || (lhs.order == rhs.order && lhs.dna < rhs.dna);
 }
+
+} // namespace gyper
 
 #endif

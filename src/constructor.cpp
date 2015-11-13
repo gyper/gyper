@@ -6,7 +6,6 @@ namespace gyper
 /*********
  * BASIC *
  *********/
-
 Constructor::Constructor ()
 {
 	TGraph graph();
@@ -165,7 +164,7 @@ Constructor::insert_reference_vertex(unsigned const & order, seqan::String<seqan
   // std::cout << "Adding order, value = " << order << ", " << value << std::endl;
   TVertex new_vertex = seqan::addVertex(graph);
   VertexLabel new_vertex_label(order, value);
-  vertex_label_map[new_vertex_label] = new_vertex;
+  // vertex_label_map[new_vertex_label] = new_vertex;
   vertex_labels.push_back(new_vertex_label);
   return new_vertex;
 }
@@ -178,13 +177,13 @@ Constructor::insert_reference_vertex(unsigned const & order, seqan::String<seqan
   return new_vertex;
 }
 
-void
+bool
 Constructor::add_first_reference_sequence()
 {
   if (reference_sequence[0] != 'N')
   {
-    vertex_head = insert_reference_vertex(0, "");
-    return;
+    head = insert_reference_vertex(0, "");
+    return vcf_record.beginPos == 0;
   }
 
   unsigned starting_pos = 0;
@@ -194,13 +193,32 @@ Constructor::add_first_reference_sequence()
     ++starting_pos;
   }
 
-  vertex_head = insert_reference_vertex(starting_pos, "");
+  head = insert_reference_vertex(starting_pos, "");
+
+  // return true if the first sequence is a variant
+  return vcf_record.beginPos == static_cast<int>(starting_pos);
 }
 
 void
 Constructor::add_last_reference_sequence()
 {
-  add_reference_sequence_preceding_a_point(vertex_labels[vertex_head].order);
+  add_reference_sequence_preceding_a_point(vertex_labels[head].order);
+}
+
+// Connect variant nodes to the new reference head, if there are any
+void
+Constructor::insert_multiple_vertexes(unsigned const & starting_pos, seqan::String<seqan::Dna> const & current_dna)
+{
+  TVertex const & new_head = insert_reference_vertex(starting_pos, current_dna, head);
+
+  // Also connect variant nodes to the new reference head, if there are any
+  ++head;
+  while (head < new_head)
+  {
+    // std::cout << "Adding edge from " << head << " to " << new_head << std::endl;
+    seqan::addEdge(graph, head, new_head);
+    ++head;
+  }
 }
 
 void
@@ -214,7 +232,7 @@ Constructor::add_reference_sequence_preceding_a_point(unsigned const & point)
 
   // add_first_reference_sequence_preceding_a_point(point);
   bool sequence_started = true;
-  unsigned starting_pos = vertex_labels[vertex_head].order + seqan::length(vertex_labels[vertex_head].dna);
+  unsigned starting_pos = vertex_labels[head].order + seqan::length(vertex_labels[head].dna);
   seqan::String<seqan::Dna> current_dna = "";
 
   for (unsigned pos = starting_pos; pos < point - genomic_region.beginPos; ++pos)
@@ -223,7 +241,7 @@ Constructor::add_reference_sequence_preceding_a_point(unsigned const & point)
     {
       if (sequence_started)
       {
-        vertex_head = insert_reference_vertex(starting_pos, current_dna, vertex_head);
+        insert_multiple_vertexes(starting_pos, current_dna);
         starting_pos = pos;
         current_dna = "";
         sequence_started = false;
@@ -234,25 +252,21 @@ Constructor::add_reference_sequence_preceding_a_point(unsigned const & point)
 
     if (!sequence_started)
     {
-      vertex_head = insert_reference_vertex(pos, "", vertex_head);
+      // Add nodes representing a sequence of one or more 'N'.
+      head = insert_reference_vertex(pos, "", head);
       starting_pos = pos;
       sequence_started = true;
     }
-    
+
     appendValue(current_dna, reference_sequence[pos]);
   }
 
-  if (sequence_started)
+  if (!sequence_started)
   {
-    vertex_head = insert_reference_vertex(starting_pos, current_dna, vertex_head);
+    starting_pos = point - genomic_region.beginPos;
   }
-  else
-  {
-    // The sequence ends with a 'N'
-    // std::cout << "point = " << point << std::endl;
-    vertex_head = insert_reference_vertex(point - genomic_region.beginPos, current_dna, vertex_head);
-  }
-  
+
+  insert_multiple_vertexes(starting_pos, current_dna);
 }
 
 void
@@ -266,22 +280,61 @@ void
 Constructor::add_vcf_record_to_graph(void)
 {
   unsigned const & order = vcf_record.beginPos;
-  insert_reference_vertex(order, static_cast<seqan::String<seqan::Dna> >(vcf_record.ref), vertex_head);
 
+  // Extracts the alternative variants to the SeqAn StringSet 'alternatives'.
   seqan::StringSet<seqan::String<char> > alternatives;
   seqan::strSplit(alternatives, vcf_record.alt, seqan::EqualsChar<','>());
 
-  for (auto alt_it = seqan::begin(alternatives); !seqan::atEnd(alt_it); ++alt_it)
+  // Create a nodes for the reference and the alternative variants
+  TVertex new_head = insert_reference_vertex(order, static_cast<seqan::String<seqan::Dna> >(vcf_record.ref), head);
+
+  for (unsigned alt_i = 0; alt_i < seqan::length(alternatives); ++alt_i)
   {
-    std::cout << *alt_it << std::endl;
+    TVertex alt_head = insert_reference_vertex(order, static_cast<seqan::String<seqan::Dna> >(alternatives[alt_i]), head);
+    SEQAN_ASSERT(alt_head > head);
   }
-  
+
+  SEQAN_ASSERT(head + 1 == new_head);
+  ++head;
 }
 
 void
-Constructor::construct_graph()
+Constructor::construct_graph(const char * reference_filename, const char * vcf_filename, const char * region)
 {
+  read_reference_genome(reference_filename);
+  set_genomic_region(region);
+  open_tabix(vcf_filename);
+  read_first_tabix_region();
+  extract_reference_sequence();
+
+  bool add_vcf_first = add_first_reference_sequence();
   
+  if (!add_vcf_first)
+    add_sequence_preceding_a_vcf_record();
+
+  add_vcf_record_to_graph();
+
+  while (read_tabix_region())
+  {
+    add_sequence_preceding_a_vcf_record();
+    add_vcf_record_to_graph();
+  }
+
+  // We have added all VCF records to the graph, now add rest of the reference
+  add_reference_sequence_preceding_a_point(seqan::length(reference_sequence) + genomic_region.beginPos);
+}
+
+std::ostream& operator<<(std::ostream& os, Constructor const& c)
+{
+  os << "Head is at: " << c.head << std::endl;
+
+  for (unsigned v = 0; v < c.vertex_labels.size(); ++v)
+  {
+    os << "Vertex " << v << ": " << c.vertex_labels[v].dna << " @ " << c.vertex_labels[v].order << std::endl;
+  }
+
+  // os << c.graph;
+  return os;
 }
 
 } // namespace gyper

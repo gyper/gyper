@@ -11,9 +11,9 @@
 #include <gyper/options.hpp>
 #include <gyper/constants.hpp>
 
-#include <rocksdb/db.h>
-#include <rocksdb/slice.h>
-#include <rocksdb/options.h>
+// #include <rocksdb/db.h>
+// #include <rocksdb/slice.h>
+// #include <rocksdb/options.h>
 
 
 TEST_CASE("BASIC")
@@ -346,9 +346,13 @@ TEST_CASE("Graph creation")
 
   SECTION("Pre conditions")
   {
-    std::fstream filestr;
-    filestr.open(reference_path_str);
-    REQUIRE(filestr.is_open());
+    std::fstream ref_file;
+    ref_file.open(reference_path_str);
+    REQUIRE(ref_file.is_open());
+
+    std::fstream vcf_file;
+    vcf_file.open(vcf_path_str);
+    REQUIRE(vcf_file.is_open());
   }
 
   SECTION("The insertion of vertices")
@@ -439,7 +443,7 @@ TEST_CASE("Graph creation")
         const unsigned point = 1; // This is index is 0-based
         constructor->add_first_reference_sequence();
         constructor->add_reference_sequence_preceding_a_point(point);
-        REQUIRE(constructor->vertex_head == 1);
+        REQUIRE(constructor->head == 1);
         REQUIRE(constructor->vertex_labels.size() == 2);
         REQUIRE(constructor->vertex_labels[1].dna == "A");
         REQUIRE(constructor->vertex_labels[1].order == 0);
@@ -451,7 +455,7 @@ TEST_CASE("Graph creation")
         const unsigned point = 8;
         constructor->add_first_reference_sequence();
         constructor->add_reference_sequence_preceding_a_point(point);
-        REQUIRE(constructor->vertex_head == 1);
+        REQUIRE(constructor->head == 1);
         REQUIRE(constructor->vertex_labels.size() == 2);
         REQUIRE(constructor->vertex_labels[1].dna == "AGGTTTCC");
         REQUIRE(constructor->vertex_labels[1].order == 0);
@@ -463,7 +467,7 @@ TEST_CASE("Graph creation")
         const unsigned point = 22; // The entire chr1
         constructor->add_first_reference_sequence();
         constructor->add_reference_sequence_preceding_a_point(point);
-        REQUIRE(constructor->vertex_head == 3);
+        REQUIRE(constructor->head == 3);
         REQUIRE(constructor->vertex_labels.size() == 4);
         REQUIRE(constructor->vertex_labels[0].dna == "");
         REQUIRE(constructor->vertex_labels[0].order == 0);
@@ -481,7 +485,7 @@ TEST_CASE("Graph creation")
         const unsigned point = 22; // The entire chr2
         constructor->add_first_reference_sequence();
         constructor->add_reference_sequence_preceding_a_point(point);
-        REQUIRE(constructor->vertex_head == 1);
+        REQUIRE(constructor->head == 1);
         REQUIRE(constructor->vertex_labels.size() == 2);
         REQUIRE(constructor->vertex_labels[0].dna == "");
         REQUIRE(constructor->vertex_labels[0].order == 2);
@@ -505,10 +509,10 @@ TEST_CASE("Graph creation")
         REQUIRE(constructor->read_first_tabix_region());
         constructor->extract_reference_sequence();
         constructor->add_first_reference_sequence();
-        REQUIRE(constructor->vertex_head == 0);
+        REQUIRE(constructor->head == 0);
 
         constructor->add_sequence_preceding_a_vcf_record();
-        REQUIRE(constructor->vertex_head == 1);
+        REQUIRE(constructor->head == 1);
         REQUIRE(constructor->vertex_labels.size() == 2);
         REQUIRE(constructor->vertex_labels[0].dna == "");
         REQUIRE(constructor->vertex_labels[0].order == 0);
@@ -525,10 +529,10 @@ TEST_CASE("Graph creation")
         REQUIRE(constructor->read_first_tabix_region());
         constructor->extract_reference_sequence();
         constructor->add_first_reference_sequence();
-        REQUIRE(constructor->vertex_head == 0);
+        REQUIRE(constructor->head == 0);
         constructor->add_sequence_preceding_a_vcf_record();
 
-        REQUIRE(constructor->vertex_head == 3);
+        REQUIRE(constructor->head == 3);
         REQUIRE(constructor->vertex_labels.size() == 4);
         REQUIRE(constructor->vertex_labels[0].dna == "");
         REQUIRE(constructor->vertex_labels[0].order == 0);
@@ -549,10 +553,10 @@ TEST_CASE("Graph creation")
         REQUIRE(constructor->read_first_tabix_region());
         constructor->extract_reference_sequence();
         constructor->add_first_reference_sequence();
-        REQUIRE(constructor->vertex_head == 0);
+        REQUIRE(constructor->head == 0);
         constructor->add_sequence_preceding_a_vcf_record();
 
-        REQUIRE(constructor->vertex_head == 3);
+        REQUIRE(constructor->head == 3);
         REQUIRE(constructor->vertex_labels.size() == 4);
         REQUIRE(constructor->vertex_labels[0].dna == "");
         REQUIRE(constructor->vertex_labels[0].order == 0);
@@ -574,7 +578,7 @@ TEST_CASE("Graph creation")
     {
       constructor->read_reference_genome(reference_path_str.c_str());
 
-      SECTION("First VCF record")
+      SECTION("VCF record with a SNP")
       {
         constructor->set_genomic_region("chr1:1-3");
         constructor->open_tabix(vcf_path_str.c_str());
@@ -582,7 +586,6 @@ TEST_CASE("Graph creation")
         constructor->extract_reference_sequence();
         constructor->add_first_reference_sequence();
         constructor->add_sequence_preceding_a_vcf_record();
-
 
         REQUIRE(constructor->vcf_record.rID == 0);
         REQUIRE(constructor->vcf_record.beginPos == 1);
@@ -592,14 +595,97 @@ TEST_CASE("Graph creation")
 
         REQUIRE(constructor->vertex_labels.size() == 2);
         constructor->add_vcf_record_to_graph();
-        REQUIRE(constructor->vertex_labels.size() == 3);
+        REQUIRE(constructor->vertex_labels.size() == 4);
         REQUIRE(constructor->vertex_labels[2].dna == "G");
+        REQUIRE(constructor->vertex_labels[2].order == 1);
+        REQUIRE(constructor->vertex_labels[3].dna == "A");
+        REQUIRE(constructor->vertex_labels[3].order == 1);
 
+        REQUIRE(!constructor->read_tabix_region()); // No more records
       }
 
+      SECTION("VCF record with two alternative paths")
+      {
+        constructor->set_genomic_region("chr1:17");
+        constructor->open_tabix(vcf_path_str.c_str());
+        REQUIRE(constructor->read_first_tabix_region());
+        constructor->extract_reference_sequence();
+        constructor->add_first_reference_sequence();
+        constructor->add_sequence_preceding_a_vcf_record();
+
+        REQUIRE(constructor->vcf_record.rID == 0);
+        REQUIRE(constructor->vcf_record.beginPos == 17);
+        REQUIRE(constructor->vcf_record.id == "msat14123");
+        REQUIRE(constructor->vcf_record.ref == "GGT");
+        REQUIRE(constructor->vcf_record.alt == "G,GGTGTGT");
+
+        REQUIRE(constructor->vertex_labels.size() == 2);
+        constructor->add_vcf_record_to_graph();
+        REQUIRE(constructor->vertex_labels.size() == 5);
+        REQUIRE(constructor->vertex_labels[2].dna == "GGT");
+        REQUIRE(constructor->vertex_labels[2].order == 17);
+        REQUIRE(constructor->vertex_labels[3].dna == "G");
+        REQUIRE(constructor->vertex_labels[3].order == 17);
+        REQUIRE(constructor->vertex_labels[4].dna == "GGTGTGT");
+        REQUIRE(constructor->vertex_labels[4].order == 17);
+
+        REQUIRE(!constructor->read_tabix_region()); // No more records
+      }
     }
-    
   }
 
   delete constructor;
+}
+
+TEST_CASE("THE ONLY THING YOU NEED")
+{
+  std::stringstream vcf_path;
+  vcf_path << gyper_SOURCE_DIRECTORY << "/test/reference/example6_bgz.vcf.gz";
+  std::string vcf_path_str = vcf_path.str();
+
+  std::stringstream reference_path;
+  reference_path << gyper_SOURCE_DIRECTORY << "/test/reference/reference.fa";
+  std::string reference_path_str = reference_path.str();
+
+  gyper::Options* CO = new gyper::Options();
+  gyper::Constructor* constructor = new gyper::Constructor(*CO);
+  delete CO;
+
+  std::string expected = "";
+
+  SECTION("chr1")
+  {
+    constructor->construct_graph(reference_path_str.c_str(), vcf_path_str.c_str(), "chr1");
+    expected = std::string("Head is at: 16\nVertex 0:  @ 0\nVertex 1: A @ 0\nVertex 2: G @ 1\nVertex 3: A @ 1\nVertex 4: G @ 2\nVertex 5: G @ 3\nVertex 6: GT @ 3\nVertex 7: T @ 4\nVertex 8: TC @ 5\nVertex 9: T @ 5\nVertex 10: CCC @ 7\nVertex 11:  @ 16\nVertex 12: A @ 16\nVertex 13: GGT @ 17\nVertex 14: G @ 17\nVertex 15: GGTGTGT @ 17\nVertex 16: TT @ 20\n");
+  }
+
+  SECTION("chr2")
+  {
+    constructor->construct_graph(reference_path_str.c_str(), vcf_path_str.c_str(), "chr2");
+
+    expected = std::string("Head is at: 3\nVertex 0:  @ 2\nVertex 1: A @ 2\nVertex 2: T @ 2\nVertex 3: GGTTTCCCCAGGTTTCCCC @ 3\n");
+// Vertex 1: A @ 0
+// Vertex 2: G @ 1
+// Vertex 3: A @ 1
+// Vertex 4: G @ 2
+// Vertex 5: G @ 3
+// Vertex 6: GT @ 3
+// Vertex 7: T @ 4
+// Vertex 8: TC @ 5
+// Vertex 9: T @ 5
+// Vertex 10: CCC @ 7
+// Vertex 11:  @ 16
+// Vertex 12: A @ 16
+// Vertex 13: GGT @ 17
+// Vertex 14: G @ 17
+// Vertex 15: GGTGTGT @ 17
+// Vertex 16: TT @ 20
+
+  }
+
+  std::ostringstream ss;
+  ss << *constructor;
+
+  REQUIRE(ss.str() == expected);
+  // std::cout << "constructor = " << *constructor << std::endl;
 }
