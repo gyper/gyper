@@ -61,6 +61,8 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
   addOption(parser, ArgParseOption("c", "vcf", "Print VCF outut."));
   addOption(parser, ArgParseOption("bc", "bias_check", "If used Gyper will use every read pair in the BAM file provided. Should only be used for very small BAMs, unless you have huge amount of RAM and patience."));
   addOption(parser, ArgParseOption("1k", "thousand_genomes", "Use reference from the 1000 Genomes project."));
+  addOption(parser, ArgParseOption("rna", "rnaseq", "Build partial order graph without introns."));
+  addOption(parser, ArgParseOption("single", "singleend", "Single-end sequencing."));
   addOption(parser, ArgParseOption("b",
     "beta",
     "A scoring parameter for heterozygous scores. Higher beta means more likely to pick heterozugous.",
@@ -106,6 +108,10 @@ ArgumentParser::ParseResult parseCommandLine(callOptions & CO, ArgumentParser & 
     getOptionValue(CO.bias_check, parser, "bias_check");
   if (isSet(parser, "thousand_genomes"))
     getOptionValue(CO.thousand_genomes, parser, "thousand_genomes");
+  if (isSet(parser, "rnaseq"))
+    getOptionValue(CO.rnaseq, parser, "rnaseq");
+  if (isSet(parser, "singleend"))
+    getOptionValue(CO.singleend, parser, "singleend");
   if (isSet(parser, "read_gap"))
     getOptionValue(CO.read_gap, parser, "read_gap");
 
@@ -414,7 +420,7 @@ addToBars(callOptions & CO,
           continue;
         }
 
-        if (hasFlagFirst(record))
+        if (hasFlagFirst(record) || CO.singleend)
         {
           if (bars1.count(record.qName) == 1)
           {
@@ -448,7 +454,7 @@ addToBars(callOptions & CO,
       // std::cout << "record.beginPos = " << record.beginPos;
       // std::cout << ": record.rID = " << record.rID << std::endl;
 
-      if (hasFlagFirst(record))
+      if (hasFlagFirst(record) || CO.singleend)
       {
         if (bars1.count(record.qName) == 1)
         {
@@ -1034,9 +1040,12 @@ int main (int argc, char const ** argv)
 
     for (TBarMap::iterator it = bars1.begin() ; it != bars1.end() ; ++it)
     {
-      if (bars2.count(it->first) == 0)
+      if (!CO.singleend)
       {
-        continue;
+        if (bars2.count(it->first) == 0)
+        {
+          continue;
+        }
       }
 
       String<Dna> sequence1 = it->second.seq;
@@ -1062,23 +1071,27 @@ int main (int argc, char const ** argv)
       if (ids_found1.none())
         continue;
 
-      boost::dynamic_bitset<> ids_found2 = 
-           align_sequence_kmer(sequence2,
-                               bars2[it->first].qual,
-                               ids.size(),
-                               kmer_map,
-                               vertex_vector,
-                               CO.kmer,
-                               CO.min_kmers
-                              );
+      if (!CO.singleend)
+      {
+        boost::dynamic_bitset<> ids_found2 = 
+             align_sequence_kmer(sequence2,
+                                 bars2[it->first].qual,
+                                 ids.size(),
+                                 kmer_map,
+                                 vertex_vector,
+                                 CO.kmer,
+                                 CO.min_kmers
+                                );
 
-      if (ids_found2.none())
-        continue;
+        if (ids_found2.none())
+          continue;
 
-      ids_found1 &= ids_found2;
+        ids_found1 &= ids_found2;
 
-      if (ids_found1.none())
-        continue;
+        if (ids_found1.none())
+          continue;
+
+      }
 
       total_matches += 1.0;
 
