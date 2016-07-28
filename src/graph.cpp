@@ -175,6 +175,7 @@ createGenericGraph(callOptions & CO,
   while (number_of_exons >= 1)
   {
     // Intron
+    if (!CO.rnaseq)
     {
       tmp_string = base_path.str();
       std::string intron = "i";
@@ -301,6 +302,7 @@ create_exon_2_and_3_graph(callOptions & CO,
   while (number_of_exons >= 1)
   {
     // Intron
+    if (!CO.rnaseq)
     {
       tmp_string = base_path.str();
       std::string intron = "i";

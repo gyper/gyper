@@ -185,6 +185,8 @@ struct callOptions
   bool vcf;
   bool bias_check;
   bool thousand_genomes;
+  bool rnaseq;
+  bool singleend;
   int read_gap;
 
   void print_options(){
@@ -210,12 +212,14 @@ struct callOptions
     std::cout << "CO.vcf " << vcf << std::endl;
     std::cout << "CO.bias_check " << bias_check << std::endl;
     std::cout << "CO.thousand_genomes " << thousand_genomes << std::endl;
+    std::cout << "CO.rnaseq " << rnaseq << std::endl;
+    std::cout << "CO.singleend " << singleend << std::endl;
     std::cout << "CO.read_gap " << read_gap << std::endl;
   };
 
 callOptions():
   beta_list("0.6"), bpQclip(30), bpQskip(25), number_of_exons(4), kmer(15), min_kmers(1), gene("DQA1"), minSeqLen_list("60"), outputFolder(),
-  vcfOutputFolder(), verbose(false), exon_2_and_3(false), vcf(false), bias_check(false), thousand_genomes(false), read_gap(1000) {}
+  vcfOutputFolder(), verbose(false), exon_2_and_3(false), vcf(false), bias_check(false), thousand_genomes(false), rnaseq(false), singleend(false), read_gap(1000) {}
 };
 
 
